@@ -11,7 +11,10 @@ export default function Home() {
       <main className="flex flex-col items-center justify-start flex-1 px-8 pb-20 gap-16 sm:px-20 w-full max-w-3xl mx-auto">
         <Section title="About">
           <p>
-            I'm a full stack software engineer with a master's in cybersecurity and 6+ years of experience building secure, scalable applications. I’ve contributed to B2B fintech platforms and real-time logistics systems, with a focus on backend architecture, infrastructure, and continuous improvement.
+            I&apos;m a full stack software engineer with a master&apos;s in cybersecurity and 6+
+            years of experience building secure, scalable applications. I&apos;ve contributed to B2B
+            fintech platforms and real-time logistics systems, with a focus on backend architecture,
+            infrastructure, and continuous improvement.
           </p>
         </Section>
 
