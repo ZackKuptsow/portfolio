@@ -1,17 +1,24 @@
-// components/Card.tsx
 'use client'
 
 import { ReactNode } from 'react'
 
 type CardProps = {
-  title: string
-  description: string
-  icon?: ReactNode
-  href?: string
   className?: string
+  description: string
+  href?: string
+  icon?: ReactNode
+  subtitle?: string
+  title: string
 }
 
-export default function Card({ title, description, icon, href, className = '' }: CardProps) {
+export default function Card({
+  className = '',
+  description,
+  href,
+  icon,
+  subtitle,
+  title,
+}: CardProps) {
   const Wrapper = href ? 'a' : 'div'
 
   return (
@@ -23,7 +30,8 @@ export default function Card({ title, description, icon, href, className = '' }:
       <h3 className="text-lg font-medium text-white group-hover:text-emerald-400 transition-colors">
         {title}
       </h3>
-      <p className="mt-2 text-sm text-white/60 leading-relaxed">{description}</p>
+      <h5 className="font-medium text-white/60">{subtitle}</h5>
+      <p className="mt-2 text-sm text-white/40 leading-relaxed">{description}</p>
     </Wrapper>
   )
 }

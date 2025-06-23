@@ -10,11 +10,18 @@ export default function Home() {
 
       <main className="flex flex-col items-center justify-start flex-1 px-8 pb-20 gap-16 sm:px-20 w-full max-w-3xl mx-auto">
         <Section title="About">
-          <p>
-            I&apos;m a full stack software engineer with a master&apos;s in cybersecurity and 6+
-            years of experience building secure, scalable applications. I&apos;ve contributed to B2B
-            fintech platforms and real-time logistics systems, with a focus on backend architecture,
-            infrastructure, and continuous improvement.
+          <p className="text-white/80 leading-relaxed">
+            I’m a full stack software engineer who thrives on building reliable, maintainable
+            software across the stack. With a strong foundation in both backend and frontend
+            development, I’ve built and improved complex systems for logistics, fintech, and
+            analytics platforms — always with an eye toward clean architecture and thoughtful user
+            experience.
+          </p>
+
+          <p className="text-white/80 leading-relaxed mt-4">
+            I value code that’s easy to understand, tooling that supports the team, and features
+            that solve real problems. Whether working in TypeScript, Python, or Rust, I focus on
+            writing secure, testable, and resilient applications that are easy to evolve.
           </p>
         </Section>
 
@@ -32,21 +39,61 @@ export default function Home() {
             description="Built a full-stack anomaly detection system with Django and Qlik Sense Cloud. Enhanced security observability using NetFlow data and dynamic dashboards."
           />
         </Section>
-
-        <Section title="Skills">
-          <ul className="grid grid-cols-2 gap-2 text-sm text-white/80">
-            <li>TypeScript / JavaScript</li>
-            <li>React / Tailwind / Redux</li>
-            <li>Python / Django</li>
-            <li>Node.js / PostgreSQL</li>
-            <li>AWS / CDK / Docker</li>
-            <li>GitHub Actions / CI/CD</li>
-            <li>Shell Scripting / Bash</li>
-            <li>Secure Software Design</li>
-            <li>Monitoring / Logging</li>
-            <li>Testing Automation</li>
-          </ul>
+        <Section title="Education" className="w-full">
+          <Card
+            className="w-full"
+            title="University of Delaware"
+            subtitle="M.S. Cybersecurity · 2019–2021"
+            description="Concentration: Secure Software"
+          />
+          <Card
+            title="University of Delaware"
+            subtitle="B.E.E. Electrical Engineering · 2015–2019"
+            description="Minor: Integrated Design"
+          />
         </Section>
+        <Section title="Skills">
+          <div className="flex flex-row gap-8 text-sm text-white/80">
+            <div>
+              <h4 className="text-lg font-semibold text-white">Languages</h4>
+              <ul className="list-disc list-inside">
+                <li>TypeScript / JavaScript</li>
+                <li>Python</li>
+                <li>Bash / Shell</li>
+                <li>Go / Rust (learning)</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-lg font-semibold text-white">Frameworks</h4>
+              <ul className="list-disc list-inside">
+                <li>React / Next.js</li>
+                <li>Django / DRF</li>
+                <li>Node.js</li>
+                <li>Tailwind CSS</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-lg font-semibold text-white">Infrastructure</h4>
+              <ul className="list-disc list-inside">
+                <li>AWS (CDK, SQS, SNS, ECS)</li>
+                <li>Docker</li>
+                <li>GitHub Actions</li>
+                <li>Monitoring / Logging</li>
+              </ul>
+            </div>
+          </div>
+        </Section>
+        <a
+          href="/Zachary_Kuptsow_Resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block mt-4 text-sm px-4 py-2 border border-white/20 rounded hover:border-emerald-500 hover:text-emerald-400 transition"
+          download="Zachary_Kuptsow_Resume.pdf"
+        >
+          Download Resume
+        </a>
       </main>
 
       <Footer />

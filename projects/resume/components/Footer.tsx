@@ -2,8 +2,8 @@ import Image from 'next/image'
 
 export default function Footer() {
   return (
-    <footer className="px-12 py-6 flex sm:flex-col items-between justify-between text-gray-500 text-center">
-      <div className="flex sm:flex-col items-center gap-8">
+    <footer className="px-12 py-6 flex items-between justify-between text-gray-500 text-center">
+      <div className="flex items-center gap-8">
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="https://www.linkedin.com/in/zack-kuptsow/"
