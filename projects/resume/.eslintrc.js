@@ -7,14 +7,21 @@ module.exports = {
       'error',
       {
         groups: [
-          'builtin',
-          'external',
-          'internal',
-          ['sibling', 'parent', 'index'],
-          'object',
-          'type',
+          'builtin', // node built-ins
+          'external', // external packages like react, next
+          'internal', // @/components etc
+          ['parent', 'sibling', 'index'],
+          'object', // imports like import log = require("log");
+          'type', // `import type { ... }`
         ],
         pathGroups: [
+          // Move CSS files to top
+          {
+            pattern: '**/*.css',
+            group: 'index',
+            position: 'before',
+          },
+          // Treat @/** as internal
           {
             pattern: '@/**',
             group: 'internal',

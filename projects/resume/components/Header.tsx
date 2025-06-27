@@ -1,10 +1,10 @@
 export default function Header() {
   return (
-    <header className="mb-12">
-      <h1 className="sticky w-full flex flex-col items-center justify-center text-center gap-2 text-center text-6xl sm:text-7xl md:text-8xl font-light text-white pointer-events-none mix-blend-screen select-none tracking-tight">
+    <header className="sticky mb-12 text-center">
+      <h1 className="text-[var(--foreground)] text-6xl sm:text-7xl md:text-8xl font-light pointer-events-none select-none tracking-tight transition-colors duration-300">
         Zack Kuptsow
       </h1>
-      <p className="text-gray-500 text-center text-xl sm:text-2xl md:text-3xl  ">
+      <p className="mt-2  text-[color:var(--foreground)]/70 text-xl sm:text-2xl md:text-3xl text-[color:var(--foreground)]/70">
         Full Stack Engineer
       </p>
     </header>

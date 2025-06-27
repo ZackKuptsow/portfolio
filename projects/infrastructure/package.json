@@ -1,11 +1,18 @@
 {
   "name": "infrastructure",
   "packageManager": "yarn@4.9.2",
+  "scripts": {
+    "cdk:deploy": "set -a && source .env && set +a && yarn cdk deploy"
+  },
   "devDependencies": {
+    "@types/node": "^24.0.4",
     "aws-cdk": "^2.1019.1",
     "aws-cdk-lib": "^2.202.0",
     "constructs": "^10.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "cdk": "^2.1019.1"
   }
 }

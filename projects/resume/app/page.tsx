@@ -7,10 +7,9 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col font-sans">
       <Header />
-
       <main className="flex flex-col items-center justify-start flex-1 px-8 pb-20 gap-16 sm:px-20 w-full max-w-3xl mx-auto">
         <Section title="About">
-          <p className="text-white/80 leading-relaxed">
+          <p className="text-[color:var(--foreground)]/70 leading-relaxed">
             I’m a full stack software engineer who thrives on building reliable, maintainable
             software across the stack. With a strong foundation in both backend and frontend
             development, I’ve built and improved complex systems for logistics, fintech, and
@@ -18,7 +17,7 @@ export default function Home() {
             experience.
           </p>
 
-          <p className="text-white/80 leading-relaxed mt-4">
+          <p className="text-[color:var(--foreground)]/70 leading-relaxed mt-4">
             I value code that’s easy to understand, tooling that supports the team, and features
             that solve real problems. Whether working in TypeScript, Python, or Rust, I focus on
             writing secure, testable, and resilient applications that are easy to evolve.
@@ -53,9 +52,9 @@ export default function Home() {
           />
         </Section>
         <Section title="Skills">
-          <div className="flex flex-row gap-8 text-sm text-white/80">
+          <div className="flex flex-row gap-8 text-sm text-[color:var(--foreground)]/80">
             <div>
-              <h4 className="text-lg font-semibold text-white">Languages</h4>
+              <h4 className="text-lg font-semibold">Languages</h4>
               <ul className="list-disc list-inside">
                 <li>TypeScript / JavaScript</li>
                 <li>Python</li>
@@ -65,7 +64,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h4 className="text-lg font-semibold text-white">Frameworks</h4>
+              <h4 className="text-lg font-semibold">Frameworks</h4>
               <ul className="list-disc list-inside">
                 <li>React / Next.js</li>
                 <li>Django / DRF</li>
@@ -75,7 +74,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h4 className="text-lg font-semibold text-white">Infrastructure</h4>
+              <h4 className="text-lg font-semibolde">Infrastructure</h4>
               <ul className="list-disc list-inside">
                 <li>AWS (CDK, SQS, SNS, ECS)</li>
                 <li>Docker</li>
@@ -89,7 +88,7 @@ export default function Home() {
           href="/Zachary_Kuptsow_Resume.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block mt-4 text-sm px-4 py-2 border border-white/20 rounded hover:border-emerald-500 hover:text-emerald-400 transition"
+          className="inline-block mt-4 text-sm px-4 py-2 border border-[color:var(--foreground)]/20 rounded hover:border-emerald-500 hover:text-emerald-400 transition"
           download="Zachary_Kuptsow_Resume.pdf"
         >
           Download Resume
