@@ -1,0 +1,37 @@
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    deploy:
+        runs-on: ubuntu-24.04
+        environment:
+            name: production
+            url: kups.me
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Enable Corepack (Yarn v4)
+              run: corepack enable
+            - name: Use Node.js from project
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: projects/resume/.nvmrc
+                  cache: 'yarn'
+            - name: Install dependencies and build site
+              working-directory: projects/resume
+              run: |
+                  yarn install
+                  yarn build
+            - name: Install CDK dependencies and deploy
+              working-directory: projects/infrastructure
+              env:
+                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  AWS_REGION: ${{ secrets.AWS_REGION }}
+                  CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
+                  CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_DEFAULT_ACCOUNT }}
+              run: |
+                  yarn install
+                  yarn cdk deploy --require-approval never
