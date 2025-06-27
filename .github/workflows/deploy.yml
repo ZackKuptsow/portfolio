@@ -22,7 +22,7 @@ jobs:
               with:
                   node-version-file: projects/resume/.nvmrc
                   cache: 'yarn'
-            - name: Install `resume` dependencies and build site
+            - name: Install `resume` dependencies
               working-directory: projects/resume
               run: yarn install
             - name: Build `resume` site
