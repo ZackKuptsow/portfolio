@@ -1,9 +1,8 @@
 import './globals.css'
 
 import GlowCursor from '@/components/GlowCursor'
-import ThemeToggle from '@/components/ThemeToggle'
-
 import type { Metadata } from 'next'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export const metadata: Metadata =  {
   title: 'Zack Kuptsow',

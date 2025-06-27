@@ -22,19 +22,21 @@ jobs:
               with:
                   node-version-file: projects/resume/.nvmrc
                   cache: 'yarn'
-            - name: Install dependencies and build site
+            - name: Install `resume` dependencies and build site
               working-directory: projects/resume
-              run: |
-                  yarn install
-                  yarn build
-            - name: Install CDK dependencies and deploy
+              run: yarn install
+            - name: Build `resume` site
+              working-directory: projects/resume
+              run: yarn build
+            - name: Install CDK dependencies
+              working-directory: projects/infrastructure
+              run: yarn install
+            - name: Deploy `infrastructure` via CDK
               working-directory: projects/infrastructure
               env:
                   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+                  AWS_ACCESS_KEY_SECRET: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
                   AWS_REGION: ${{ secrets.AWS_REGION }}
-                  CERTIFICATE_ARN: ${{ secrets.AWS_CERTIFICATE_ARN }}
-                  CDK_DEFAULT_ACCOUNT: ${{ secrets.CDK_ACCOUNT_ID }}
-              run: |
-                  yarn install
-                  yarn cdk deploy --require-approval never
+                  AWS_CERTIFICATE_ARN: ${{ secrets.AWS_CERTIFICATE_ARN }}
+                  CDK_ACCOUNT_ID: ${{ secrets.CDK_ACCOUNT_ID }}
+              run: yarn cdk deploy --require-approval never

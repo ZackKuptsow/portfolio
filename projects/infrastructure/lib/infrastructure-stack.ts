@@ -22,10 +22,9 @@ export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    console.log("CERTIFICATE_ARN at runtime:", process.env.CERTIFICATE_ARN);
-    const certificateArn = process.env.CERTIFICATE_ARN;
+    const certificateArn = process.env.AWS_CERTIFICATE_ARN;
     if (!certificateArn) {
-      throw new Error("Missing environment variable: CERTIFICATE_ARN");
+      throw new Error("Missing environment variable: AWS_CERTIFICATE_ARN");
     }
 
     // S3 bucket to store compiled website
