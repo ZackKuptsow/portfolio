@@ -5,8 +5,7 @@ export default function Header() {
         Zack Kuptsow
       </h1>
       <p className="mt-2  text-[color:var(--foreground)]/70 text-xl sm:text-2xl md:text-3xl text-[color:var(--foreground)]/70">
-        {/* Full Stack Engineer */}
-        Testing CI/CD Deployment
+        Full Stack Engineer
       </p>
     </header>
   )
