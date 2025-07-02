@@ -2,6 +2,7 @@ import Card from '@/components/Card'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import Section from '@/components/Section'
+import SlimCard from '@/components/SlimCard'
 
 export default function Home() {
   return (
@@ -51,37 +52,28 @@ export default function Home() {
             description="Minor: Integrated Design"
           />
         </Section>
-        <Section title="Skills">
-          <div className="flex flex-row gap-8 text-sm text-[color:var(--foreground)]/80">
-            <div>
-              <h4 className="text-lg font-semibold">Languages</h4>
-              <ul className="list-disc list-inside">
-                <li>TypeScript / JavaScript</li>
-                <li>Python</li>
-                <li>Bash / Shell</li>
-                <li>Go / Rust (learning)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-semibold">Frameworks</h4>
-              <ul className="list-disc list-inside">
-                <li>React / Next.js</li>
-                <li>Django / DRF</li>
-                <li>Node.js</li>
-                <li>Tailwind CSS</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-semibolde">Infrastructure</h4>
-              <ul className="list-disc list-inside">
-                <li>AWS (CDK, SQS, SNS, ECS)</li>
-                <li>Docker</li>
-                <li>GitHub Actions</li>
-                <li>Monitoring / Logging</li>
-              </ul>
-            </div>
+        <Section className="w-full" title="Skills">
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[color:var(--foreground)]/80">
+            <SlimCard
+              className="w-full"
+              list={['TypeScript / Javascript', 'Python', 'Bash', 'Rust (learning)']}
+              title="Languages"
+            />
+            <SlimCard
+              className="w-full"
+              list={['React / Next.js', 'Django / DRF', 'Node.js', 'Tailwind CSS']}
+              title="Frameworks"
+            />
+            <SlimCard
+              className="w-full"
+              list={[
+                'AWS (CDK, SQS, SNS, ECS)',
+                'Docker',
+                'Github Actions',
+                'Monitoring / Logging',
+              ]}
+              title="Infrastructure"
+            />
           </div>
         </Section>
         <a

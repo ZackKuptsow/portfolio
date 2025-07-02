@@ -2,8 +2,8 @@ import Image from 'next/image'
 
 export default function Footer() {
   return (
-    <footer className="px-12 py-6 flex items-between justify-between text-gray-500 text-center">
-      <div className="flex items-center gap-8">
+    <footer className="px-6 py-8 flex flex-col sm:flex-row items-center justify-between text-gray-500 text-sm text-center gap-4 sm:gap-0">
+      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="https://www.linkedin.com/in/zack-kuptsow/"
@@ -20,7 +20,7 @@ export default function Footer() {
           rel="noopener noreferrer"
         >
           <Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-          Github
+          GitHub
         </a>
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
@@ -32,7 +32,8 @@ export default function Footer() {
           Projects (Coming soon!)
         </a>
       </div>
-      <div>&copy; {new Date().getFullYear()} Zack Kuptsow</div>
+
+      <div className="text-xs sm:text-sm">&copy; {new Date().getFullYear()} Zack Kuptsow</div>
     </footer>
   )
 }
