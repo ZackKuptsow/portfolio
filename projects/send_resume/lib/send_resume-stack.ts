@@ -29,7 +29,7 @@ export class SendResumeStack extends cdk.Stack {
 				handler: 'index.handler',
 				code: lambda.Code.fromAsset(`functions/${name}`),
 				environment: {
-					TABLE_NAME: requestsTable.tableName
+					RATE_LIMIT_TABLE_NAME: requestsTable.tableName
 				}
 			});
 

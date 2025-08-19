@@ -1,5 +1,3 @@
-import { describe, expect, it } from 'vitest';
-
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { handler } from '../functions/validate_input';
 
