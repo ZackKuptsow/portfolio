@@ -1,4 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi
+} from 'vitest';
 
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { handler } from '../functions/rate_limit';
@@ -51,7 +59,16 @@ describe('rate_limit handler', () => {
 	beforeEach(() => {
 		mockGet.mockReset();
 		mockPut.mockReset();
-		process.env.RATE_LIMIT_TABLE_NAME = 'TestTable';
+		// process.env.RATE_LIMIT_TABLE_NAME = 'TestTable';
+		// vi.stubEnv('RATE_LIMIT_TABLE_NAME', 'TestTable');
+	});
+
+	beforeAll(() => {
+		vi.stubEnv('RATE_LIMIT_TABLE_NAME', 'TestTable');
+	});
+
+	afterAll(() => {
+		vi.unstubAllEnvs();
 	});
 
 	it('returns 400 if no body', async () => {

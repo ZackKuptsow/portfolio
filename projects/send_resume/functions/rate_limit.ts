@@ -2,13 +2,13 @@ import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 
 import { DynamoDB } from 'aws-sdk';
 
-const dynamo = new DynamoDB.DocumentClient();
-const RATE_LIMIT_TABLE_NAME = process.env.RATE_LIMIT_TABLE_NAME;
-const TTL_SECONDS = 86400;
-
 export const handler: APIGatewayProxyHandler = async (
 	event: APIGatewayProxyEvent
 ) => {
+	const dynamo = new DynamoDB.DocumentClient();
+	const RATE_LIMIT_TABLE_NAME = process.env.RATE_LIMIT_TABLE_NAME;
+	const TTL_SECONDS = 86400;
+
 	console.log('Rate limit check event:', event.body);
 	if (!event.body) {
 		return {
@@ -18,6 +18,10 @@ export const handler: APIGatewayProxyHandler = async (
 				reason: 'Missing request body'
 			})
 		};
+	}
+
+	if (!RATE_LIMIT_TABLE_NAME) {
+		throw new Error('RATE_LIMIT_TABLE_NAME not set');
 	}
 
 	let body: any;
