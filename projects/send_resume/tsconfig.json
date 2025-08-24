@@ -18,7 +18,7 @@
 		"inlineSources": true,
 		"experimentalDecorators": true,
 		"strictPropertyInitialization": false,
-		"types": ["vitest/globals"],
+		"types": ["node", "vitest/globals"],
 		"typeRoots": ["./types", "./node_modules/@types", "./node_modules"]
 	},
 	"exclude": ["node_modules", "cdk.out"]

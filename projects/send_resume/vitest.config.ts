@@ -4,7 +4,8 @@ export default defineConfig({
 	define: {
 		'import.meta.env.RATE_LIMIT_TABLE_NAME': JSON.stringify(
 			process.env.RATE_LIMIT_TABLE_NAME
-		)
+		),
+		global: 'globalThis'
 	},
 	test: {
 		coverage: {
@@ -14,6 +15,7 @@ export default defineConfig({
 		},
 		environment: 'node',
 		globals: true,
-		include: ['test/**/*.test.ts']
+		include: ['test/**/*.test.ts'],
+		setupFiles: []
 	}
 });
