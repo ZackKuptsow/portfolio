@@ -1,7 +1,5 @@
 'use client'
 
-import { education, skills, workExperience } from '@/data/profile'
-
 import AboutMe from '@/components/AboutMe'
 import Card from '@/components/Card'
 import DownloadButton from '@/components/DownloadButton'
@@ -10,6 +8,7 @@ import Header from '@/components/Header'
 import ScrollFadeIn from '@/components/ScrollFadeIn'
 import Section from '@/components/Section'
 import SlimCard from '@/components/SlimCard'
+import { education, skills, workExperience } from '@/data/profile'
 
 export default function Home() {
   return (

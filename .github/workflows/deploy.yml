@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-24.04
         environment:
             name: production
-            url: kups.me
+            url: https://kups.me
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
