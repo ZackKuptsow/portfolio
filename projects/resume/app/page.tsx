@@ -1,90 +1,71 @@
+'use client'
+
+import { education, skills, workExperience } from '@/data/profile'
+
+import AboutMe from '@/components/AboutMe'
 import Card from '@/components/Card'
+import DownloadButton from '@/components/DownloadButton'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
+import ScrollFadeIn from '@/components/ScrollFadeIn'
 import Section from '@/components/Section'
 import SlimCard from '@/components/SlimCard'
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col font-sans">
+    <div className="custom-gradient flex min-h-screen flex-col font-sans">
       <Header />
-      <main className="flex flex-col items-center justify-start flex-1 px-8 pb-20 gap-16 sm:px-20 w-full max-w-3xl mx-auto">
-        <Section title="About">
-          <p className="text-[color:var(--foreground)]/70 leading-relaxed">
-            I’m a full stack software engineer who thrives on building reliable, maintainable
-            software across the stack. With a strong foundation in both backend and frontend
-            development, I’ve built and improved complex systems for logistics, fintech, and
-            analytics platforms — always with an eye toward clean architecture and thoughtful user
-            experience.
-          </p>
 
-          <p className="text-[color:var(--foreground)]/70 leading-relaxed mt-4">
-            I value code that’s easy to understand, tooling that supports the team, and features
-            that solve real problems. Whether working in TypeScript, Python, or Rust, I focus on
-            writing secure, testable, and resilient applications that are easy to evolve.
-          </p>
-        </Section>
+      <main className="flex flex-col items-center justify-start flex-1 px-8 pb-20 gap-16 sm:px-20 w-full max-w-5xl mx-auto">
+        <ScrollFadeIn>
+          <AboutMe />
+        </ScrollFadeIn>
 
-        <Section title="Work Experience">
-          <Card
-            title="DrayNow"
-            description="Driving backend development in a 13-service AWS environment. Led major Node upgrade, built CI workflows, refactored legacy code, and supported real-time event-driven systems."
-          />
-          <Card
-            title="Teampay"
-            description="Owned full-stack features in a B2B fintech platform. Built UIs in React/TS, APIs in Django, improved modularity and support workflows, and delivered secure automation features."
-          />
-          <Card
-            title="Qlik"
-            description="Built a full-stack anomaly detection system with Django and Qlik Sense Cloud. Enhanced security observability using NetFlow data and dynamic dashboards."
-          />
-        </Section>
-        <Section title="Education" className="w-full">
-          <Card
-            className="w-full"
-            title="University of Delaware"
-            subtitle="M.S. Cybersecurity · 2019–2021"
-            description="Concentration: Secure Software"
-          />
-          <Card
-            title="University of Delaware"
-            subtitle="B.E.E. Electrical Engineering · 2015–2019"
-            description="Minor: Integrated Design"
-          />
-        </Section>
-        <Section className="w-full" title="Skills">
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[color:var(--foreground)]/80">
+        <ScrollFadeIn delay={200}>
+          <Section title="Work Experience">
+            {workExperience.map((job, index) => (
+              <Card
+                key={index}
+                title={job.title}
+                description={job.description}
+              />
+            ))}
+          </Section>
+        </ScrollFadeIn>
+        
+        <ScrollFadeIn delay={400}>
+          <Section title="Education">
+            {education.map((edu, index) => (
+              <Card
+                key={index}
+                title={edu.title}
+                subtitle={edu.subtitle}
+                description={edu.description}
+              />
+            ))}
+          </Section>
+        </ScrollFadeIn>
+        
+        <ScrollFadeIn delay={600}>
+          <Section title="Skills" className="[&>div]:space-y-0 [&>div]:md:grid [&>div]:md:grid-cols-3 [&>div]:md:gap-8 [&>div]:space-y-6 [&>div]:md:space-y-0">
             <SlimCard
-              className="w-full"
-              list={['TypeScript / Javascript', 'Python', 'Bash', 'Rust (learning)']}
+              list={skills.languages}
               title="Languages"
             />
             <SlimCard
-              className="w-full"
-              list={['React / Next.js', 'Django / DRF', 'Node.js', 'Tailwind CSS']}
+              list={skills.frameworks}
               title="Frameworks"
             />
             <SlimCard
-              className="w-full"
-              list={[
-                'AWS (CDK, SQS, SNS, ECS)',
-                'Docker',
-                'Github Actions',
-                'Monitoring / Logging',
-              ]}
+              list={skills.infrastructure}
               title="Infrastructure"
             />
-          </div>
-        </Section>
-        <a
-          href="/Zachary_Kuptsow_Resume.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block mt-4 text-sm px-4 py-2 border border-[color:var(--foreground)]/20 rounded hover:border-emerald-500 hover:text-emerald-400 transition"
-          download="Zachary_Kuptsow_Resume.pdf"
-        >
-          Download Resume
-        </a>
+          </Section>
+        </ScrollFadeIn>
+        
+        <ScrollFadeIn delay={800}>
+          <DownloadButton />
+        </ScrollFadeIn>
       </main>
 
       <Footer />

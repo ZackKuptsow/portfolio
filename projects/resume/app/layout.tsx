@@ -1,5 +1,6 @@
 import './globals.css'
 
+import ClientOnly from '@/components/ClientOnly'
 import GlowCursor from '@/components/GlowCursor'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -17,9 +18,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" href="/Zachary_Kuptsow_Resume.pdf" as="fetch" crossOrigin="anonymous" />
+      </head>
       <body className="bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 antialiased">
-        <GlowCursor />
-        <ThemeToggle />
+        <ClientOnly>
+          <GlowCursor />
+          <ThemeToggle />
+        </ClientOnly>
         {children}
       </body>
     </html>

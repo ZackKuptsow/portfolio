@@ -25,13 +25,11 @@ export default function ThemeToggle() {
     <button
       aria-label="Toggle dark mode"
       onClick={toggle}
-      className="fixed top-4 right-4 z-50 w-6 h-6 border border-gray-400 dark:border-gray-600 rounded hover:border-emerald-400 transition-colors"
+      className="absolute sm:fixed top-4 right-4 z-50 w-10 h-10 border border-border rounded hover:border-primary hover:shadow-glow transition-all duration-300 bg-card/50 backdrop-blur-sm"
     >
-      <div
-        className={`w-4 h-4 mx-auto my-auto rounded-sm transition-colors duration-300 ${
-          isDark ? 'bg-white' : 'bg-black'
-        }`}
-      />
+      <div className="w-full h-full flex items-center justify-center font-mono text-2xl text-primary transition-all duration-300 hover:text-terminal leading-none -mt-0.5">
+        {isDark ? '◐' : '◑'}
+      </div>
     </button>
   )
 }
