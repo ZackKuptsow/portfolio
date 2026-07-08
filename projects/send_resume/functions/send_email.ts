@@ -1,7 +1,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { SES } from 'aws-sdk';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-const ses = new SES();
+const ses = new SESClient({});
 
 export const handler: APIGatewayProxyHandler = async event => {
 	console.log('Send Email event:', event.body);
@@ -46,8 +46,8 @@ export const handler: APIGatewayProxyHandler = async event => {
 	}
 
 	try {
-		await ses
-			.sendEmail({
+		await ses.send(
+			new SendEmailCommand({
 				Destination: { ToAddresses: [body.email] },
 				Message: {
 					Subject: { Data: 'Resume from Zack Kuptsow' },
@@ -62,7 +62,7 @@ export const handler: APIGatewayProxyHandler = async event => {
 				},
 				Source: fromAddress
 			})
-			.promise();
+		);
 
 		return { statusCode: 200, body: JSON.stringify({ success: true }) };
 	} catch (err: any) {

@@ -168,7 +168,7 @@ export class SendResumeStack extends cdk.Stack {
 			.next(rateLimitStep)
 			.next(parallelStep);
 		new sfn.StateMachine(this, 'SendResumeStateMachine', {
-			definition,
+			definitionBody: sfn.DefinitionBody.fromChainable(definition),
 			timeout: cdk.Duration.minutes(5)
 		});
 	}

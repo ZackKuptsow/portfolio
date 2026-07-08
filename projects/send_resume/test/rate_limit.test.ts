@@ -8,22 +8,20 @@ import {
 	vi
 } from 'vitest';
 
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import {
+	DynamoDBDocumentClient,
+	GetCommand,
+	PutCommand
+} from '@aws-sdk/lib-dynamodb';
+import {
+	APIGatewayProxyEvent,
+	APIGatewayProxyResult
+} from 'aws-lambda';
+import { mockClient } from 'aws-sdk-client-mock';
+
 import { handler } from '../functions/rate_limit';
 
-const { mockGet, mockPut } = vi.hoisted(() => ({
-	mockGet: vi.fn(),
-	mockPut: vi.fn()
-}));
-
-vi.mock('aws-sdk', () => ({
-	DynamoDB: {
-		DocumentClient: vi.fn(() => ({
-			get: mockGet,
-			put: mockPut
-		}))
-	}
-}));
+const ddbMock = mockClient(DynamoDBDocumentClient);
 
 function makeEvent(body: any, ip = '1.2.3.4'): APIGatewayProxyEvent {
 	return {
@@ -48,19 +46,19 @@ function makeEvent(body: any, ip = '1.2.3.4'): APIGatewayProxyEvent {
 			path: '/',
 			stage: 'dev',
 			requestId: 'req',
-			requestTimeEpoch: Date.now(),
+			requestTimeEpoch: 0,
 			resourceId: 'res',
 			resourcePath: '/'
 		}
 	} as any;
 }
 
+const invoke = (event: APIGatewayProxyEvent) =>
+	handler(event, {} as any, () => {}) as Promise<APIGatewayProxyResult>;
+
 describe('rate_limit handler', () => {
 	beforeEach(() => {
-		mockGet.mockReset();
-		mockPut.mockReset();
-		// process.env.RATE_LIMIT_TABLE_NAME = 'TestTable';
-		// vi.stubEnv('RATE_LIMIT_TABLE_NAME', 'TestTable');
+		ddbMock.reset();
 	});
 
 	beforeAll(() => {
@@ -72,94 +70,75 @@ describe('rate_limit handler', () => {
 	});
 
 	it('returns 400 if no body', async () => {
-		const response = await handler(makeEvent(null));
+		const response = await invoke(makeEvent(null));
 		expect(response.statusCode).toBe(400);
 		expect(JSON.parse(response.body).allowed).toBe(false);
 	});
 
 	it('returns 429 if identifier already exists', async () => {
-		mockGet.mockReturnValueOnce({
-			promise: () =>
-				Promise.resolve({ Item: { id: 'email:test@test.com' } })
+		ddbMock.on(GetCommand).resolvesOnce({
+			Item: { id: 'email:test@test.com' }
 		});
-		const response = await handler(makeEvent({ email: 'test@test.com' }));
+		const response = await invoke(makeEvent({ email: 'test@test.com' }));
 		expect(response.statusCode).toBe(429);
 		expect(JSON.parse(response.body).allowed).toBe(false);
 	});
 
 	it('returns 200 and stores identifiers if not found', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
-		const response = await handler(makeEvent({ email: 'new@test.com' }));
+		const response = await invoke(makeEvent({ email: 'new@test.com' }));
 		expect(response.statusCode).toBe(200);
 		expect(JSON.parse(response.body).allowed).toBe(true);
 
 		// Ensures we attempted to put at least once
-		expect(mockPut).toHaveBeenCalled();
+		expect(ddbMock.commandCalls(PutCommand).length).toBeGreaterThan(0);
 	});
 
 	it('returns 400 for invalid JSON', async () => {
 		const event = makeEvent({ email: 'test@test.com' });
 		event.body = 'invalid-json';
 
-		const response = await handler(event);
+		const response = await invoke(event);
 		expect(response.statusCode).toBe(400);
 		expect(JSON.parse(response.body).allowed).toBe(false);
 		expect(JSON.parse(response.body).reason).toBe('Invalid JSON format');
 	});
 
 	it('handles email-only requests', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
-		const response = await handler(
-			makeEvent({ email: 'test@example.com' })
-		);
+		const response = await invoke(makeEvent({ email: 'test@example.com' }));
 		expect(response.statusCode).toBe(200);
 		expect(JSON.parse(response.body).allowed).toBe(true);
 
 		// Should check email and IP identifiers (2 calls)
-		expect(mockGet).toHaveBeenCalledTimes(2);
+		expect(ddbMock.commandCalls(GetCommand)).toHaveLength(2);
 		// Should store email and IP identifiers (2 calls)
-		expect(mockPut).toHaveBeenCalledTimes(2);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(2);
 	});
 
 	it('handles phone-only requests', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
-		const response = await handler(makeEvent({ phone: '+12155551234' }));
+		const response = await invoke(makeEvent({ phone: '+12155551234' }));
 		expect(response.statusCode).toBe(200);
 		expect(JSON.parse(response.body).allowed).toBe(true);
 
 		// Should check phone and IP identifiers (2 calls)
-		expect(mockGet).toHaveBeenCalledTimes(2);
+		expect(ddbMock.commandCalls(GetCommand)).toHaveLength(2);
 		// Should store phone and IP identifiers (2 calls)
-		expect(mockPut).toHaveBeenCalledTimes(2);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(2);
 	});
 
 	it('handles both email and phone requests', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
-		const response = await handler(
+		const response = await invoke(
 			makeEvent({
 				email: 'test@example.com',
 				phone: '+12155551234'
@@ -169,120 +148,103 @@ describe('rate_limit handler', () => {
 		expect(JSON.parse(response.body).allowed).toBe(true);
 
 		// Should check email, phone, and IP identifiers (3 calls)
-		expect(mockGet).toHaveBeenCalledTimes(3);
+		expect(ddbMock.commandCalls(GetCommand)).toHaveLength(3);
 		// Should store email, phone, and IP identifiers (3 calls)
-		expect(mockPut).toHaveBeenCalledTimes(3);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(3);
 	});
 
 	it('blocks on IP rate limit even with valid email', async () => {
-		mockGet
-			.mockReturnValueOnce({ promise: () => Promise.resolve({}) }) // email check passes
-			.mockReturnValueOnce({
-				promise: () => Promise.resolve({ Item: { id: 'ip:1.2.3.4' } })
-			}); // IP check fails
+		ddbMock
+			.on(GetCommand)
+			.resolvesOnce({}) // email check passes
+			.resolvesOnce({ Item: { id: 'ip:1.2.3.4' } }); // IP check fails
 
-		const response = await handler(
-			makeEvent({ email: 'test@example.com' })
-		);
+		const response = await invoke(makeEvent({ email: 'test@example.com' }));
 		expect(response.statusCode).toBe(429);
 		expect(JSON.parse(response.body).allowed).toBe(false);
 		expect(JSON.parse(response.body).reason).toBe('Rate limit exceeded');
 
 		// Should not store anything when rate limited
-		expect(mockPut).not.toHaveBeenCalled();
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
 	});
 
 	it('blocks on phone rate limit', async () => {
-		mockGet.mockReturnValueOnce({
-			promise: () =>
-				Promise.resolve({ Item: { id: 'phone:+12155551234' } })
+		ddbMock.on(GetCommand).resolvesOnce({
+			Item: { id: 'phone:+12155551234' }
 		});
 
-		const response = await handler(makeEvent({ phone: '+12155551234' }));
+		const response = await invoke(makeEvent({ phone: '+12155551234' }));
 		expect(response.statusCode).toBe(429);
 		expect(JSON.parse(response.body).allowed).toBe(false);
 		expect(JSON.parse(response.body).reason).toBe('Rate limit exceeded');
 
 		// Should only check the phone identifier before blocking
-		expect(mockGet).toHaveBeenCalledTimes(1);
-		expect(mockPut).not.toHaveBeenCalled();
+		expect(ddbMock.commandCalls(GetCommand)).toHaveLength(1);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
 	});
 
 	it('handles unknown IP address', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
 		const event = makeEvent({ email: 'test@example.com' });
 		event.requestContext.identity.sourceIp = undefined as any;
 
-		const response = await handler(event);
+		const response = await invoke(event);
 		expect(response.statusCode).toBe(200);
 		expect(JSON.parse(response.body).allowed).toBe(true);
 
 		// Should still check and store with 'unknown' IP
-		expect(mockGet).toHaveBeenCalledTimes(2);
-		expect(mockPut).toHaveBeenCalledTimes(2);
+		expect(ddbMock.commandCalls(GetCommand)).toHaveLength(2);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(2);
 	});
 
 	it('handles empty request body with just IP tracking', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
-		const response = await handler(makeEvent({}));
+		const response = await invoke(makeEvent({}));
 		expect(response.statusCode).toBe(200);
 		expect(JSON.parse(response.body).allowed).toBe(true);
 
 		// Should only check IP identifier (1 call)
-		expect(mockGet).toHaveBeenCalledTimes(1);
+		expect(ddbMock.commandCalls(GetCommand)).toHaveLength(1);
 		// Should only store IP identifier (1 call)
-		expect(mockPut).toHaveBeenCalledTimes(1);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(1);
 	});
 
-	// TODO: figureo out why this isn't working
-	it.skip('sets proper TTL when storing identifiers', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
-		mockPut.mockReturnValue({
-			promise: () => Promise.resolve({})
-		});
+	it('sets proper TTL when storing identifiers', async () => {
+		ddbMock.on(GetCommand).resolves({});
+		ddbMock.on(PutCommand).resolves({});
 
-		const mockDate = new Date('2024-01-01T00:00:00Z');
-		const originalDateNow = Date.now;
-		Date.now = vi.fn(() => mockDate.getTime());
+		const fixedNow = new Date('2024-01-01T00:00:00Z').getTime();
+		const dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(fixedNow);
 
-		const response = await handler(
-			makeEvent({ email: 'test@example.com' })
-		);
+		const response = await invoke(makeEvent({ email: 'test@example.com' }));
 		expect(response.statusCode).toBe(200);
 
-		const expectedExpireAt = Math.floor(mockDate.getTime() / 1000) + 86400; // 24 hours
+		const expectedExpireAt = Math.floor(fixedNow / 1000) + 86400; // 24 hours
 
-		// Check that put was called with proper TTL for email identifier
-		expect(mockPut).toHaveBeenCalledWith({
-			TableName: 'TestTable', // Should use the environment variable we set
+		// Check that put was called with proper TTL for the email identifier
+		const emailPut = ddbMock
+			.commandCalls(PutCommand)
+			.find(
+				call => call.args[0].input.Item?.id === 'email:test@example.com'
+			);
+		expect(emailPut).toBeDefined();
+		expect(emailPut!.args[0].input).toEqual({
+			TableName: 'TestTable',
 			Item: { id: 'email:test@example.com', expireAt: expectedExpireAt }
 		});
 
-		// Restore Date.now
-		Date.now = originalDateNow;
+		dateNowSpy.mockRestore();
 	});
 
 	it('propagates DynamoDB errors', async () => {
-		mockGet.mockReturnValue({
-			promise: () => Promise.reject(new Error('DynamoDB error'))
-		});
+		ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
 
 		await expect(
-			handler(makeEvent({ email: 'test@example.com' }))
+			invoke(makeEvent({ email: 'test@example.com' }))
 		).rejects.toThrow('DynamoDB error');
 	});
 });

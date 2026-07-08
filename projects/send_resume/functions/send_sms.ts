@@ -1,7 +1,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { SNS } from 'aws-sdk';
+import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
-const sns = new SNS();
+const sns = new SNSClient({});
 
 export const handler: APIGatewayProxyHandler = async event => {
 	console.log('Send SMS event:', event.body);
@@ -59,12 +59,12 @@ export const handler: APIGatewayProxyHandler = async event => {
 			};
 		}
 
-		await sns
-			.publish({
+		await sns.send(
+			new PublishCommand({
 				PhoneNumber: body.phone,
 				Message: message
 			})
-			.promise();
+		);
 
 		return { statusCode: 200, body: JSON.stringify({ success: true }) };
 	} catch (err: any) {

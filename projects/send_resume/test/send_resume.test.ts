@@ -1,13 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { StepFunctions } from 'aws-sdk';
-
 import {
-	beforeAll,
-	describe,
-	expect,
-	it
-} from 'vitest';
+	DescribeExecutionCommand,
+	ListStateMachinesCommand,
+	SFNClient,
+	StartExecutionCommand
+} from '@aws-sdk/client-sfn';
+
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { SendResumeStack } from '../lib/send_resume-stack';
 
@@ -55,108 +55,123 @@ describe('SendResumeStack', () => {
 // 3. Set environment variable: export STATE_MACHINE_ARN=arn:aws:states:us-east-1:000000000000:stateMachine:YourStateMachine
 // 4. Run tests: yarn test
 
-const stepFunctions = new StepFunctions({
+const stepFunctions = new SFNClient({
 	endpoint: 'http://localhost:4566', // LocalStack
 	region: 'us-east-1'
 });
 
 // Only run LocalStack integration tests if environment is configured
-describe.skipIf(!process.env.STATE_MACHINE_ARN)('SendResumeStateMachine (LocalStack)', () => {
-	let stateMachineArn: string;
+describe.skipIf(!process.env.STATE_MACHINE_ARN)(
+	'SendResumeStateMachine (LocalStack)',
+	() => {
+		let stateMachineArn: string;
 
-	beforeAll(async () => {
-		// Get the state machine ARN from environment
-		stateMachineArn = process.env.STATE_MACHINE_ARN!;
-		if (!stateMachineArn) {
-			throw new Error('Missing STATE_MACHINE_ARN env variable');
-		}
+		beforeAll(async () => {
+			// Get the state machine ARN from environment
+			stateMachineArn = process.env.STATE_MACHINE_ARN!;
+			if (!stateMachineArn) {
+				throw new Error('Missing STATE_MACHINE_ARN env variable');
+			}
 
-		// Test LocalStack connectivity
-		try {
-			await stepFunctions.listStateMachines({}).promise();
-		} catch (error) {
-			throw new Error('Failed to connect to LocalStack Step Functions. Make sure LocalStack is running on localhost:4566');
-		}
-	});
+			// Test LocalStack connectivity
+			try {
+				await stepFunctions.send(new ListStateMachinesCommand({}));
+			} catch (error) {
+				throw new Error(
+					'Failed to connect to LocalStack Step Functions. Make sure LocalStack is running on localhost:4566'
+				);
+			}
+		});
 
-	it('executes successfully when both email and phone are provided', async () => {
-		const input = {
-			email: 'test@example.com',
-			phone: '+12155551234',
-			sendEmail: true,
-			sendSms: true
-		};
+		it(
+			'executes successfully when both email and phone are provided',
+			async () => {
+				const input = {
+					email: 'test@example.com',
+					phone: '+12155551234',
+					sendEmail: true,
+					sendSms: true
+				};
 
-		const start = await stepFunctions
-			.startExecution({
-				stateMachineArn,
-				input: JSON.stringify(input)
-			})
-			.promise();
+				const start = await stepFunctions.send(
+					new StartExecutionCommand({
+						stateMachineArn,
+						input: JSON.stringify(input)
+					})
+				);
 
-		expect(start.executionArn).toBeDefined();
+				expect(start.executionArn).toBeDefined();
 
-		// Poll for completion with timeout
-		let result;
-		let attempts = 0;
-		const maxAttempts = 30; // 30 seconds max
-		
-		do {
-			await new Promise(res => setTimeout(res, 1000));
-			result = await stepFunctions
-				.describeExecution({
-					executionArn: start.executionArn!
-				})
-				.promise();
-			attempts++;
-		} while (result.status === 'RUNNING' && attempts < maxAttempts);
+				// Poll for completion with timeout
+				let result;
+				let attempts = 0;
+				const maxAttempts = 30; // 30 seconds max
 
-		if (attempts >= maxAttempts) {
-			throw new Error('Step Function execution timed out after 30 seconds');
-		}
+				do {
+					await new Promise(res => setTimeout(res, 1000));
+					result = await stepFunctions.send(
+						new DescribeExecutionCommand({
+							executionArn: start.executionArn!
+						})
+					);
+					attempts++;
+				} while (result.status === 'RUNNING' && attempts < maxAttempts);
 
-		expect(result.status).toBe('SUCCEEDED');
-		
-		// Parse and verify the output
-		if (result.output) {
-			const output = JSON.parse(result.output);
-			expect(output).toBeDefined();
-			// The output should be an array from the parallel step
-			expect(Array.isArray(output)).toBe(true);
-		}
-	}, 35000); // 35 second timeout for this test
+				if (attempts >= maxAttempts) {
+					throw new Error(
+						'Step Function execution timed out after 30 seconds'
+					);
+				}
 
-	it('executes successfully with email only', async () => {
-		const input = {
-			email: 'test@example.com',
-			sendEmail: true,
-			sendSms: false
-		};
+				expect(result.status).toBe('SUCCEEDED');
 
-		const start = await stepFunctions
-			.startExecution({
-				stateMachineArn,
-				input: JSON.stringify(input)
-			})
-			.promise();
+				// Parse and verify the output
+				if (result.output) {
+					const output = JSON.parse(result.output);
+					expect(output).toBeDefined();
+					// The output should be an array from the parallel step
+					expect(Array.isArray(output)).toBe(true);
+				}
+			},
+			35000
+		); // 35 second timeout for this test
 
-		expect(start.executionArn).toBeDefined();
+		it(
+			'executes successfully with email only',
+			async () => {
+				const input = {
+					email: 'test@example.com',
+					sendEmail: true,
+					sendSms: false
+				};
 
-		// Poll for completion
-		let result;
-		let attempts = 0;
-		const maxAttempts = 30;
-		
-		do {
-			await new Promise(res => setTimeout(res, 1000));
-			result = await stepFunctions
-				.describeExecution({
-					executionArn: start.executionArn!
-				})
-				.promise();
-			attempts++;
-		} while (result.status === 'RUNNING' && attempts < maxAttempts);
+				const start = await stepFunctions.send(
+					new StartExecutionCommand({
+						stateMachineArn,
+						input: JSON.stringify(input)
+					})
+				);
 
-		expect(result.status).toBe('SUCCEEDED');
-	}, 35000);
-});
+				expect(start.executionArn).toBeDefined();
+
+				// Poll for completion
+				let result;
+				let attempts = 0;
+				const maxAttempts = 30;
+
+				do {
+					await new Promise(res => setTimeout(res, 1000));
+					result = await stepFunctions.send(
+						new DescribeExecutionCommand({
+							executionArn: start.executionArn!
+						})
+					);
+					attempts++;
+				} while (result.status === 'RUNNING' && attempts < maxAttempts);
+
+				expect(result.status).toBe('SUCCEEDED');
+			},
+			35000
+		);
+	}
+);

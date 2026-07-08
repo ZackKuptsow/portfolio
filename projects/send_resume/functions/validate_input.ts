@@ -26,7 +26,7 @@ const ValidationInputSchema = z
 		email: z
 			.string()
 			.trim()
-			.email('Invalid email format')
+			.pipe(z.email('Invalid email format'))
 			.optional()
 			.or(z.literal('').transform(() => undefined)), // Treat empty as undefined
 		phone: z
@@ -91,7 +91,7 @@ export const handler: APIGatewayProxyHandler = async (
 		console.warn(
 			'Validation failed:',
 			parsedResult.error.issues.map(
-				(issue: Record<string, string>) => issue.message
+				(issue) => issue.message
 			)
 		);
 		return {
@@ -99,7 +99,7 @@ export const handler: APIGatewayProxyHandler = async (
 			body: JSON.stringify({
 				isValid: false,
 				errors: parsedResult.error.issues.map(
-					(issue: Record<string, string>) => issue.message
+					(issue) => issue.message
 				)
 			})
 		};

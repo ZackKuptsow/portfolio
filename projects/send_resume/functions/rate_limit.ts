@@ -1,11 +1,16 @@
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+	DynamoDBDocumentClient,
+	GetCommand,
+	PutCommand
+} from '@aws-sdk/lib-dynamodb';
 
 export const handler: APIGatewayProxyHandler = async (
 	event: APIGatewayProxyEvent
 ) => {
-	const dynamo = new DynamoDB.DocumentClient();
+	const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 	const RATE_LIMIT_TABLE_NAME = process.env.RATE_LIMIT_TABLE_NAME;
 	const TTL_SECONDS = 86400;
 
@@ -49,12 +54,12 @@ export const handler: APIGatewayProxyHandler = async (
 
 	// Check all identifiers for existing entries
 	for (const id of identifiers) {
-		const existing = await dynamo
-			.get({
+		const existing = await dynamo.send(
+			new GetCommand({
 				TableName: RATE_LIMIT_TABLE_NAME,
 				Key: { id }
 			})
-			.promise();
+		);
 
 		if (existing.Item) {
 			console.log('Rate limit hit for:', id, identifiers);
@@ -71,12 +76,12 @@ export const handler: APIGatewayProxyHandler = async (
 	// Store identifiers with TTL if rate limit not exceeded
 	const expireAt = Math.floor(Date.now() / 1000) + TTL_SECONDS;
 	for (const id of identifiers) {
-		await dynamo
-			.put({
+		await dynamo.send(
+			new PutCommand({
 				TableName: RATE_LIMIT_TABLE_NAME,
 				Item: { id, expireAt }
 			})
-			.promise();
+		);
 	}
 
 	console.log('Rate limit passed for:', identifiers);
