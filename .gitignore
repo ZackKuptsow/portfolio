@@ -4,13 +4,13 @@
 **/node_modules/
 .pnp/
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-!.yarn/sdks
-!.yarnrc.yml
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/plugins
+!**/.yarn/releases
+!**/.yarn/versions
+!**/.yarn/sdks
+!**/.yarnrc.yml
 
 # =============================
 # ⚙️ Build Output / Static Export
