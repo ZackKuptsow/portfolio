@@ -11,7 +11,6 @@
 !.yarn/versions
 !.yarn/sdks
 !.yarnrc.yml
-.yarnrc.yml
 
 # =============================
 # ⚙️ Build Output / Static Export
@@ -39,8 +38,6 @@ next-env.d.ts
 # =============================
 /coverage/
 **/coverage/
-jest.config.js
-jest.setup.js
 
 # =============================
 # 🔐 Environment Files
