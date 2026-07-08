@@ -6,7 +6,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 
 import type { Metadata } from 'next'
 
-export const metadata: Metadata =  {
+export const metadata: Metadata = {
   title: 'Zack Kuptsow',
   description: 'Zack Kuptsow: Full Stack Software Engineer portfolio site',
 }

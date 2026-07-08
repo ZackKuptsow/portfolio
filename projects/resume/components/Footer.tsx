@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="font-mono text-xs text-muted-foreground mb-6">
           <span className="command-prompt">$</span> ls -la ./contact/
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
           {/* Links */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
@@ -47,7 +47,8 @@ export default function Footer() {
           <div className="font-mono text-xs text-muted-foreground/80 border-l-0 sm:border-l border-border/30 pl-0 sm:pl-6 text-left sm:text-right">
             <div className="mb-1">© {new Date().getFullYear()} zachary.kuptsow</div>
             <div className="text-muted-foreground/60">
-              <span className="command-prompt">$</span> Built with Next.js, deployed via AWS CDK, automated through GitHub Actions
+              <span className="command-prompt">$</span> Built with Next.js, deployed via AWS CDK,
+              automated through GitHub Actions
             </div>
           </div>
         </div>

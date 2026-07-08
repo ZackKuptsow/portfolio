@@ -1,0 +1,9 @@
+# Build output and generated files
+.next/
+out/
+dist/
+coverage/
+next-env.d.ts
+
+# Dependencies
+node_modules/

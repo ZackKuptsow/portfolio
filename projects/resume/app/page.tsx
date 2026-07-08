@@ -23,15 +23,11 @@ export default function Home() {
         <ScrollFadeIn delay={200}>
           <Section title="Work Experience">
             {workExperience.map((job, index) => (
-              <Card
-                key={index}
-                title={job.title}
-                description={job.description}
-              />
+              <Card key={index} title={job.title} description={job.description} />
             ))}
           </Section>
         </ScrollFadeIn>
-        
+
         <ScrollFadeIn delay={400}>
           <Section title="Education">
             {education.map((edu, index) => (
@@ -44,24 +40,18 @@ export default function Home() {
             ))}
           </Section>
         </ScrollFadeIn>
-        
+
         <ScrollFadeIn delay={600}>
-          <Section title="Skills" className="[&>div]:space-y-0 [&>div]:md:grid [&>div]:md:grid-cols-3 [&>div]:md:gap-8 [&>div]:space-y-6 [&>div]:md:space-y-0">
-            <SlimCard
-              list={skills.languages}
-              title="Languages"
-            />
-            <SlimCard
-              list={skills.frameworks}
-              title="Frameworks"
-            />
-            <SlimCard
-              list={skills.infrastructure}
-              title="Infrastructure"
-            />
+          <Section
+            title="Skills"
+            className="[&>div]:space-y-0 [&>div]:md:grid [&>div]:md:grid-cols-3 [&>div]:md:gap-8 [&>div]:space-y-6 [&>div]:md:space-y-0"
+          >
+            <SlimCard list={skills.languages} title="Languages" />
+            <SlimCard list={skills.frameworks} title="Frameworks" />
+            <SlimCard list={skills.infrastructure} title="Infrastructure" />
           </Section>
         </ScrollFadeIn>
-        
+
         <ScrollFadeIn delay={800}>
           <DownloadButton />
         </ScrollFadeIn>

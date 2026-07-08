@@ -394,15 +394,19 @@ html.dark .glow-cursor {
 
 /* Cursor-relative radial glow effect */
 .terminal-section-header::before {
-  background: radial-gradient(300px circle at var(--mouse-x) var(--mouse-y), 
-    hsl(var(--primary) / 0.15), 
-    transparent 50%);
+  background: radial-gradient(
+    300px circle at var(--mouse-x) var(--mouse-y),
+    hsl(var(--primary) / 0.15),
+    transparent 50%
+  );
 }
 
 html.dark .terminal-section-header::before {
-  background: radial-gradient(300px circle at var(--mouse-x) var(--mouse-y), 
-    hsl(var(--primary) / 0.2), 
-    transparent 50%);
+  background: radial-gradient(
+    300px circle at var(--mouse-x) var(--mouse-y),
+    hsl(var(--primary) / 0.2),
+    transparent 50%
+  );
 }
 
 /* Card cursor-relative glow - moved to before pseudo-element */
@@ -413,9 +417,11 @@ html.dark .terminal-section-header::before {
   opacity: 0;
   transition: opacity 300ms;
   pointer-events: none;
-  background: radial-gradient(200px circle at var(--mouse-x) var(--mouse-y), 
-    hsl(var(--primary) / 0.1), 
-    transparent 50%);
+  background: radial-gradient(
+    200px circle at var(--mouse-x) var(--mouse-y),
+    hsl(var(--primary) / 0.1),
+    transparent 50%
+  );
 }
 
 .terminal-card:hover::before {
@@ -423,9 +429,11 @@ html.dark .terminal-section-header::before {
 }
 
 html.dark .terminal-card::before {
-  background: radial-gradient(200px circle at var(--mouse-x) var(--mouse-y), 
-    hsl(var(--primary) / 0.15), 
-    transparent 50%);
+  background: radial-gradient(
+    200px circle at var(--mouse-x) var(--mouse-y),
+    hsl(var(--primary) / 0.15),
+    transparent 50%
+  );
 }
 
 /* Terminal card styling to match About Me section */
@@ -581,9 +589,11 @@ html:not(.dark) .terminal-skill-card {
   opacity: 0;
   transition: opacity 300ms;
   pointer-events: none;
-  background: radial-gradient(250px circle at var(--mouse-x) var(--mouse-y), 
-    hsl(var(--primary) / 0.12), 
-    transparent 50%);
+  background: radial-gradient(
+    250px circle at var(--mouse-x) var(--mouse-y),
+    hsl(var(--primary) / 0.12),
+    transparent 50%
+  );
   z-index: 0;
 }
 
@@ -592,7 +602,9 @@ html:not(.dark) .terminal-skill-card {
 }
 
 html.dark .terminal-about-me::before {
-  background: radial-gradient(250px circle at var(--mouse-x) var(--mouse-y), 
-    hsl(var(--primary) / 0.18), 
-    transparent 50%);
+  background: radial-gradient(
+    250px circle at var(--mouse-x) var(--mouse-y),
+    hsl(var(--primary) / 0.18),
+    transparent 50%
+  );
 }

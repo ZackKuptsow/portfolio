@@ -18,11 +18,17 @@ export default function DownloadButton() {
         download="Zachary_Kuptsow_Resume.pdf"
       >
         <span className="relative z-10 flex items-center gap-2">
-          <span className="command-prompt">$</span> 
-          <span>wget <span className="underline underline-offset-2">resume.pdf</span></span>
-          <span className="text-xs opacity-90 group-hover:opacity-100 group-hover:drop-shadow-[0_0_12px_currentColor] 
+          <span className="command-prompt">$</span>
+          <span>
+            wget <span className="underline underline-offset-2">resume.pdf</span>
+          </span>
+          <span
+            className="text-xs opacity-90 group-hover:opacity-100 group-hover:drop-shadow-[0_0_12px_currentColor] 
                      animate-pulse drop-shadow-[0_0_10px_currentColor] transition-all duration-300
-                     [animation-duration:3s]">⬇</span>
+                     [animation-duration:3s]"
+          >
+            ⬇
+          </span>
         </span>
       </a>
     </div>
