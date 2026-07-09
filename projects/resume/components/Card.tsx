@@ -2,6 +2,8 @@
 
 import { ReactNode } from 'react'
 
+import useCursorGlow from '@/components/useCursorGlow'
+
 type CardProps = {
   className?: string
   description: string
@@ -20,6 +22,7 @@ export default function Card({
   title,
 }: CardProps) {
   const Wrapper = href ? 'a' : 'div'
+  const handleCursorGlowMove = useCursorGlow<HTMLElement>()
 
   return (
     <Wrapper
@@ -28,16 +31,10 @@ export default function Card({
         bg-card border border-border
         transition-all duration-300 ease-out
         hover:border-primary/60 hover:-translate-y-1
-        after:absolute after:content-['●_●_●'] after:top-2 after:left-3 
+        after:absolute after:content-['●_●_●'] after:top-2 after:left-3
         after:text-muted-foreground after:text-xs after:z-10 after:pointer-events-none
         ${href ? 'cursor-pointer' : ''} ${className}`}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        e.currentTarget.style.setProperty('--mouse-x', `${x}px`)
-        e.currentTarget.style.setProperty('--mouse-y', `${y}px`)
-      }}
+      onMouseMove={handleCursorGlowMove}
     >
       {/* Primary header with gradient and buttons - matches About Me */}
       <div
@@ -68,22 +65,21 @@ export default function Card({
         {/* Content Output */}
         <div className="code-block px-8 py-6 space-y-6">
           <h3
-            className="text-primary font-mono text-lg font-semibold 
-                       transition-all duration-200 
-                       group-hover:text-terminal"
+            className="text-primary font-mono text-lg font-semibold
+                       terminal-glow-hover transition-all duration-200"
           >
             {title}
           </h3>
 
           {/* Subtitle with refined spacing */}
           {subtitle && (
-            <h5
-              className="text-muted-foreground font-mono text-sm 
-                         border-l-2 border-primary/20 pl-3 
+            <h4
+              className="text-muted-foreground font-mono text-sm
+                         border-l-2 border-primary/20 pl-3
                          group-hover:border-primary/40 transition-colors"
             >
               {subtitle}
-            </h5>
+            </h4>
           )}
 
           {/* Description with perfect line height and spacing */}

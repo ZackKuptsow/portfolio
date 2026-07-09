@@ -43,12 +43,12 @@ export default function SlimCard({ className = '', list, title }: SlimCardProps)
         </div>
 
         {/* Title */}
-        <h2
+        <h3
           className="text-primary font-mono text-base font-semibold mb-3
-                     transition-colors group-hover:text-terminal"
+                     terminal-glow-hover transition-colors"
         >
           {title}
-        </h2>
+        </h3>
 
         {/* Skills list with terminal styling */}
         <div className="space-y-2">

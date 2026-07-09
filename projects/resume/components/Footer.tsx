@@ -32,21 +32,20 @@ export default function Footer() {
               <span className="text-primary/40 group-hover:text-primary/80">→</span>
               GitHub
             </a>
-            <a
-              className="group flex items-center gap-3 text-muted-foreground/60 
+            <span
+              className="flex items-center gap-3 text-muted-foreground/70
                          font-mono text-sm cursor-not-allowed"
-              href="#"
-              onClick={(e) => e.preventDefault()}
+              aria-disabled="true"
             >
-              <span className="text-primary/20">→</span>
-              Projects <span className="text-xs opacity-60">(coming soon)</span>
-            </a>
+              <span className="text-primary/30">→</span>
+              Projects <span className="text-xs opacity-70">(coming soon)</span>
+            </span>
           </div>
 
           {/* Copyright & Tech stack */}
-          <div className="font-mono text-xs text-muted-foreground/80 border-l-0 sm:border-l border-border/30 pl-0 sm:pl-6 text-left sm:text-right">
+          <div className="font-mono text-xs text-muted-foreground border-l-0 sm:border-l border-border/30 pl-0 sm:pl-6 text-left sm:text-right">
             <div className="mb-1">© {new Date().getFullYear()} zachary.kuptsow</div>
-            <div className="text-muted-foreground/60">
+            <div className="text-muted-foreground">
               <span className="command-prompt">$</span> Built with Next.js, deployed via AWS CDK,
               automated through GitHub Actions
             </div>

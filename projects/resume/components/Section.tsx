@@ -16,7 +16,7 @@ export default function Section({ children, className, title }: SectionProps) {
         </div>
         <h2
           className="text-primary font-mono text-2xl font-bold border-l-4 border-primary/30 pl-4
-                     hover:border-primary/60 hover:text-terminal transition-all duration-200"
+                     terminal-glow-hover hover:border-primary/60 transition-all duration-200"
         >
           # {title}
         </h2>

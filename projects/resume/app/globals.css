@@ -1,23 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap');
 @import 'tailwindcss';
 
-/* Common design system variables */
-:root {
-  /* Base layout */
-  --radius: 0.25rem;
+/*
+ * Font tokens. The actual font files are self-hosted by next/font, which sets
+ * --font-jetbrains-mono and --font-ibm-plex-sans on <html>. Registering them
+ * here makes the `font-mono` / `font-sans` utilities resolve to them and emits
+ * --font-mono / --font-sans for use in the hand-written classes below.
+ */
+@theme {
+  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SFMono-Regular', monospace;
+}
 
-  /* Terminal/Hacker theme properties */
-  --terminal-green: 120 100% 50%;
-  --terminal-green-dim: 120 80% 35%;
-  --gradient-primary: linear-gradient(135deg, hsl(120 100% 50%), hsl(120 100% 60%));
-  --gradient-terminal: linear-gradient(
-    90deg,
-    hsl(120 100% 50% / 0.1),
-    transparent,
-    hsl(120 100% 50% / 0.1)
-  );
-  --shadow-terminal: 0 0 20px hsl(120 100% 50% / 0.3), 0 0 40px hsl(120 100% 50% / 0.1);
+/*
+ * Semantic color tokens. `inline` is required so each utility references the
+ * underlying CSS variable at runtime — that is what lets light/dark mode swap
+ * colors without regenerating the utility classes.
+ */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+/* Shared layout + motion tokens */
+:root {
+  --radius: 0.25rem;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -39,7 +62,7 @@
   --secondary-foreground: 0 0% 25%;
 
   --muted: 0 0% 92%;
-  --muted-foreground: 0 0% 45%;
+  --muted-foreground: 0 0% 40%;
 
   --accent: 0 0% 90%;
   --accent-foreground: 0 0% 20%;
@@ -51,22 +74,11 @@
   --input: 0 0% 85%;
   --ring: 0 0% 20%;
 
-  /* Light mode specific */
   --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 92%));
   --shadow-glow: 0 0 20px hsl(0 0% 20% / 0.2);
   --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
 
   --glow-color: hsl(var(--primary) / 0.2);
-
-  /* Sidebar */
-  --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 0 0% 15%;
-  --sidebar-primary: 0 0% 20%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 90%;
-  --sidebar-accent-foreground: 0 0% 20%;
-  --sidebar-border: 0 0% 80%;
-  --sidebar-ring: 0 0% 20%;
 }
 
 /* Dark mode theme */
@@ -87,7 +99,7 @@ html.dark {
   --secondary-foreground: 120 100% 85%;
 
   --muted: 0 0% 8%;
-  --muted-foreground: 120 20% 65%;
+  --muted-foreground: 120 20% 70%;
 
   --accent: 0 0% 10%;
   --accent-foreground: 120 100% 50%;
@@ -96,22 +108,11 @@ html.dark {
   --input: 0 0% 12%;
   --ring: 120 100% 50%;
 
-  /* Dark mode specific */
   --gradient-subtle: linear-gradient(180deg, hsl(0 0% 7%), hsl(0 0% 3%));
   --shadow-glow: 0 0 30px hsl(120 100% 50% / 0.4);
   --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.5);
 
   --glow-color: hsl(var(--primary) / 0.4);
-
-  /* Sidebar */
-  --sidebar-background: 0 0% 5%;
-  --sidebar-foreground: 120 100% 85%;
-  --sidebar-primary: 120 100% 50%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 0 0% 8%;
-  --sidebar-accent-foreground: 120 100% 50%;
-  --sidebar-border: 120 100% 15%;
-  --sidebar-ring: 120 100% 50%;
 }
 
 /* Base styles */
@@ -122,7 +123,7 @@ html.dark {
 body {
   background: var(--gradient-subtle);
   color: hsl(var(--foreground));
-  font-family: 'Ubuntu', sans-serif;
+  font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
   transition: var(--transition-smooth);
   margin: 0;
   padding: 0;
@@ -134,126 +135,76 @@ html {
   background: hsl(var(--background));
 }
 
+/* Accessibility: visible keyboard focus that stays on the terminal theme */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+html.dark :where(a, button, [tabindex]):focus-visible {
+  outline-color: hsl(var(--primary));
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
+}
+
+/* Accessibility: honor a reduced-motion preference across every animation */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Terminal-style text glow effect */
 .text-terminal {
   color: hsl(var(--primary));
   text-shadow: 0 0 10px hsl(var(--primary));
 }
 
-/* Enhanced glow for dark mode */
 html.dark .text-terminal {
   text-shadow:
     0 0 15px hsl(var(--primary) / 0.9),
     0 0 30px hsl(var(--primary) / 0.4);
 }
 
-.text-terminal-dim {
-  color: hsl(var(--primary) / 0.8);
+/*
+ * Interactive heading glow: green by default, gains a glow when the element
+ * itself (self) or its enclosing `.group` is hovered. Replaces the former
+ * `hover:text-terminal` utility, which never compiled because `text-terminal`
+ * is a custom class rather than a registered token.
+ */
+.terminal-glow-hover {
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
-/* Scanline effect for terminal aesthetic */
-.scanline {
-  position: relative;
-  overflow: hidden;
+.terminal-glow-hover:hover,
+.group:hover .terminal-glow-hover {
+  text-shadow: 0 0 10px hsl(var(--primary));
 }
 
-@keyframes scanline {
-  0% {
-    transform: translateY(-100vh);
-  }
-  100% {
-    transform: translateY(100vh);
-  }
+html.dark .terminal-glow-hover:hover,
+html.dark .group:hover .terminal-glow-hover {
+  text-shadow:
+    0 0 15px hsl(var(--primary) / 0.9),
+    0 0 30px hsl(var(--primary) / 0.4);
 }
 
-.scanline::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, hsl(var(--terminal-green)), transparent);
-  animation: scanline 3s linear infinite;
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-/* Utility classes */
+/* Shadow utilities */
 .shadow-glow {
   box-shadow: var(--shadow-glow);
 }
 
-.shadow-terminal {
-  box-shadow: var(--shadow-terminal);
+.shadow-card {
+  box-shadow: var(--shadow-card);
 }
 
-.bg-gradient-subtle {
-  background: var(--gradient-subtle);
-}
-
-.bg-gradient-primary {
-  background: var(--gradient-primary);
-}
-
-.bg-gradient-terminal {
-  background: var(--gradient-terminal);
-}
-
-/* Override emerald colors with terminal theme */
-.hover\:border-emerald-400:hover {
-  border-color: hsl(var(--primary)) !important;
-}
-
-.hover\:border-emerald-500:hover {
-  border-color: hsl(var(--primary)) !important;
-}
-
-.hover\:border-emerald-500\/40:hover {
-  border-color: hsl(var(--primary) / 0.4) !important;
-}
-
-.hover\:text-emerald-400:hover {
-  color: hsl(var(--primary)) !important;
-}
-
-.hover\:text-emerald-500:hover {
-  color: hsl(var(--primary)) !important;
-}
-
-.text-emerald-400 {
-  color: hsl(var(--primary)) !important;
-}
-
-.text-emerald-500 {
-  color: hsl(var(--primary)) !important;
-}
-
-.dark .text-emerald-400 {
-  color: hsl(var(--primary)) !important;
-}
-
-.dark .text-emerald-500 {
-  color: hsl(var(--primary)) !important;
-}
-
-.group:hover .group-hover\:text-emerald-400 {
-  color: hsl(var(--primary)) !important;
-}
-
-.group:hover .group-hover\:text-emerald-500 {
-  color: hsl(var(--primary)) !important;
-}
-
-.dark .group:hover .dark\:group-hover\:text-emerald-400 {
-  color: hsl(var(--primary)) !important;
-}
-
-.dark .group:hover .dark\:group-hover\:text-emerald-500 {
-  color: hsl(var(--primary)) !important;
-}
-
-/* Advanced terminal styling for About Me section */
+/* Advanced terminal styling for the About Me section */
 .terminal-window {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
@@ -295,7 +246,7 @@ html.dark .text-terminal {
   background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) - 2px);
-  font-family: 'Ubuntu Mono', monospace;
+  font-family: var(--font-mono);
   position: relative;
 }
 
@@ -326,20 +277,6 @@ html.dark .text-terminal {
   50% {
     border-color: hsl(var(--primary));
   }
-}
-
-.gradient-bg {
-  background: var(--gradient-subtle);
-  position: relative;
-}
-
-.gradient-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--gradient-terminal);
-  opacity: 0.1;
-  pointer-events: none;
 }
 
 /* Custom gradient background matching theme colors */
@@ -392,24 +329,11 @@ html.dark .glow-cursor {
   mix-blend-mode: screen;
 }
 
-/* Cursor-relative radial glow effect */
-.terminal-section-header::before {
-  background: radial-gradient(
-    300px circle at var(--mouse-x) var(--mouse-y),
-    hsl(var(--primary) / 0.15),
-    transparent 50%
-  );
+/* Card cursor-relative glow */
+.terminal-card {
+  border-radius: var(--radius);
 }
 
-html.dark .terminal-section-header::before {
-  background: radial-gradient(
-    300px circle at var(--mouse-x) var(--mouse-y),
-    hsl(var(--primary) / 0.2),
-    transparent 50%
-  );
-}
-
-/* Card cursor-relative glow - moved to before pseudo-element */
 .terminal-card::before {
   content: '';
   position: absolute;
@@ -436,11 +360,6 @@ html.dark .terminal-card::before {
   );
 }
 
-/* Terminal card styling to match About Me section */
-.terminal-card {
-  border-radius: var(--radius);
-}
-
 .terminal-skill-card {
   border-radius: var(--radius);
 }
@@ -456,35 +375,9 @@ html.dark .command-prompt {
   text-shadow: 0 0 12px hsl(var(--primary) / 0.8);
 }
 
-/* Force darker background for terminal windows */
-.terminal-card {
-  background: hsl(0 0% 4%) !important;
-}
-
-html:not(.dark) .terminal-card {
-  background: hsl(var(--card)) !important;
-}
-
-.terminal-skill-card {
-  background: hsl(0 0% 4%) !important;
-}
-
-html:not(.dark) .terminal-skill-card {
-  background: hsl(var(--card)) !important;
-}
-
-/* Keep code-blocks matching About Me */
-.terminal-card .code-block {
-  background: hsl(var(--muted)) !important;
-}
-
-.terminal-skill-card .code-block {
-  background: hsl(var(--muted)) !important;
-}
-
 /* Terminal utility classes */
 .terminal-command-prompt {
-  font-family: 'Ubuntu Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1rem;
   line-height: 1.5rem;
 }
@@ -534,7 +427,7 @@ html:not(.dark) .terminal-skill-card {
 
 .terminal-profile-label {
   color: hsl(var(--primary));
-  font-family: 'Ubuntu Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1rem;
   line-height: 1.5rem;
   margin-bottom: 0.75rem;
