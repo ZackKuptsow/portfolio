@@ -27,13 +27,13 @@ jobs:
                       projects/infrastructure/yarn.lock
             - name: Install `resume` dependencies
               working-directory: projects/resume
-              run: yarn install
+              run: yarn install --immutable
             - name: Build `resume` site
               working-directory: projects/resume
               run: yarn build
             - name: Install `infrastructure` dependencies
               working-directory: projects/infrastructure
-              run: yarn install
+              run: yarn install --immutable
             - name: Deploy `infrastructure` via CDK
               working-directory: projects/infrastructure
               env:

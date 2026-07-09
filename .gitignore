@@ -78,6 +78,7 @@ pnpm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+.xcode.env
 *.sublime-project
 *.sublime-workspace
 
