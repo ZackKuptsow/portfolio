@@ -13,8 +13,6 @@ export default function SlimCard({ className = '', list, title }: SlimCardProps)
         bg-card border border-border
         transition-all duration-300 ease-out
         hover:border-primary hover:shadow-glow hover:-translate-y-0.5
-        after:absolute after:content-['●_●_●'] after:top-1.5 after:left-2 
-        after:text-muted-foreground after:text-xs after:z-10 after:pointer-events-none
         ${className}`}
     >
       {/* Primary header with gradient and buttons - matches About Me */}

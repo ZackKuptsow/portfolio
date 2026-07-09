@@ -31,8 +31,6 @@ export default function Card({
         bg-card border border-border
         transition-all duration-300 ease-out
         hover:border-primary/60 hover:-translate-y-1
-        after:absolute after:content-['●_●_●'] after:top-2 after:left-3
-        after:text-muted-foreground after:text-xs after:z-10 after:pointer-events-none
         ${href ? 'cursor-pointer' : ''} ${className}`}
       onMouseMove={handleCursorGlowMove}
     >
