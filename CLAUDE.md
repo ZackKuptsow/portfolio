@@ -31,11 +31,11 @@ yarn cdk:deploy          # Deploy infrastructure with environment variables load
 ### Send Resume Service (AWS CDK + Lambda)
 ```bash
 cd projects/send_resume
-yarn build               # Compile TypeScript
 yarn test                # Run tests with Vitest
 yarn test:watch          # Run tests in watch mode
 yarn test:coverage       # Run tests with coverage report
-yarn cdk                 # CDK CLI commands
+yarn typecheck           # Typecheck handlers and tests
+yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/REGION)
 ```
 
 ## Architecture Overview
@@ -55,21 +55,18 @@ yarn cdk                 # CDK CLI commands
 - Static asset deployment from Next.js build output
 
 ### Send Resume Service
-- AWS Step Functions orchestrating Lambda functions
-- DynamoDB table for request tracking and rate limiting
-- Lambda functions for:
-  - Input validation using Zod schemas
-  - Rate limiting checks
-  - Email delivery via SES
-  - SMS delivery via SNS
-- Phone number normalization to E.164 format
+- HTTP API → intake Lambda (Zod validation + DynamoDB rate limiting) → 202/400/429
+- AWS Step Functions delivering the email asynchronously, with retries
+- SES domain identity for `kups.me` with DKIM, a `mail.kups.me` MAIL FROM domain, and DMARC
+- Private S3 bucket holding the PDF that gets attached to the email
+- SMS delivery is deferred; `functions/send_sms.ts` is kept but not wired up
 
 ## Testing
 
 - Resume project: Uses Next.js built-in testing setup
-- Send Resume project: Uses Vitest with coverage reporting via c8
-- Test files located in `test/` directories
-- Run individual tests: `yarn test validate_input.test.ts`
+- Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
+- Test files located in `test/` directories, mirroring the `functions/` layout
+- Run individual tests: `yarn test test/intake/rate_limit.test.ts`
 
 ## Code Conventions
 

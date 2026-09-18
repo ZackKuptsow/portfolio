@@ -1,3 +1,14 @@
+// NOT WIRED UP. SMS delivery is deferred until a toll-free or 10DLC origination
+// number is registered, without which SNS will not deliver to US numbers. The
+// stack does not deploy this handler and the state machine has no SMS branch, so
+// it is kept here, still tested, as the starting point for that work.
+//
+// It is also still shaped for API Gateway (`event.body`), which is how the whole
+// pipeline used to be wrong: Step Functions passes raw state JSON. Reshape it
+// like `send_email/handler.ts` when wiring it up. Phone validation and E.164
+// normalization were removed from the validator in this change; `git show
+// 45ff6d0:projects/send_resume/functions/validate_input.ts` has them.
+
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
