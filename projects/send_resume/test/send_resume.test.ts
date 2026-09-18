@@ -1,177 +1,140 @@
 import * as cdk from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
+
+import { describe, expect, it } from 'vitest';
+
 import {
-	DescribeExecutionCommand,
-	ListStateMachinesCommand,
-	SFNClient,
-	StartExecutionCommand
-} from '@aws-sdk/client-sfn';
-
-import { beforeAll, describe, expect, it } from 'vitest';
-
+	RATE_LIMIT_TABLE_PARTITION_KEY,
+	RATE_LIMIT_TABLE_TTL_ATTRIBUTE
+} from '../functions/shared/constants';
 import { SendResumeStack } from '../lib/send_resume-stack';
 
+// Bundling is skipped so synthesis does not shell out to esbuild for every
+// assertion; the key is matched against the stack's node path.
+const synthesize = (): Template => {
+	const app = new cdk.App({ context: { 'aws:cdk:bundling-stacks': [] } });
+	const stack = new SendResumeStack(app, 'TestStack', {
+		env: { account: '123456789012', region: 'us-east-1' }
+	});
+	return Template.fromStack(stack);
+};
+
 describe('SendResumeStack', () => {
-	it('creates a Step Function with Validate, RateLimit, Email, and SMS steps', () => {
-		const app = new cdk.App();
-		const stack = new SendResumeStack(app, 'TestStack');
-		const template = Template.fromStack(stack);
-
-		// Confirm a state machine exists
-		template.hasResourceProperties('AWS::StepFunctions::StateMachine', {});
-
-		// Get the template as JSON to verify step names are present
-		const templateJson = JSON.stringify(template.toJSON());
-
-		// Verify all required steps are present in the definition
-		expect(templateJson).toContain('Validate Input');
-		expect(templateJson).toContain('Rate Limit Check');
-		expect(templateJson).toContain('Send Email');
-		expect(templateJson).toContain('Send SMS');
-		expect(templateJson).toContain('Send Notifications');
-		expect(templateJson).toContain('Has Email?');
-		expect(templateJson).toContain('Has Phone?');
+	it('keys the rate-limit table by the same attribute the handlers write', () => {
+		synthesize().hasResourceProperties('AWS::DynamoDB::Table', {
+			KeySchema: [
+				{
+					AttributeName: RATE_LIMIT_TABLE_PARTITION_KEY,
+					KeyType: 'HASH'
+				}
+			],
+			BillingMode: 'PAY_PER_REQUEST'
+		});
 	});
 
-	it('creates a DynamoDB table with TTL and PAY_PER_REQUEST', () => {
-		const app = new cdk.App();
-		const stack = new SendResumeStack(app, 'TestStack');
-		const template = Template.fromStack(stack);
-
-		template.hasResourceProperties('AWS::DynamoDB::Table', {
-			BillingMode: 'PAY_PER_REQUEST',
+	it('expires rate-limit entries by the same attribute the handlers set', () => {
+		synthesize().hasResourceProperties('AWS::DynamoDB::Table', {
 			TimeToLiveSpecification: {
-				AttributeName: 'ttl',
+				AttributeName: RATE_LIMIT_TABLE_TTL_ATTRIBUTE,
 				Enabled: true
 			}
 		});
 	});
-});
 
-// LocalStack Integration Tests
-// To run these tests:
-// 1. Start LocalStack: docker run --rm -it -p 4566:4566 localstack/localstack
-// 2. Deploy the stack to LocalStack: cdk deploy --app "cdk.out" SendResumeStack
-// 3. Set environment variable: export STATE_MACHINE_ARN=arn:aws:states:us-east-1:000000000000:stateMachine:YourStateMachine
-// 4. Run tests: yarn test
-
-const stepFunctions = new SFNClient({
-	endpoint: 'http://localhost:4566', // LocalStack
-	region: 'us-east-1'
-});
-
-// Only run LocalStack integration tests if environment is configured
-describe.skipIf(!process.env.STATE_MACHINE_ARN)(
-	'SendResumeStateMachine (LocalStack)',
-	() => {
-		let stateMachineArn: string;
-
-		beforeAll(async () => {
-			// Get the state machine ARN from environment
-			stateMachineArn = process.env.STATE_MACHINE_ARN!;
-			if (!stateMachineArn) {
-				throw new Error('Missing STATE_MACHINE_ARN env variable');
-			}
-
-			// Test LocalStack connectivity
-			try {
-				await stepFunctions.send(new ListStateMachinesCommand({}));
-			} catch (error) {
-				throw new Error(
-					'Failed to connect to LocalStack Step Functions. Make sure LocalStack is running on localhost:4566'
-				);
+	it('keeps the resume bucket private', () => {
+		synthesize().hasResourceProperties('AWS::S3::Bucket', {
+			PublicAccessBlockConfiguration: {
+				BlockPublicAcls: true,
+				BlockPublicPolicy: true,
+				IgnorePublicAcls: true,
+				RestrictPublicBuckets: true
 			}
 		});
+	});
 
-		it(
-			'executes successfully when both email and phone are provided',
-			async () => {
-				const input = {
-					email: 'test@example.com',
-					phone: '+12155551234',
-					sendEmail: true,
-					sendSms: true
-				};
+	it('verifies kups.me with SES and sends from a matching MAIL FROM domain', () => {
+		synthesize().hasResourceProperties('AWS::SES::EmailIdentity', {
+			EmailIdentity: 'kups.me',
+			MailFromAttributes: { MailFromDomain: 'mail.kups.me' }
+		});
+	});
 
-				const start = await stepFunctions.send(
-					new StartExecutionCommand({
-						stateMachineArn,
-						input: JSON.stringify(input)
+	it('publishes DKIM, MAIL FROM and DMARC records into the hosted zone', () => {
+		// 3 DKIM CNAMEs + MAIL FROM MX + MAIL FROM SPF TXT + DMARC TXT
+		synthesize().resourceCountIs('AWS::Route53::RecordSet', 6);
+	});
+
+	it('starts DMARC in monitoring mode', () => {
+		synthesize().hasResourceProperties('AWS::Route53::RecordSet', {
+			Name: '_dmarc.kups.me.',
+			Type: 'TXT',
+			ResourceRecords: ['"v=DMARC1; p=none;"']
+		});
+	});
+
+	it('exposes exactly one POST route for resume requests', () => {
+		const template = synthesize();
+
+		template.resourceCountIs('AWS::ApiGatewayV2::Route', 1);
+		template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+			RouteKey: 'POST /resume-requests'
+		});
+	});
+
+	it('only allows the site origin to call the API from a browser', () => {
+		synthesize().hasResourceProperties('AWS::ApiGatewayV2::Api', {
+			CorsConfiguration: {
+				AllowMethods: ['POST'],
+				AllowOrigins: ['https://kups.me', 'http://localhost:3000']
+			}
+		});
+	});
+
+	it('throttles the API so the endpoint cannot be hammered', () => {
+		synthesize().hasResourceProperties('AWS::ApiGatewayV2::Stage', {
+			DefaultRouteSettings: {
+				ThrottlingBurstLimit: Match.anyValue(),
+				ThrottlingRateLimit: Match.anyValue()
+			}
+		});
+	});
+
+	it('lets the delivery function send only from the verified identity', () => {
+		synthesize().hasResourceProperties('AWS::IAM::Policy', {
+			PolicyDocument: {
+				Statement: Match.arrayWith([
+					Match.objectLike({
+						Action: ['ses:SendEmail', 'ses:SendRawEmail'],
+						Effect: 'Allow',
+						// Scoped to the verified identity's ARN rather than '*'.
+						Resource: {
+							'Fn::Join': Match.arrayWith([
+								Match.arrayWith([
+									Match.stringLikeRegexp(':identity/'),
+									{
+										Ref: Match.stringLikeRegexp(
+											'SenderDomainIdentity'
+										)
+									}
+								])
+							])
+						}
 					})
-				);
+				])
+			}
+		});
+	});
 
-				expect(start.executionArn).toBeDefined();
+	it('delivers through a state machine rather than from the request path', () => {
+		const template = synthesize();
 
-				// Poll for completion with timeout
-				let result;
-				let attempts = 0;
-				const maxAttempts = 30; // 30 seconds max
+		template.resourceCountIs('AWS::StepFunctions::StateMachine', 1);
+		expect(JSON.stringify(template.toJSON())).toContain('Send Email');
+	});
 
-				do {
-					await new Promise(res => setTimeout(res, 1000));
-					result = await stepFunctions.send(
-						new DescribeExecutionCommand({
-							executionArn: start.executionArn!
-						})
-					);
-					attempts++;
-				} while (result.status === 'RUNNING' && attempts < maxAttempts);
-
-				if (attempts >= maxAttempts) {
-					throw new Error(
-						'Step Function execution timed out after 30 seconds'
-					);
-				}
-
-				expect(result.status).toBe('SUCCEEDED');
-
-				// Parse and verify the output
-				if (result.output) {
-					const output = JSON.parse(result.output);
-					expect(output).toBeDefined();
-					// The output should be an array from the parallel step
-					expect(Array.isArray(output)).toBe(true);
-				}
-			},
-			35000
-		); // 35 second timeout for this test
-
-		it(
-			'executes successfully with email only',
-			async () => {
-				const input = {
-					email: 'test@example.com',
-					sendEmail: true,
-					sendSms: false
-				};
-
-				const start = await stepFunctions.send(
-					new StartExecutionCommand({
-						stateMachineArn,
-						input: JSON.stringify(input)
-					})
-				);
-
-				expect(start.executionArn).toBeDefined();
-
-				// Poll for completion
-				let result;
-				let attempts = 0;
-				const maxAttempts = 30;
-
-				do {
-					await new Promise(res => setTimeout(res, 1000));
-					result = await stepFunctions.send(
-						new DescribeExecutionCommand({
-							executionArn: start.executionArn!
-						})
-					);
-					attempts++;
-				} while (result.status === 'RUNNING' && attempts < maxAttempts);
-
-				expect(result.status).toBe('SUCCEEDED');
-			},
-			35000
+	it('publishes the API url so the site can be pointed at it', () => {
+		expect(Object.keys(synthesize().findOutputs('*'))).toContain(
+			'ResumeRequestApiUrl'
 		);
-	}
-);
+	});
+});
