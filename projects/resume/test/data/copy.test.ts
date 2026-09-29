@@ -5,8 +5,8 @@ import * as profile from '@/data/profile'
 
 // Writing Voice hard rule for anything a visitor reads.
 const EM_OR_EN_DASH = /[–—]/
-// identity.ts: 11 single strings, 3 in LOCATION, 2 in PROFILE_LINKS.
-const IDENTITY_STRING_COUNT = 16
+// identity.ts: 12 single strings, 3 in LOCATION, 2 in PROFILE_LINKS.
+const IDENTITY_STRING_COUNT = 17
 // profile.ts: 28 in workExperience, 8 in education, 21 in skillGroups, 14 in about.
 const PROFILE_STRING_COUNT = 71
 // Search results cut a description off near this length.

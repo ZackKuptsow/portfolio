@@ -4,6 +4,12 @@
  * answer to "who is this".
  */
 
+/**
+ * Where a visitor can write. The same address the public resume carries. It is
+ * shown on the page, and left out of the structured data on purpose.
+ */
+export const CONTACT_EMAIL = 'zkups56@gmail.com'
+
 /** How the role is named everywhere. A range, never a single layer of the stack. */
 export const JOB_TITLE = 'Full-Stack Software Engineer'
 

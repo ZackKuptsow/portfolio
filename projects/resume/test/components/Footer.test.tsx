@@ -17,6 +17,15 @@ describe('Footer', () => {
     ])
   })
 
+  it('offers a way to write to him directly, without opening a new tab', () => {
+    render(<Footer />)
+
+    const emailLink = screen.getByRole('link', { name: 'Email' })
+
+    expect(emailLink.getAttribute('href')).toBe('mailto:zkups56@gmail.com')
+    expect(emailLink.hasAttribute('target')).toBe(false)
+  })
+
   it('hides the decorative prompt and arrows from assistive technology', () => {
     render(<Footer />)
 
@@ -25,8 +34,8 @@ describe('Footer', () => {
       ...screen.getAllByText('→'),
     ]
 
-    // One arrow per link row: LinkedIn, GitHub and the projects placeholder.
-    expect(decorativeElements).toHaveLength(4)
+    // One arrow per link row: LinkedIn, GitHub, Email and the projects placeholder.
+    expect(decorativeElements).toHaveLength(5)
     expect(decorativeElements.filter((element) => !isInaccessible(element))).toEqual([])
   })
 })

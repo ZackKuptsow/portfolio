@@ -1,6 +1,6 @@
 'use client'
 
-import { PERSON_HANDLE, PROFILE_LINKS } from '@/data/identity'
+import { CONTACT_EMAIL, PERSON_HANDLE, PROFILE_LINKS } from '@/data/identity'
 
 export default function Footer() {
   return (
@@ -37,6 +37,16 @@ export default function Footer() {
                 →
               </span>
               GitHub
+            </a>
+            <a
+              className="group flex items-center gap-3 text-muted-foreground hover:text-primary
+                         transition-colors duration-200 font-mono text-sm"
+              href={`mailto:${CONTACT_EMAIL}`}
+            >
+              <span aria-hidden="true" className="text-primary/40 group-hover:text-primary/80">
+                →
+              </span>
+              Email
             </a>
             <span
               className="flex items-center gap-3 text-muted-foreground/70

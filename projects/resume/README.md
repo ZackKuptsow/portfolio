@@ -14,7 +14,7 @@ The portfolio site behind **[kups.me](https://kups.me)** — a Next.js 15 app ex
 ```
 app/              # App Router entry (layout, page, global styles), plus what search engines read
 components/       # UI components (Header, AboutMe, Card, ThemeToggle, GlowCursor, ...)
-data/identity.ts  # Who the site is about: name forms, role, location, profile links, site URL
+data/identity.ts  # Who the site is about: name forms, role, location, email, profile links, site URL
 data/profile.ts   # Resume content: work experience, education, skills, about copy
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
