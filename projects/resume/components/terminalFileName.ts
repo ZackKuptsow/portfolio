@@ -4,8 +4,9 @@ const WORD_SEPARATOR = '_'
 
 /**
  * Turn a display title into the fake file name shown in a terminal prompt,
- * such as `cat work_experience.txt`. Punctuation is dropped, because a title
- * like "Low Rate Co." would otherwise put two dots before the extension.
+ * such as `cat low_rate_co.txt`. Each run of characters that are not letters
+ * or digits becomes one underscore, and underscores at either end are dropped.
+ * Without that, "Low Rate Co." would put two dots before the extension.
  */
 export function toTerminalFileName(title: string): string {
   return title

@@ -2,7 +2,11 @@ import { SITE_URL } from '@/data/identity'
 
 import type { MetadataRoute } from 'next'
 
-/** The static export can only emit a metadata route that is fully static. */
+/**
+ * With `output: 'export'`, Next refuses to build a route that does not declare
+ * itself static. The route Next generates for this file takes that declaration
+ * from here.
+ */
 export const dynamic = 'force-static'
 
 /**

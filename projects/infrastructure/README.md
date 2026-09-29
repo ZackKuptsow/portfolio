@@ -9,7 +9,7 @@ AWS CDK stack that hosts the [`resume`](../resume) site at **[kups.me](https://k
 - **Route 53 A records** — aliases in the existing `kups.me` hosted zone
 - **www → root redirect** — a second distribution plus a CloudFront Function that 301-redirects `www.kups.me` to `kups.me`
 - **Static deployment** — uploads `../resume/out` and invalidates the CloudFront cache on each deploy
-- **Real 404s**: the bucket is private, so S3 answers 403 for a missing path. CloudFront turns that into the site's 404 page with a 404 status
+- **Real 404s**: the bucket's reader may not list it, so S3 answers 403 for a missing path. CloudFront turns that into the site's 404 page with a 404 status. Every 403 from the origin is turned, so a broken bucket policy would also show up as 404s
 - **PDFs kept out of search results**: every `*.pdf` response carries `X-Robots-Tag: noindex`. The file stays downloadable. `robots.txt` must not block it, because a crawler has to fetch the file to see the header
 
 ## Prerequisites

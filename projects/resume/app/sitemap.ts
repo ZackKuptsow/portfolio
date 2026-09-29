@@ -4,7 +4,11 @@ import type { MetadataRoute } from 'next'
 
 const HIGHEST_PRIORITY = 1
 
-/** The static export can only emit a metadata route that is fully static. */
+/**
+ * With `output: 'export'`, Next refuses to build a route that does not declare
+ * itself static. The route Next generates for this file takes that declaration
+ * from here.
+ */
 export const dynamic = 'force-static'
 
 /** Serves `/sitemap.xml`. The site is one page, stamped with the time of the build. */

@@ -24,6 +24,11 @@ const NOT_FOUND_PAGE_PATH = "/404.html";
 const NOT_FOUND_STATUS = 404;
 const PDF_PATH_PATTERN = "*.pdf";
 
+/**
+ * Hosts kups.me: a private bucket behind CloudFront, DNS for the apex and www,
+ * and a redirect from www to the apex. It also answers a missing path with the
+ * site's 404 page, and keeps PDFs out of search results.
+ */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -54,8 +59,9 @@ export class InfrastructureStack extends Stack {
       certificateArn
     );
 
-    // One origin object shared by both behaviors, so CloudFront gets one origin
-    // and the bucket gets one access policy.
+    // One origin object shared by both behaviors. CDK binds each origin object
+    // separately, so two objects would give this distribution two origins, two
+    // access controls and two identical statements in the bucket policy.
     const siteOrigin = S3BucketOrigin.withOriginAccessControl(siteBucket);
 
     // A search for the name should lead to the page, not to a PDF whose listing
@@ -92,8 +98,10 @@ export class InfrastructureStack extends Stack {
       },
       defaultRootObject: "index.html",
       domainNames: ["kups.me"],
-      // The bucket is private and its reader may not list it, so S3 answers 403
-      // for a missing object. Visitors and crawlers should see a 404.
+      // The bucket's reader may not list it, so S3 answers 403 for a missing
+      // object. Visitors and crawlers should see a 404. The cost: every 403
+      // from the origin becomes a 404, so a broken bucket policy would show up
+      // as missing pages, not as access errors.
       errorResponses: [
         {
           httpStatus: FORBIDDEN_STATUS,

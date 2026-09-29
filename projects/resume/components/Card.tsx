@@ -7,16 +7,25 @@ import useCursorGlow from '@/components/useCursorGlow'
 
 type CardProps = {
   className?: string
+  /** A paragraph under the subtitle. Left out when the card shows only highlights. */
   description?: string
   /** Put before the title in the prompt's file name, to tell apart cards that share a title. */
   fileNamePrefix?: string
+  /** Shown as a list, in the order given. An empty list renders no list at all. */
   highlights?: readonly string[]
+  /** When set, the whole card is a link. */
   href?: string
   icon?: ReactNode
+  /** A line under the title, such as a role and its dates. It is a paragraph, not a heading. */
   subtitle?: string
   title: string
 }
 
+/**
+ * One terminal window holding a job or a degree. The title is the card's only
+ * heading. The prompt above it and the `[EOF]` below are decoration, hidden
+ * from assistive technology.
+ */
 export default function Card({
   className = '',
   description,

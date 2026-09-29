@@ -23,12 +23,24 @@ test/             # Vitest suites, mirroring app/, components/ and data/
 
 ## Content
 
-The wording in `data/profile.ts` is copied from the public resume, the same source the PDF in
-`public/` is rendered from, so the page and the PDF say the same thing. Change the resume first,
-then copy the wording here.
+Job highlights, skills and the bio in `data/profile.ts` are copied from the public resume, the
+same source the PDF in `public/` is rendered from, so they match it word for word. Change the
+resume first, then copy the wording here.
+
+The page is not a full copy of the resume:
+
+- It shows a selection of the highlights. Low Rate Co. has 7 of the resume's 9.
+- The Qlik entry, the degree descriptions, `mission` and `specialty` exist only here.
+
+`data/identity.ts` holds the name, role and city for the page chrome, the metadata and the
+structured data. Prose spells them out by hand: the bio, `share-image/opengraph-image.html` and
+`app/opengraph-image.alt.txt`. Change those too when a value in `identity.ts` changes.
 
 Nothing a visitor reads may contain an em dash or an en dash. `test/data/copy.test.ts` checks
-the data and `test/app/page.test.tsx` checks the rendered page.
+the data and the alt text, and `test/app/page.test.tsx` checks the rendered page.
+
+`test/data/profile.typecheck.ts` holds values that must not compile, such as a job with nothing
+to show. `yarn typecheck` enforces it. `yarn test` does not, because Vitest does not check types.
 
 ## Search engines
 
@@ -47,11 +59,14 @@ without it.
 
 After changing only `opengraph-image.alt.txt`, run `yarn clean` before a local build. The build
 cache does not notice a change to that file alone, and the built page keeps the old text. CI
-builds from a clean checkout, so it is not affected.
+builds from a clean checkout, so it is not affected. That stops being true if the workflow ever
+caches `.next/cache`.
 
 The share picture is a committed PNG, not a generated route. A generated one is exported with
 no file extension, and S3 would serve it with the wrong content type. To change it, edit
-`share-image/opengraph-image.html` and render it again:
+`share-image/opengraph-image.html` and render it again. The command is for macOS, runs from
+`projects/resume`, and needs a network connection: the page loads its font from Google Fonts and
+falls back to another font, without an error, when it cannot.
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
@@ -73,7 +88,7 @@ yarn check      # lint + format check + typecheck
 yarn check:fix  # autofix lint/format, then typecheck
 yarn test       # run the Vitest suites once
 yarn test:watch # re-run the suites on change
-yarn clean      # remove .next / out / coverage
+yarn clean      # remove .next / dist / coverage
 ```
 
 ## Environment

@@ -22,8 +22,9 @@ const PERSON_FRAGMENT = '#person'
  *
  * Both forms of the name are given, and the public profiles are listed as the
  * same person, so a search for either name can be tied back to this site.
- * Email and phone are left out on purpose: they would be published in a form
- * built for machines to collect.
+ * Email and phone are left out on purpose. This block exists to be merged into
+ * profiles that search engines keep about a person, and a contact published
+ * here becomes part of that profile. The footer links the email for people.
  */
 export function buildProfilePageStructuredData(modifiedOn: Date): ProfilePageStructuredData {
   const [mostRecentDegree] = education

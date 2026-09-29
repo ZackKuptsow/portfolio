@@ -1,5 +1,10 @@
 import { HERO_NAME_LINE, PERSON_HANDLE } from '@/data/identity'
 
+/**
+ * The hero. The large handle is what a visitor sees first, and the heading
+ * under it is what a search engine and a screen reader are given: the name
+ * people type, with the role and the city.
+ */
 export default function Header() {
   return (
     <header className="min-h-screen flex items-center justify-center relative overflow-hidden">
