@@ -45,6 +45,10 @@ The goal is that a search for "Zack Kuptsow" or "Zachary Kuptsow" finds this pag
 `robots.ts` and `sitemap.ts` each export `dynamic = 'force-static'`. The static export fails
 without it.
 
+After changing only `opengraph-image.alt.txt`, run `yarn clean` before a local build. The build
+cache does not notice a change to that file alone, and the built page keeps the old text. CI
+builds from a clean checkout, so it is not affected.
+
 The share picture is a committed PNG, not a generated route. A generated one is exported with
 no file extension, and S3 would serve it with the wrong content type. To change it, edit
 `share-image/opengraph-image.html` and render it again:
