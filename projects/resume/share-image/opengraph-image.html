@@ -1,0 +1,89 @@
+<!doctype html>
+<!--
+  Source of app/opengraph-image.png, the picture shown when kups.me is shared.
+  Render it with the command in README.md. Colors are the dark theme tokens from
+  app/globals.css, written out in full because the picture has one fixed theme.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Share image for kups.me</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=block');
+
+      :root {
+        --background: hsl(0 0% 7%);
+        --muted-foreground: hsl(120 20% 70%);
+        --primary: hsl(120 100% 50%);
+        --glow: 0 0 15px hsl(120 100% 50% / 0.9), 0 0 30px hsl(120 100% 50% / 0.4);
+        --prompt-glow: 0 0 12px hsl(120 100% 50% / 0.8);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        background-color: var(--background);
+        background-image: linear-gradient(
+          135deg,
+          hsl(120 100% 50% / 0.15) -20%,
+          var(--background) 20%,
+          var(--background) 70%,
+          hsl(120 100% 50% / 0.1) 120%
+        );
+      }
+
+      .path {
+        font-size: 28px;
+        letter-spacing: 0.1em;
+        color: var(--primary);
+        text-shadow: var(--glow);
+        margin-bottom: 36px;
+      }
+
+      .name {
+        font-size: 120px;
+        line-height: 1;
+        font-weight: 700;
+        color: var(--primary);
+        text-shadow: var(--glow);
+        margin-bottom: 40px;
+      }
+
+      .tagline {
+        font-size: 40px;
+        color: var(--muted-foreground);
+        margin-bottom: 48px;
+      }
+
+      .prompt {
+        color: var(--primary);
+        text-shadow: var(--prompt-glow);
+      }
+
+      .rule {
+        width: 320px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="path">~/kups.me</div>
+    <div class="name">Zack Kuptsow</div>
+    <div class="tagline"><span class="prompt">$</span> full-stack-software-engineer</div>
+    <div class="rule"></div>
+  </body>
+</html>
