@@ -1,20 +1,36 @@
 /**
- * Resume content shown on the page. The wording comes from the public resume
- * (`Resume Public.md` in the vault), so the site and the PDF say the same thing.
+ * Resume content shown on the page.
+ *
+ * Job highlights, skills and the bio are copied from the public resume, the
+ * same source the PDF is rendered from, so they match it word for word. The
+ * page is not a full copy: it shows a selection of the highlights, and the
+ * Qlik entry, the degree descriptions, `mission` and `specialty` exist only
+ * here.
  */
 
-/** One job on the page. A job shows a paragraph, a list of highlights, or both. */
-export type WorkExperienceEntry = {
-  description?: string
-  highlights?: readonly string[]
+/** A list with at least one item, so an empty list cannot stand in for content. */
+export type NonEmptyList<Item> = readonly [Item, ...Item[]]
+
+type WorkExperienceHeading = {
   subtitle: string
   title: string
 }
 
+/**
+ * One job on the page. A job shows a paragraph, a list of highlights, or both.
+ * Each variant requires one of the two, so a job with neither does not compile
+ * and cannot render as an empty card.
+ */
+export type WorkExperienceEntry = WorkExperienceHeading &
+  (
+    | { description: string; highlights?: NonEmptyList<string> }
+    | { description?: string; highlights: NonEmptyList<string> }
+  )
+
 /** One degree on the page. */
 export type EducationEntry = {
   description: string
-  /** Both degrees share a school, so each card's prompt needs its own file name. */
+  /** Put before the title in the card's prompt, so cards that share a school show different files. */
   fileNamePrefix: string
   subtitle: string
   title: string
@@ -73,8 +89,8 @@ export const workExperience: readonly WorkExperienceEntry[] = [
   },
 ]
 
-/** Degrees, most recent first. */
-export const education: readonly EducationEntry[] = [
+/** Degrees, most recent first. Never empty: the structured data names the school of the first. */
+export const education: NonEmptyList<EducationEntry> = [
   {
     description:
       'Advanced degree focused on secure software development, cryptography, network security, and digital forensics. Specialized coursework in vulnerability assessment, secure coding practices, and cybersecurity risk management.',

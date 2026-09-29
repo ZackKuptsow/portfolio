@@ -1,41 +1,51 @@
 /**
- * Who the site is about, in one place. The page, the metadata and the
- * structured data all read from here, so a search engine sees one consistent
- * answer to "who is this".
+ * Who the site is about. The page chrome, the metadata and the structured data
+ * read from here, so a search engine gets one consistent answer to "who is
+ * this".
+ *
+ * Prose is the exception. The bio in `profile.ts`, the share image and its alt
+ * text spell the name and city out, because they are sentences or pictures.
+ * Change those by hand when something here changes.
  */
 
 /**
- * Where a visitor can write. The same address the public resume carries. It is
- * shown on the page, and left out of the structured data on purpose.
+ * Where a visitor can write: the footer links it. The same address the public
+ * resume carries. It is left out of the structured data on purpose.
  */
 export const CONTACT_EMAIL = 'zkups56@gmail.com'
 
-/** How the role is named everywhere. A range, never a single layer of the stack. */
+/**
+ * The role as the title, the hero and the structured data name it. A range,
+ * never a single layer of the stack.
+ */
 export const JOB_TITLE = 'Full-Stack Software Engineer'
 
-/** City and state as shown to visitors. */
-export const LOCATION_LABEL = 'Philadelphia, PA'
-
-/** The same location, split into the parts structured data asks for. */
+/** The location, split into the parts structured data asks for. */
 export const LOCATION = {
   country: 'US',
   locality: 'Philadelphia',
   region: 'PA',
 } as const
 
-/** Family name, for structured data. */
+/** City and state as shown to visitors. Built from `LOCATION`, so the two cannot disagree. */
+export const LOCATION_LABEL = `${LOCATION.locality}, ${LOCATION.region}`
+
+/** Family name, for the structured data and the link-preview tags. */
 export const PERSON_FAMILY_NAME = 'Kuptsow'
 
 /** The formal name, as the resume writes it. People search for this form too. */
 export const PERSON_FORMAL_NAME = 'Zachary Kuptsow'
 
-/** Given name, for structured data. */
+/** Given name, for the structured data and the link-preview tags. */
 export const PERSON_GIVEN_NAME = 'Zachary'
 
-/** The stylized handle. It is decoration, and search engines read it as one word. */
+/**
+ * The stylized handle. A search engine may not split it into the two names, so
+ * nothing relies on it to carry the name.
+ */
 export const PERSON_HANDLE = 'zachary.kuptsow'
 
-/** The name people search for most. It leads the title, the hero and the structured data. */
+/** The name he goes by. It leads the title, the hero and the structured data. */
 export const PERSON_NAME = 'Zack Kuptsow'
 
 /** The hero's heading: name, role and place on one line. */
@@ -47,7 +57,10 @@ export const PROFILE_LINKS = {
   linkedIn: 'https://www.linkedin.com/in/zack-kuptsow/',
 } as const
 
-/** Shown under the title in search results, which cut off near 160 characters. */
+/**
+ * Shown under the title in search results. A test keeps it to 160 characters,
+ * a common length for results to cut a description off at.
+ */
 export const SITE_DESCRIPTION = `${PERSON_NAME} (${PERSON_FORMAL_NAME}) is a full-stack software engineer in ${LOCATION_LABEL} who owns the product surfaces and the infrastructure they run on.`
 
 /** The browser tab and the search result title. */
