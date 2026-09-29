@@ -11,8 +11,10 @@ describe('buildProfilePageStructuredData', () => {
   it('describes the page as a profile of one person, under both forms of the name', () => {
     const structuredData = buildProfilePageStructuredData(MODIFIED_ON)
 
+    expect(structuredData['@context']).toBe('https://schema.org')
     expect(structuredData['@type']).toBe('ProfilePage')
     expect(structuredData.mainEntity).toMatchObject({
+      '@id': 'https://kups.me/#person',
       '@type': 'Person',
       alternateName: 'Zachary Kuptsow',
       familyName: 'Kuptsow',
@@ -32,7 +34,7 @@ describe('buildProfilePageStructuredData', () => {
     ])
   })
 
-  it('publishes the city and the school, and no way to contact him directly', () => {
+  it('publishes the city and the school', () => {
     const { mainEntity } = buildProfilePageStructuredData(MODIFIED_ON)
 
     expect(mainEntity.address).toEqual({
@@ -45,9 +47,15 @@ describe('buildProfilePageStructuredData', () => {
       '@type': 'CollegeOrUniversity',
       name: 'University of Delaware',
     })
-    expect(Object.keys(mainEntity).filter((key) => ['email', 'telephone'].includes(key))).toEqual(
-      [],
-    )
+  })
+
+  it('publishes no way to contact him, at any depth', () => {
+    // The whole block is searched as text, so a contact nested inside another
+    // object, such as a contactPoint, is caught as well as a top-level field.
+    const published = JSON.stringify(buildProfilePageStructuredData(MODIFIED_ON))
+    const contactTraces = ['"email"', '"telephone"', 'zkups56', '@gmail', '685-9908']
+
+    expect(contactTraces.filter((trace) => published.includes(trace))).toEqual([])
   })
 
   it('stamps the page with the date it was built', () => {
