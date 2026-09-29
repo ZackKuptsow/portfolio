@@ -125,6 +125,28 @@ describe('SendResumeStack', () => {
 		});
 	});
 
+	it('lets the delivery function reach sandbox recipients only as kups.me', () => {
+		// In the SES sandbox, SendEmail is also authorized against each verified
+		// recipient identity, so the sender-identity grant alone is denied.
+		synthesize().hasResourceProperties('AWS::IAM::Policy', {
+			PolicyDocument: {
+				Statement: Match.arrayWith([
+					Match.objectLike({
+						Action: ['ses:SendEmail', 'ses:SendRawEmail'],
+						Condition: { StringLike: { 'ses:FromAddress': '*@kups.me' } },
+						Effect: 'Allow',
+						Resource: {
+							'Fn::Join': [
+								'',
+								Match.arrayWith([Match.stringLikeRegexp(':identity/\\*$')])
+							]
+						}
+					})
+				])
+			}
+		});
+	});
+
 	it('delivers through a state machine rather than from the request path', () => {
 		const template = synthesize();
 

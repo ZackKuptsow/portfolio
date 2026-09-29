@@ -1,7 +1,8 @@
+import * as cdk from 'aws-cdk-lib';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as ses from 'aws-cdk-lib/aws-ses';
 
-import type { Grant, IGrantable } from 'aws-cdk-lib/aws-iam';
+import { Grant, type IGrantable } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 /** Inputs for {@link SenderDomain}. */
@@ -17,6 +18,8 @@ export type SenderDomainProps = {
 const DMARC_POLICY = 'v=DMARC1; p=none;';
 const DMARC_RECORD_NAME = '_dmarc';
 
+const SEND_EMAIL_ACTIONS = ['ses:SendEmail', 'ses:SendRawEmail'];
+
 /**
  * A domain verified with SES and able to pass DMARC.
  *
@@ -27,12 +30,14 @@ const DMARC_RECORD_NAME = '_dmarc';
  * record itself is left to add here.
  */
 export class SenderDomain extends Construct {
+	private readonly domainName: string;
 	private readonly emailIdentity: ses.EmailIdentity;
 
 	constructor(scope: Construct, id: string, props: SenderDomainProps) {
 		super(scope, id);
 
 		const { hostedZone, mailFromSubdomain } = props;
+		this.domainName = hostedZone.zoneName;
 
 		this.emailIdentity = new ses.EmailIdentity(this, 'Identity', {
 			identity: ses.Identity.publicHostedZone(hostedZone),
@@ -46,8 +51,32 @@ export class SenderDomain extends Construct {
 		});
 	}
 
-	/** Allows `grantee` to send mail from any address on this domain. */
+	/**
+	 * Allows `grantee` to send mail from any address on this domain.
+	 *
+	 * While the account is in the SES sandbox, SendEmail is also authorized
+	 * against each verified recipient identity, so the sender-identity grant
+	 * alone is denied. The second grant covers recipient identities but only for
+	 * mail whose From address is on this domain, so the grantee still cannot send
+	 * as any other identity in the account.
+	 */
 	public grantSendEmail(grantee: IGrantable): Grant {
-		return this.emailIdentity.grantSendEmail(grantee);
+		const senderIdentityGrant = this.emailIdentity.grantSendEmail(grantee);
+		const recipientIdentityGrant = Grant.addToPrincipal({
+			actions: SEND_EMAIL_ACTIONS,
+			conditions: {
+				StringLike: { 'ses:FromAddress': `*@${this.domainName}` }
+			},
+			grantee,
+			resourceArns: [
+				cdk.Stack.of(this).formatArn({
+					resource: 'identity',
+					resourceName: '*',
+					service: 'ses'
+				})
+			]
+		});
+
+		return senderIdentityGrant.combine(recipientIdentityGrant);
 	}
 }
