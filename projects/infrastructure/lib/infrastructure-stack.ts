@@ -2,7 +2,7 @@ import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 
-import { ARecord, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { ARecord, RecordTarget, TxtRecord } from "aws-cdk-lib/aws-route53";
 import {
   CachePolicy,
   Function as CfFunction,
@@ -20,6 +20,9 @@ import { HostedZone } from "aws-cdk-lib/aws-route53";
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 
 const FORBIDDEN_STATUS = 403;
+// Not a secret. A TXT record is public from the moment it is in DNS.
+const GOOGLE_SITE_VERIFICATION =
+  "google-site-verification=a4EbT7tY9AjW578xpSeYG4X-rUD_bLe6kyVIi32RPUs";
 const NOT_FOUND_PAGE_PATH = "/404.html";
 const NOT_FOUND_STATUS = 404;
 const PDF_PATH_PATTERN = "*.pdf";
@@ -27,7 +30,8 @@ const PDF_PATH_PATTERN = "*.pdf";
 /**
  * Hosts kups.me: a private bucket behind CloudFront, DNS for the apex and www,
  * and a redirect from www to the apex. It also answers a missing path with the
- * site's 404 page, and keeps PDFs out of search results.
+ * site's 404 page, keeps PDFs out of search results, and proves ownership of
+ * the domain to Google Search Console.
  */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -115,6 +119,15 @@ export class InfrastructureStack extends Stack {
     new ARecord(this, "KupsAliasRecord", {
       recordName: "kups.me",
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      zone,
+    });
+
+    // Proves to Google Search Console that the domain is ours, which covers the
+    // apex, www and both protocols in one property. A name holds one set of TXT
+    // records, so any later apex TXT value (another search engine, SPF) goes in
+    // this list. A second TXT record at the apex would fail to deploy.
+    new TxtRecord(this, "KupsApexTxtRecord", {
+      values: [GOOGLE_SITE_VERIFICATION],
       zone,
     });
 

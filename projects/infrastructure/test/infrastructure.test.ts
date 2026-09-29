@@ -50,7 +50,34 @@ describe('InfrastructureStack', () => {
 	});
 
 	it('creates Route 53 alias records for the apex and www', () => {
-		synthesizeStackTemplate().resourceCountIs('AWS::Route53::RecordSet', 2);
+		const aliasRecords = synthesizeStackTemplate().findResources(
+			'AWS::Route53::RecordSet',
+			{ Properties: { Type: 'A' } }
+		);
+		const aliasRecordNames = Object.values(aliasRecords)
+			.map((record) => record.Properties.Name)
+			.sort();
+
+		expect(aliasRecordNames).toEqual(['kups.me.', 'www.kups.me.']);
+	});
+
+	it('proves to Google Search Console that the domain is ours', () => {
+		const template = synthesizeStackTemplate();
+
+		// A name holds one set of TXT records. A second set at the apex would
+		// fail to deploy, so every apex TXT value has to live in this one.
+		template.resourcePropertiesCountIs(
+			'AWS::Route53::RecordSet',
+			{ Name: 'kups.me.', Type: 'TXT' },
+			1
+		);
+		template.hasResourceProperties('AWS::Route53::RecordSet', {
+			Name: 'kups.me.',
+			ResourceRecords: [
+				'"google-site-verification=a4EbT7tY9AjW578xpSeYG4X-rUD_bLe6kyVIi32RPUs"'
+			],
+			Type: 'TXT'
+		});
 	});
 
 	it('answers a missing path with the 404 page and a 404 status', () => {
