@@ -81,6 +81,16 @@ describe('send_email handler', () => {
 		expect(attachments?.[0].FileName).toMatch(/\.pdf$/);
 	});
 
+	it('base64-encodes the attachment so SES does not send the PDF as 7bit text', async () => {
+		// Left unset, SES labelled the PDF `7bit` and replaced every byte that was
+		// not valid UTF-8 with U+FFFD, so the resume arrived as two blank pages.
+		await handler(DELIVERY_INPUT);
+
+		expect(
+			sentCommandInput().Content?.Simple?.Attachments?.[0].ContentTransferEncoding
+		).toBe('BASE64');
+	});
+
 	it('declares UTF-8 so a non-ASCII subject survives', async () => {
 		await handler(DELIVERY_INPUT);
 
