@@ -1,5 +1,7 @@
 'use client'
 
+import { toTerminalFileName } from '@/components/terminalFileName'
+
 interface SectionProps {
   children: React.ReactNode
   className?: string
@@ -11,14 +13,15 @@ export default function Section({ children, className, title }: SectionProps) {
     <section className={`mb-12 ${className}`}>
       {/* Simplified terminal-style section header */}
       <div className="mb-8">
-        <div className="font-mono text-sm text-muted-foreground mb-2">
-          <span className="command-prompt">$</span> cd ./{title.toLowerCase().replace(/\s+/g, '_')}
+        <div aria-hidden="true" className="font-mono text-sm text-muted-foreground mb-2">
+          <span className="command-prompt">$</span> cd ./{toTerminalFileName(title)}
         </div>
         <h2
           className="text-primary font-mono text-2xl font-bold border-l-4 border-primary/30 pl-4
                      terminal-glow-hover hover:border-primary/60 transition-all duration-200"
         >
-          # {title}
+          <span aria-hidden="true"># </span>
+          {title}
         </h2>
       </div>
       <div className="space-y-6">{children}</div>

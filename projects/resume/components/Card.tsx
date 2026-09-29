@@ -2,11 +2,15 @@
 
 import { ReactNode } from 'react'
 
+import { toTerminalFileName } from '@/components/terminalFileName'
 import useCursorGlow from '@/components/useCursorGlow'
 
 type CardProps = {
   className?: string
-  description: string
+  description?: string
+  /** Put before the title in the prompt's file name, to tell apart cards that share a title. */
+  fileNamePrefix?: string
+  highlights?: readonly string[]
   href?: string
   icon?: ReactNode
   subtitle?: string
@@ -16,6 +20,8 @@ type CardProps = {
 export default function Card({
   className = '',
   description,
+  fileNamePrefix = '',
+  highlights = [],
   href,
   icon,
   subtitle,
@@ -23,6 +29,7 @@ export default function Card({
 }: CardProps) {
   const Wrapper = href ? 'a' : 'div'
   const handleCursorGlowMove = useCursorGlow<HTMLElement>()
+  const fileName = toTerminalFileName(`${fileNamePrefix} ${title}`)
 
   return (
     <Wrapper
@@ -53,11 +60,9 @@ export default function Card({
       {/* Terminal content area with command prompt - matches About Me */}
       <div className="px-6 py-8 space-y-8">
         {/* Command Prompt */}
-        <div className="font-mono text-base">
+        <div aria-hidden="true" className="font-mono text-base">
           <span className="command-prompt">$</span>{' '}
-          <span className="text-muted-foreground">
-            cat {title.toLowerCase().replace(/\s+/g, '_')}.txt
-          </span>
+          <span className="text-muted-foreground">cat {fileName}.txt</span>
         </div>
 
         {/* Content Output */}
@@ -69,28 +74,45 @@ export default function Card({
             {title}
           </h3>
 
-          {/* Subtitle with refined spacing */}
+          {/* A paragraph, not a heading: it describes the title and opens no section */}
           {subtitle && (
-            <h4
+            <p
               className="text-muted-foreground font-mono text-sm
                          border-l-2 border-primary/20 pl-3
                          group-hover:border-primary/40 transition-colors"
             >
               {subtitle}
-            </h4>
+            </p>
           )}
 
           {/* Description with perfect line height and spacing */}
-          <p
-            className="text-foreground/80 leading-relaxed text-sm
-                       group-hover:text-foreground/90 transition-colors
-                       mt-4"
-          >
-            {description}
-          </p>
+          {description && (
+            <p
+              className="text-foreground/80 leading-relaxed text-sm
+                         group-hover:text-foreground/90 transition-colors
+                         mt-4"
+            >
+              {description}
+            </p>
+          )}
+
+          {highlights.length > 0 && (
+            <ul className="space-y-3 mt-4">
+              {highlights.map((highlight) => (
+                <li key={highlight} className="flex gap-2 text-sm leading-relaxed">
+                  <span aria-hidden="true" className="text-primary/60 shrink-0">
+                    →
+                  </span>
+                  <span className="text-foreground/80 group-hover:text-foreground/90 transition-colors">
+                    {highlight}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* Bottom terminal accent */}
-          <div className="pt-3 mt-4 border-t border-border/50">
+          <div aria-hidden="true" className="pt-3 mt-4 border-t border-border/50">
             <div className="flex justify-end">
               <span className="font-mono text-xs text-muted-foreground">[EOF]</span>
             </div>
