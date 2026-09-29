@@ -1,0 +1,40 @@
+/** Accessible name of the close button. It contains the visible text, per WCAG 2.5.3. */
+export const CLOSE_BUTTON_LABEL = 'Close (esc)'
+
+/** Visible text of the close button. */
+export const CLOSE_BUTTON_TEXT = 'esc ✕'
+
+/** Decorative path in the dialog's terminal window header. */
+export const DIALOG_HEADER_PATH = '~/portfolio/get_resume.sh'
+
+/** Visible heading of the dialog, and its accessible name. */
+export const DIALOG_TITLE = 'Get the resume'
+
+/** File name the browser saves the PDF as. */
+export const RESUME_PDF_FILE_NAME = 'Zachary_Kuptsow_Resume.pdf'
+
+/** Where the static export serves the PDF from (`public/`). */
+export const RESUME_PDF_PATH = '/Zachary_Kuptsow_Resume.pdf'
+
+/** Section headings inside the dialog, each shown after a decorative `## `. */
+export const SECTION_TITLE = {
+  download: 'download',
+  email: 'email',
+} as const
+
+/** Shared by the trigger and the download link, so both keep the original button look. */
+export const TERMINAL_BUTTON_CLASS_NAME = [
+  'terminal-download-btn group relative overflow-hidden',
+  'bg-primary text-background font-mono text-sm font-semibold',
+  'px-6 py-3 rounded-lg border-2 border-primary',
+  'hover:bg-transparent hover:text-primary',
+  'transition-all duration-300 ease-out',
+  'hover:shadow-glow hover:-translate-y-1',
+  'before:absolute before:inset-0 before:bg-gradient-to-r',
+  'before:from-transparent before:via-background/20 before:to-transparent',
+  'before:-translate-x-full hover:before:translate-x-full',
+  'before:transition-transform before:duration-700 before:ease-in-out',
+].join(' ')
+
+/** Command text on the button that opens the dialog. */
+export const TRIGGER_COMMAND = './get_resume.sh'

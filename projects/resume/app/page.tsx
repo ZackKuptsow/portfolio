@@ -2,8 +2,8 @@
 
 import AboutMe from '@/components/AboutMe'
 import Card from '@/components/Card'
-import DownloadButton from '@/components/DownloadButton'
 import Footer from '@/components/Footer'
+import { GetResume } from '@/components/GetResume'
 import Header from '@/components/Header'
 import ScrollFadeIn from '@/components/ScrollFadeIn'
 import Section from '@/components/Section'
@@ -53,7 +53,7 @@ export default function Home() {
         </ScrollFadeIn>
 
         <ScrollFadeIn delay={800}>
-          <DownloadButton />
+          <GetResume />
         </ScrollFadeIn>
       </main>
 

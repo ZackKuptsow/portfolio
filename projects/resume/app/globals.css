@@ -501,3 +501,43 @@ html.dark .terminal-about-me::before {
     transparent 50%
   );
 }
+
+/*
+ * Get-resume modal. The terminal window is the dialog's only visible box, so a
+ * click whose target is the dialog element itself landed on the backdrop (see
+ * useModalDialog). No display value is set here. The UA hides a closed dialog
+ * with display: none, and overriding display would show the dialog while it is
+ * closed.
+ */
+.get-resume-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: hsl(var(--foreground));
+  overflow: visible;
+}
+
+/* The window scrolls, not the dialog, so a scrollbar can never count as the backdrop */
+.get-resume-dialog .terminal-window {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+/* Literal colors, because ::backdrop does not reliably inherit custom properties */
+.get-resume-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.35);
+  backdrop-filter: blur(2px);
+}
+
+html.dark .get-resume-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.7);
+}
+
+/* Keep the page behind an open modal from scrolling */
+html:has(dialog[open]) {
+  overflow: hidden;
+}

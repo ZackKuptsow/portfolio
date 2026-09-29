@@ -16,6 +16,7 @@ app/             # App Router entry (layout, page, global styles)
 components/      # UI components (Header, AboutMe, Card, ThemeToggle, GlowCursor, ...)
 data/profile.ts  # Resume content: work experience, education, skills
 public/          # Static assets
+test/            # Vitest suites, mirroring components/
 ```
 
 ## Commands
@@ -29,6 +30,8 @@ yarn build      # production static export -> out/
 yarn start      # serve a production build
 yarn check      # lint + format check + typecheck
 yarn check:fix  # autofix lint/format, then typecheck
+yarn test       # run the Vitest suites once
+yarn test:watch # re-run the suites on change
 yarn clean      # remove .next / out / coverage
 ```
 

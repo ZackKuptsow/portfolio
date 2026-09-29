@@ -20,6 +20,8 @@ yarn build              # Build for production
 yarn check              # Run linting, formatting, and typechecking
 yarn check:fix           # Auto-fix linting and formatting issues
 yarn typecheck          # TypeScript type checking only
+yarn test               # Run tests with Vitest
+yarn test:watch         # Run tests in watch mode
 ```
 
 ### Infrastructure (AWS CDK)
@@ -63,9 +65,9 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 
 ## Testing
 
-- Resume project: Uses Next.js built-in testing setup
+- Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `components/`
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
-- Test files located in `test/` directories, mirroring the `functions/` layout
+- Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume, `components/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
 
 ## Code Conventions
