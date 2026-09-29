@@ -1,5 +1,5 @@
 import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -48,6 +48,58 @@ describe('InfrastructureStack', () => {
 
 	it('creates Route 53 alias records for the apex and www', () => {
 		synthesizeStackTemplate().resourceCountIs('AWS::Route53::RecordSet', 2);
+	});
+
+	it('answers a missing path with the 404 page and a 404 status', () => {
+		// S3 answers 403 for a missing object when the reader may not list the bucket.
+		synthesizeStackTemplate().hasResourceProperties(
+			'AWS::CloudFront::Distribution',
+			{
+				DistributionConfig: Match.objectLike({
+					CustomErrorResponses: [
+						Match.objectLike({
+							ErrorCode: 403,
+							ResponseCode: 404,
+							ResponsePagePath: '/404.html'
+						})
+					]
+				})
+			}
+		);
+	});
+
+	it('sends a noindex header with every PDF, and only with PDFs', () => {
+		const template = synthesizeStackTemplate();
+		const noIndexPolicies = template.findResources(
+			'AWS::CloudFront::ResponseHeadersPolicy',
+			{
+				Properties: {
+					ResponseHeadersPolicyConfig: Match.objectLike({
+						CustomHeadersConfig: {
+							Items: [
+								{ Header: 'X-Robots-Tag', Override: true, Value: 'noindex' }
+							]
+						}
+					})
+				}
+			}
+		);
+		const noIndexPolicyIds = Object.keys(noIndexPolicies);
+
+		expect(noIndexPolicyIds).toHaveLength(1);
+		template.hasResourceProperties('AWS::CloudFront::Distribution', {
+			DistributionConfig: Match.objectLike({
+				CacheBehaviors: [
+					Match.objectLike({
+						PathPattern: '*.pdf',
+						ResponseHeadersPolicyId: { Ref: noIndexPolicyIds[0] }
+					})
+				],
+				DefaultCacheBehavior: Match.objectLike({
+					ResponseHeadersPolicyId: Match.absent()
+				})
+			})
+		});
 	});
 
 	it('fails fast when CERTIFICATE_ARN is not configured', () => {
