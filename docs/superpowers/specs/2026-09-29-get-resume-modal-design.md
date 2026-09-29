@@ -74,6 +74,7 @@ components/GetResume/
   hooks.ts                         useModalDialog: open, close, click outside
   constants.ts                     dialog title, header path, section names
   components/
+    DownloadIcon.tsx               the pulsing arrow, shared by the trigger and the link
     DownloadOption.tsx             git mv of components/DownloadButton.tsx, named export
     EmailOption/
       index.ts                     export { EmailOption }
@@ -88,8 +89,9 @@ test/components/GetResume/...      mirrors the tree above
 
 The folder follows `~/.claude/rules/javascript-typescript.md` for the new code only. The other
 flat components in `components/` are untouched, except `DownloadButton.tsx`, which moves
-because the modal becomes its only consumer. It keeps its link, classes and `download`
-attribute; only the outer centering wrapper changes, to fill the section's width.
+because the modal becomes its only consumer. It keeps its `href`, `download` attribute and
+classes. The class list becomes a constant shared with the trigger, and the link gains
+`flex-1` so it fills the section's width.
 
 ## The page
 
@@ -110,10 +112,14 @@ button styling and its pulsing icon, and reads `$ ./get_resume.sh`.
 - **First focus:** the browser default, the first focusable element, which is the close
   button. Focusing the email field instead would raise the phone keyboard over the modal.
 - **Closing:**
-  - the header button, visible text `esc ✕`, accessible name "Close"
+  - the header button, visible text `esc ✕`, accessible name "Close (esc)". The name contains
+    the visible text, as WCAG 2.5.3 requires.
   - Escape
   - a click on the backdrop. It counts only if the pointer press and the click both target the
     dialog element itself, so a text selection dragged out of the input does not close it.
+  - A backdrop click is also ignored when it is the second click of a double-click
+    (`event.detail > 1`). Double-clicking the trigger opens the dialog on the first click, and
+    the second click lands on the backdrop.
 - **Scroll lock:** `html:has(dialog[open]) { overflow: hidden; }` in `globals.css`.
 - **Focus return:** browsers restore focus to the trigger on close. This is verified in the
   manual keyboard pass, because jsdom cannot prove it.
@@ -139,7 +145,7 @@ section up.
 | Status | Trigger | UI | Copy |
 |---|---|---|---|
 | `idle` | initial | input + send | placeholder `you@company.com`, button `send`, hidden label "Your email address" |
-| `submitting` | submit with a non-empty value | input `readOnly`, button `aria-disabled` | One moment... |
+| `submitting` | submit with a non-empty value | input `readOnly`, button `aria-disabled` | One moment, then animated dots (CSS, `aria-hidden`) |
 | `success` | 202 | form replaced by the message; focus moves to the message | Got it. Look for an email from resume@kups.me titled "Zack Kuptsow Resume". It can take a minute, and it may land in spam. |
 | `invalid` | 400, or an empty value (no request) | `aria-invalid`, `aria-describedby` to the message, focus back to the input, value kept | That email address doesn't look right. Check it and try again, or use the download button. |
 | `limited` | 429 from any source | form kept | This address or network already requested the resume today. Check your inbox, or try again tomorrow. The download button works any time. |
@@ -185,7 +191,10 @@ Error text (`invalid`, `server-error`, `network-error`):
 - `html:has(dialog[open]) { overflow: hidden; }`.
 - A dialog reset (no UA padding or border, transparent background, width capped) and the
   `::backdrop` style.
-- The light-mode error text color above.
+- An `--error-text` token (light `0 72% 42%`, dark equal to `--destructive`), registered as the
+  `text-error-text` utility.
+- `.loading-dots`: the animated `...` after "One moment". It uses `forwards` fill, so the
+  site's reduced-motion rule leaves the dots showing rather than hiding them.
 
 ## API URL (env var)
 
@@ -198,8 +207,10 @@ Error text (`invalid`, `server-error`, `network-error`):
   - has pathname exactly `/resume-requests`
   - has no trailing slash and no query string
 
-  The guard must be watched failing for an unset value, a trailing slash and a wrong path. It
-  must also be confirmed that Next loads `.env.local` before evaluating `next.config.ts`.
+  The guard must be watched failing for an unset value, a trailing slash and a wrong path.
+  Next 15.3.4 loads `.env*` files before it evaluates the config: `loadConfig` calls
+  `loadEnvConfig` (`next/dist/server/config.js:941`) before it locates and requires the config
+  file. Checked 2026-09-29.
 - **Types:** a `ProcessEnv` declaration types the value as `string`, backed by the guard.
 - **Local:** `projects/resume/.env.local`, which the root `.gitignore` already ignores
   (`git check-ignore` confirmed).
@@ -228,9 +239,9 @@ Test runner:
   tsconfig has `jsx: preserve`), and the fake URL.
 - A `yarn test` script. It is not in `yarn check` and not in CI.
 
-**Open:** whether jsdom implements `HTMLDialogElement.showModal()`. If it doesn't, a setup file
-stubs `showModal`/`close` (toggling `open`). Either way, inertness, Escape and focus return
-are manual checks.
+**Settled 2026-09-29:** jsdom 30.1.1's `HTMLDialogElement` is an empty class, with no
+`showModal()` or `close()`. A setup file stubs both, toggling `open`. Inertness, Escape and
+focus return are therefore manual checks.
 
 Every test below is watched failing before the code that passes it:
 
@@ -253,12 +264,19 @@ Every test below is watched failing before the code that passes it:
   - a 202 replaces the form and focuses the message
   - a double submit while submitting sends **exactly 1** fetch
   - limited, server-error and network-error each show their copy and keep the form
+- **`useResumeRequest`:**
+  - trims the address before sending it
+  - an address of only spaces is invalid and sends nothing
+  - a retry after a network error sends a second request
 - **`GetResume`:**
   - the trigger opens a dialog named "Get the resume"
   - the close button closes it
   - a backdrop click closes it; a click inside does not; a press inside with a release on the
-    backdrop does not
-  - a success is still shown after close and reopen
+    backdrop does not; the second click of a double-click on the trigger does not
+  - the download link keeps its `href` and `download` attribute
+  - a success is still shown after closing mid-request and reopening
+- **Copy:** no visible string in either constants module contains an em or en dash. The test
+  asserts the exact count of strings it examined.
 
 ## Verification (before calling it done)
 
