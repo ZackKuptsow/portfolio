@@ -33,6 +33,7 @@
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-error-text: hsl(var(--error-text));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -70,6 +71,9 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 100%;
 
+  /* Error text. --destructive measures 3.6:1 on the light card, below the 4.5:1 text minimum. */
+  --error-text: 0 72% 42%;
+
   --border: 0 0% 80%;
   --input: 0 0% 85%;
   --ring: 0 0% 20%;
@@ -104,6 +108,9 @@ html.dark {
   --accent: 0 0% 10%;
   --accent-foreground: 120 100% 50%;
 
+  /* Error text: --destructive's value, 5.3:1 on the dark card */
+  --error-text: 0 84.2% 60.2%;
+
   --border: 120 100% 15%;
   --input: 0 0% 12%;
   --ring: 120 100% 50%;
@@ -136,13 +143,13 @@ html {
 }
 
 /* Accessibility: visible keyboard focus that stays on the terminal theme */
-:where(a, button, [tabindex]):focus-visible {
+:where(a, button, input, [tabindex]):focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 3px;
   border-radius: var(--radius);
 }
 
-html.dark :where(a, button, [tabindex]):focus-visible {
+html.dark :where(a, button, input, [tabindex]):focus-visible {
   outline-color: hsl(var(--primary));
   box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
 }
@@ -500,4 +507,64 @@ html.dark .terminal-about-me::before {
     hsl(var(--primary) / 0.18),
     transparent 50%
   );
+}
+
+/*
+ * Get-resume modal. The terminal window is the dialog's only visible box, so a
+ * click whose target is the dialog element itself landed on the backdrop (see
+ * useModalDialog). No display value is set here. The UA hides a closed dialog
+ * with display: none, and overriding display would show the dialog while it is
+ * closed.
+ */
+.get-resume-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: hsl(var(--foreground));
+  overflow: visible;
+}
+
+/* The window scrolls, not the dialog, so a scrollbar can never count as the backdrop */
+.get-resume-dialog .terminal-window {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+/* Literal colors, because ::backdrop does not reliably inherit custom properties */
+.get-resume-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.35);
+  backdrop-filter: blur(2px);
+}
+
+html.dark .get-resume-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.7);
+}
+
+/* Keep the page behind an open modal from scrolling */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/*
+ * Animated "..." after the submitting message. `forwards` matters: the
+ * reduced-motion rule above cuts every animation to one near-instant run, and
+ * without it the dots would snap back to width 0 and vanish.
+ */
+.loading-dots::after {
+  content: '...';
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: loading-dots 1.2s steps(4, end) infinite forwards;
+}
+
+@keyframes loading-dots {
+  to {
+    width: 4ch;
+  }
 }

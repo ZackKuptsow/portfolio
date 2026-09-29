@@ -20,6 +20,8 @@ yarn build              # Build for production
 yarn check              # Run linting, formatting, and typechecking
 yarn check:fix           # Auto-fix linting and formatting issues
 yarn typecheck          # TypeScript type checking only
+yarn test               # Run tests with Vitest
+yarn test:watch         # Run tests in watch mode
 ```
 
 ### Infrastructure (AWS CDK)
@@ -46,6 +48,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Component-based architecture in `components/` directory
 - Custom glow cursor effect and theme toggle functionality
 - Static export deployed to S3 via CloudFront
+- Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF download and delivery by email through the send_resume API
 
 ### Infrastructure Stack
 - AWS S3 bucket for static site hosting
@@ -63,9 +66,9 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 
 ## Testing
 
-- Resume project: Uses Next.js built-in testing setup
+- Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `components/`
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
-- Test files located in `test/` directories, mirroring the `functions/` layout
+- Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume, `components/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
 
 ## Code Conventions
@@ -81,6 +84,9 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 
 Infrastructure deployment requires:
 - `CERTIFICATE_ARN` - SSL certificate ARN for CloudFront distribution
+
+The resume site build requires:
+- `NEXT_PUBLIC_RESUME_REQUEST_API_URL` - the send_resume `ResumeRequestApiUrl` stack output. It is set locally in `projects/resume/.env.local` and in CI by the `RESUME_REQUEST_API_URL` repository variable. The build fails if it is missing or malformed.
 
 Load environment variables in infrastructure project using:
 ```bash
