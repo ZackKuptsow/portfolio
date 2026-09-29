@@ -9,6 +9,7 @@ import {
   Distribution,
   FunctionCode,
   FunctionEventType,
+  ResponseHeadersPolicy,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
@@ -18,6 +19,16 @@ import { Construct } from "constructs";
 import { HostedZone } from "aws-cdk-lib/aws-route53";
 import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 
+const FORBIDDEN_STATUS = 403;
+const NOT_FOUND_PAGE_PATH = "/404.html";
+const NOT_FOUND_STATUS = 404;
+const PDF_PATH_PATTERN = "*.pdf";
+
+/**
+ * Hosts kups.me: a private bucket behind CloudFront, DNS for the apex and www,
+ * and a redirect from www to the apex. It also answers a missing path with the
+ * site's 404 page, and keeps PDFs out of search results.
+ */
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -48,16 +59,56 @@ export class InfrastructureStack extends Stack {
       certificateArn
     );
 
+    // One origin object shared by both behaviors. CDK binds each origin object
+    // separately, so two objects would give this distribution two origins, two
+    // access controls and two identical statements in the bucket policy.
+    const siteOrigin = S3BucketOrigin.withOriginAccessControl(siteBucket);
+
+    // A search for the name should lead to the page, not to a PDF whose listing
+    // shows the contact line. The file stays downloadable. Crawlers must still
+    // be allowed to fetch it, because the header is how they learn to drop it.
+    const pdfResponseHeadersPolicy = new ResponseHeadersPolicy(
+      this,
+      "PdfNoIndexHeaders",
+      {
+        comment: "Keep PDFs out of search results",
+        customHeadersBehavior: {
+          customHeaders: [
+            { header: "X-Robots-Tag", override: true, value: "noindex" },
+          ],
+        },
+      }
+    );
+
     // CloudFront distribution
     const distribution = new Distribution(this, "ResumeSiteDistribution", {
+      additionalBehaviors: {
+        [PDF_PATH_PATTERN]: {
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+          origin: siteOrigin,
+          responseHeadersPolicy: pdfResponseHeadersPolicy,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
+      },
       certificate,
       defaultBehavior: {
-        origin: S3BucketOrigin.withOriginAccessControl(siteBucket),
+        origin: siteOrigin,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: CachePolicy.CACHING_OPTIMIZED,
       },
       defaultRootObject: "index.html",
       domainNames: ["kups.me"],
+      // The bucket's reader may not list it, so S3 answers 403 for a missing
+      // object. Visitors and crawlers should see a 404. The cost: every 403
+      // from the origin becomes a 404, so a broken bucket policy would show up
+      // as missing pages, not as access errors.
+      errorResponses: [
+        {
+          httpStatus: FORBIDDEN_STATUS,
+          responseHttpStatus: NOT_FOUND_STATUS,
+          responsePagePath: NOT_FOUND_PAGE_PATH,
+        },
+      ],
     });
 
     // Create DNS record alias

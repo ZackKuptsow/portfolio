@@ -1,6 +1,8 @@
 'use client'
 
 import useCursorGlow from '@/components/useCursorGlow'
+import { LOCATION_LABEL, PERSON_HANDLE } from '@/data/identity'
+import { about } from '@/data/profile'
 
 export default function AboutMe() {
   const handleCursorGlowMove = useCursorGlow<HTMLDivElement>()
@@ -13,7 +15,7 @@ export default function AboutMe() {
         onMouseMove={handleCursorGlowMove}
       >
         {/* Terminal Header */}
-        <div className="terminal-header terminal-header-style">
+        <div aria-hidden="true" className="terminal-header terminal-header-style">
           <div className="flex items-center gap-3">
             <span className="text-primary text-xs sm:text-sm font-mono">~/portfolio/about.sh</span>
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
@@ -23,16 +25,20 @@ export default function AboutMe() {
         {/* Terminal Content */}
         <div className="terminal-content-padding">
           {/* Command Prompt */}
-          <div className="terminal-command-prompt">
+          <div aria-hidden="true" className="terminal-command-prompt">
             <span className="command-prompt">$</span>{' '}
             <span className="text-muted-foreground">cat developer.profile</span>
           </div>
 
           {/* Profile Output */}
           <div className="code-block px-4 sm:px-8 py-6 space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8">
+            {/* The handle is decoration here. The bio below carries the name. */}
+            <div
+              aria-hidden="true"
+              className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8"
+            >
               <div className="text-primary font-mono text-lg sm:text-xl md:text-2xl text-center sm:text-left">
-                zachary.kuptsow
+                {PERSON_HANDLE}
               </div>
             </div>
 
@@ -42,21 +48,21 @@ export default function AboutMe() {
                 <div>
                   <div className="terminal-profile-label">Experience:</div>
                   <div className="text-foreground text-lg">
-                    <span className="stat-counter text-terminal text-2xl">5+</span> years building
-                    scalable systems
+                    <span className="stat-counter text-terminal text-2xl">
+                      {about.experienceYears}
+                    </span>{' '}
+                    {about.experienceSummary}
                   </div>
                 </div>
 
                 <div>
                   <div className="terminal-profile-label">Specialty:</div>
-                  <div className="terminal-profile-value">
-                    Full stack development with continuous learning mindset
-                  </div>
+                  <div className="terminal-profile-value">{about.specialty}</div>
                 </div>
 
                 <div>
-                  <div className="terminal-profile-label">Environment:</div>
-                  <div className="terminal-profile-value">Startup ecosystems & rapid iteration</div>
+                  <div className="terminal-profile-label">Based in:</div>
+                  <div className="terminal-profile-value">{LOCATION_LABEL}</div>
                 </div>
               </div>
 
@@ -65,37 +71,29 @@ export default function AboutMe() {
                 <div>
                   <div className="terminal-profile-label mb-4">Core Technologies:</div>
                   <div className="terminal-tech-tags">
-                    <span className="skill-tag px-3 py-1 text-sm rounded">TypeScript</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">Node</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">React</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">Tailwind</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">Python</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">Django</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">PostgreSQL</span>
-                    <span className="skill-tag px-3 py-1 text-sm rounded">AWS</span>
+                    {about.coreTechnologies.map((technology) => (
+                      <span key={technology} className="skill-tag px-3 py-1 text-sm rounded">
+                        {technology}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
                 <div>
                   <div className="terminal-profile-label">Mission:</div>
-                  <div className="terminal-profile-value">
-                    Building reliable, maintainable software that solves real problems
-                  </div>
+                  <div className="terminal-profile-value">{about.mission}</div>
                 </div>
               </div>
             </div>
 
-            {/* Command Line Quote */}
             <div className="terminal-philosophy-box">
-              <div className="font-mono text-sm text-muted-foreground mb-2 sm:mb-3">
-                {'// Personal philosophy'}
+              <div
+                aria-hidden="true"
+                className="font-mono text-sm text-muted-foreground mb-2 sm:mb-3"
+              >
+                {'// About'}
               </div>
-              <div className="text-foreground italic text-sm leading-relaxed">
-                &quot;I thrive on turning complex problems into elegant, user-friendly solutions.
-                Whether it&apos;s optimizing backend performance, crafting intuitive UIs, or
-                building CI/CD pipelines, I focus on code that&apos;s built to last and teams that
-                are built to ship.&quot;
-              </div>
+              <p className="text-foreground text-sm leading-relaxed">{about.bio}</p>
             </div>
 
             {/* Status Line */}
@@ -108,7 +106,9 @@ export default function AboutMe() {
 
           {/* Second Command */}
           <div className="font-mono text-xs">
-            <span className="command-prompt">$</span>{' '}
+            <span aria-hidden="true" className="command-prompt">
+              $
+            </span>{' '}
             <span className="text-muted-foreground typing-animation">
               <span className="sm:hidden sm:text-base">
                 {' '}

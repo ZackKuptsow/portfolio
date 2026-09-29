@@ -2,8 +2,10 @@ import './globals.css'
 
 import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
 
+import { siteMetadata } from '@/app/siteMetadata'
 import ClientOnly from '@/components/ClientOnly'
 import GlowCursor from '@/components/GlowCursor'
+import { StructuredData } from '@/components/StructuredData'
 import ThemeToggle from '@/components/ThemeToggle'
 
 import type { Metadata, Viewport } from 'next'
@@ -47,27 +49,7 @@ const themeInitializationScript = `(function () {
   } catch (error) {}
 })();`
 
-const siteUrl = 'https://kups.me'
-const siteDescription =
-  'Zack Kuptsow — full stack software engineer with a security background, building reliable, maintainable systems.'
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: 'Zack Kuptsow — Full Stack Software Engineer',
-  description: siteDescription,
-  openGraph: {
-    title: 'Zack Kuptsow — Full Stack Software Engineer',
-    description: siteDescription,
-    url: siteUrl,
-    siteName: 'Zack Kuptsow',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Zack Kuptsow — Full Stack Software Engineer',
-    description: siteDescription,
-  },
-}
+export const metadata: Metadata = siteMetadata
 
 export const viewport: Viewport = {
   themeColor: [
@@ -89,6 +71,7 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
+        <StructuredData />
       </head>
       <body className="bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 antialiased">
         <ClientOnly>

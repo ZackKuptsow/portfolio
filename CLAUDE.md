@@ -49,6 +49,11 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Custom glow cursor effect and theme toggle functionality
 - Static export deployed to S3 via CloudFront
 - Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF download and delivery by email through the send_resume API
+- Content lives in `data/`: `identity.ts` (name forms, role, location, email, profile links, site URL) and `profile.ts` (jobs, degrees, skills, about copy). Job highlights, skills and the bio are copied from the public resume, so change the resume first. The page shows a selection, and the Qlik entry and degree descriptions exist only on the page
+- No em dash or en dash in anything a visitor reads. `test/data/copy.test.ts` and `test/app/page.test.tsx` enforce it
+- Search engines: `app/siteMetadata.ts`, `components/StructuredData/` (schema.org `ProfilePage`), `app/robots.ts`, `app/sitemap.ts`, and the committed `app/opengraph-image.png` (source in `share-image/`)
+- Every prompt symbol (`.command-prompt`) sits inside an `aria-hidden` element, and `test/app/page.test.tsx` checks all of them. Arrows and `[EOF]` are hidden too
+- Sections render visible on the server, and the running script hides only one that starts below the fold (`components/ScrollFadeIn/`). The observer's threshold must stay 0: a fraction of a section many screens tall never fits on a phone, and the section would stay hidden
 
 ### Infrastructure Stack
 - AWS S3 bucket for static site hosting
@@ -56,6 +61,8 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Route53 DNS records for kups.me domain
 - Automatic www to root domain redirection using CloudFront Functions
 - Static asset deployment from Next.js build output
+- A missing path returns the 404 page with a 404 status (S3 itself answers 403)
+- Every `*.pdf` response carries `X-Robots-Tag: noindex`; `robots.txt` must not block PDFs, or crawlers never see the header
 
 ### Send Resume Service
 - HTTP API → intake Lambda (Zod validation + DynamoDB rate limiting) → 202/400/429
@@ -66,9 +73,9 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 
 ## Testing
 
-- Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `components/`
+- Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `app/`, `components/` and `data/`
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
-- Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume, `components/` in resume)
+- Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume; `app/`, `components/` and `data/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
 
 ## Code Conventions

@@ -1,12 +1,16 @@
 'use client'
 
-type SlimCardProps = {
+import { toTerminalFileName } from '@/components/terminalFileName'
+import type { SkillGroup } from '@/data/profile'
+
+// Taken from the model, so a field renamed there stops compiling here.
+type SlimCardProps = Pick<SkillGroup, 'list' | 'title'> & {
   className?: string
-  list: string[]
-  title: string
 }
 
 export default function SlimCard({ className = '', list, title }: SlimCardProps) {
+  const directoryName = toTerminalFileName(title)
+
   return (
     <div
       className={`terminal-skill-card group relative overflow-hidden flex flex-col
@@ -25,8 +29,8 @@ export default function SlimCard({ className = '', list, title }: SlimCardProps)
           <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></div>
           <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></div>
         </div>
-        <div className="ml-auto font-mono text-xs text-muted-foreground">
-          ./{title.toLowerCase()}
+        <div aria-hidden="true" className="ml-auto font-mono text-xs text-muted-foreground">
+          ./{directoryName}
         </div>
       </div>
 
@@ -36,8 +40,8 @@ export default function SlimCard({ className = '', list, title }: SlimCardProps)
       {/* Content - code-block fills 100% of the card */}
       <div className="code-block !border-0 !rounded-none !rounded-b-[var(--radius)] p-4 flex-1">
         {/* Command prompt */}
-        <div className="font-mono text-xs text-muted-foreground mb-3">
-          <span className="command-prompt">$</span> ls -la {title.toLowerCase()}
+        <div aria-hidden="true" className="font-mono text-xs text-muted-foreground mb-3">
+          <span className="command-prompt">$</span> ls -la {directoryName}
         </div>
 
         {/* Title */}
@@ -52,7 +56,9 @@ export default function SlimCard({ className = '', list, title }: SlimCardProps)
         <div className="space-y-2">
           {list.map((skill: string, index: number) => (
             <div key={index} className="flex items-center font-mono text-sm">
-              <span className="text-primary/60 mr-2">→</span>
+              <span aria-hidden="true" className="text-primary/60 mr-2">
+                →
+              </span>
               <span className="text-foreground/80 group-hover:text-foreground/95 transition-colors">
                 {skill}
               </span>
@@ -61,7 +67,7 @@ export default function SlimCard({ className = '', list, title }: SlimCardProps)
         </div>
 
         {/* Bottom accent */}
-        <div className="mt-4 pt-2 border-t border-border/30">
+        <div aria-hidden="true" className="mt-4 pt-2 border-t border-border/30">
           <div className="flex justify-between items-center">
             <span className="font-mono text-xs text-muted-foreground">{list.length} items</span>
             <span className="font-mono text-xs text-primary/60">drwxr-xr-x</span>

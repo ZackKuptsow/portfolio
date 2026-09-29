@@ -5,10 +5,10 @@ import Card from '@/components/Card'
 import Footer from '@/components/Footer'
 import { GetResume } from '@/components/GetResume'
 import Header from '@/components/Header'
-import ScrollFadeIn from '@/components/ScrollFadeIn'
+import { ScrollFadeIn } from '@/components/ScrollFadeIn'
 import Section from '@/components/Section'
 import SlimCard from '@/components/SlimCard'
-import { education, skills, workExperience } from '@/data/profile'
+import { education, skillGroups, workExperience } from '@/data/profile'
 
 export default function Home() {
   return (
@@ -22,20 +22,27 @@ export default function Home() {
 
         <ScrollFadeIn delay={200}>
           <Section title="Work Experience">
-            {workExperience.map((job, index) => (
-              <Card key={index} title={job.title} description={job.description} />
+            {workExperience.map((job) => (
+              <Card
+                key={job.title}
+                description={job.description}
+                highlights={job.highlights}
+                subtitle={job.subtitle}
+                title={job.title}
+              />
             ))}
           </Section>
         </ScrollFadeIn>
 
         <ScrollFadeIn delay={400}>
           <Section title="Education">
-            {education.map((edu, index) => (
+            {education.map((degree) => (
               <Card
-                key={index}
-                title={edu.title}
-                subtitle={edu.subtitle}
-                description={edu.description}
+                key={degree.fileNamePrefix}
+                description={degree.description}
+                fileNamePrefix={degree.fileNamePrefix}
+                subtitle={degree.subtitle}
+                title={degree.title}
               />
             ))}
           </Section>
@@ -46,9 +53,9 @@ export default function Home() {
             title="Skills"
             className="[&>div]:space-y-0 [&>div]:md:grid [&>div]:md:grid-cols-3 [&>div]:md:gap-8 [&>div]:space-y-6 [&>div]:md:space-y-0"
           >
-            <SlimCard list={skills.languages} title="Languages" />
-            <SlimCard list={skills.frameworks} title="Frameworks" />
-            <SlimCard list={skills.infrastructure} title="Infrastructure" />
+            {skillGroups.map((skillGroup) => (
+              <SlimCard key={skillGroup.title} list={skillGroup.list} title={skillGroup.title} />
+            ))}
           </Section>
         </ScrollFadeIn>
 
