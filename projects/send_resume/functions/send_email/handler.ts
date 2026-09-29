@@ -1,5 +1,9 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
+import {
+	AttachmentContentTransferEncoding,
+	SESv2Client,
+	SendEmailCommand
+} from '@aws-sdk/client-sesv2';
 
 import { ENVIRONMENT_VARIABLE } from '../shared/constants';
 import { readRequiredEnvironmentVariable } from '../shared/environment';
@@ -67,6 +71,9 @@ export const handler = async (input: DeliveryInput): Promise<DeliveryResult> => 
 						{
 							FileName: ATTACHMENT_FILE_NAME,
 							ContentType: PDF_CONTENT_TYPE,
+							// Left unset, SES sends the part as `7bit` and replaces every
+							// byte that is not valid UTF-8, so the PDF arrives blank.
+							ContentTransferEncoding: AttachmentContentTransferEncoding.BASE64,
 							RawContent: resumePdf
 						}
 					]
