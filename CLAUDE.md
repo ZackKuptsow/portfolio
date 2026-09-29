@@ -49,6 +49,10 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Custom glow cursor effect and theme toggle functionality
 - Static export deployed to S3 via CloudFront
 - Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF download and delivery by email through the send_resume API
+- Content lives in `data/`: `identity.ts` (name forms, role, location, profile links, site URL) and `profile.ts` (jobs, degrees, skills, about copy). The wording is copied from the public resume, so change the resume first
+- No em dash or en dash in anything a visitor reads. `test/data/copy.test.ts` and `test/app/page.test.tsx` enforce it
+- Search engines: `app/siteMetadata.ts`, `components/StructuredData/` (schema.org `ProfilePage`), `app/robots.ts`, `app/sitemap.ts`, and the committed `app/opengraph-image.png` (source in `share-image/`)
+- Decorative terminal text (prompts, arrows, `[EOF]`) is `aria-hidden`. Sections render visible on the server and only the running script may hide them (`components/ScrollFadeIn/`)
 
 ### Infrastructure Stack
 - AWS S3 bucket for static site hosting
@@ -56,6 +60,8 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Route53 DNS records for kups.me domain
 - Automatic www to root domain redirection using CloudFront Functions
 - Static asset deployment from Next.js build output
+- A missing path returns the 404 page with a 404 status (S3 itself answers 403)
+- Every `*.pdf` response carries `X-Robots-Tag: noindex`; `robots.txt` must not block PDFs, or crawlers never see the header
 
 ### Send Resume Service
 - HTTP API → intake Lambda (Zod validation + DynamoDB rate limiting) → 202/400/429
@@ -66,7 +72,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 
 ## Testing
 
-- Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `components/`
+- Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `app/`, `components/` and `data/`
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
 - Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume, `components/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
