@@ -84,6 +84,9 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 Infrastructure deployment requires:
 - `CERTIFICATE_ARN` - SSL certificate ARN for CloudFront distribution
 
+The resume site build requires:
+- `NEXT_PUBLIC_RESUME_REQUEST_API_URL` - the send_resume `ResumeRequestApiUrl` stack output. It is set locally in `projects/resume/.env.local` and in CI by the `RESUME_REQUEST_API_URL` repository variable. The build fails if it is missing or malformed.
+
 Load environment variables in infrastructure project using:
 ```bash
 set -a && source .env && set +a

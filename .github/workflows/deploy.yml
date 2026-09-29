@@ -30,6 +30,8 @@ jobs:
               run: yarn install --immutable
             - name: Build `resume` site
               working-directory: projects/resume
+              env:
+                  NEXT_PUBLIC_RESUME_REQUEST_API_URL: ${{ vars.RESUME_REQUEST_API_URL }}
               run: yarn build
             - name: Install `infrastructure` dependencies
               working-directory: projects/infrastructure
