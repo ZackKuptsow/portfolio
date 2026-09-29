@@ -54,6 +54,8 @@ next-env.d.ts
 # =============================
 cdk.out/
 cdk.context.json
+# send_resume's hosted-zone lookup is committed so synthesis does not depend on a live lookup.
+!projects/send_resume/cdk.context.json
 **/*.assets.json
 cdk*.log
 cdk*.tsbuildinfo
