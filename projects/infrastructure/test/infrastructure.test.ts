@@ -7,6 +7,9 @@ import { InfrastructureStack } from '../lib/infrastructure-stack';
 
 const CERTIFICATE_ARN =
 	'arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000';
+// The stack has two distributions. A matcher that does not name this one also
+// accepts the www redirect, so it could not tell which of them got a setting.
+const SITE_DOMAIN = 'kups.me';
 
 // Synthesize the stack into a CloudFormation template for assertion. A concrete
 // account/region is required so the Route 53 HostedZone.fromLookup can resolve
@@ -56,6 +59,7 @@ describe('InfrastructureStack', () => {
 			'AWS::CloudFront::Distribution',
 			{
 				DistributionConfig: Match.objectLike({
+					Aliases: [SITE_DOMAIN],
 					CustomErrorResponses: [
 						Match.objectLike({
 							ErrorCode: 403,
@@ -89,6 +93,7 @@ describe('InfrastructureStack', () => {
 		expect(noIndexPolicyIds).toHaveLength(1);
 		template.hasResourceProperties('AWS::CloudFront::Distribution', {
 			DistributionConfig: Match.objectLike({
+				Aliases: [SITE_DOMAIN],
 				CacheBehaviors: [
 					Match.objectLike({
 						PathPattern: '*.pdf',
