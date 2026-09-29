@@ -7,9 +7,20 @@ import type { InitialRevealPhase, SectionPosition } from './types'
  * loads is still readable. This runs once per section after the script starts,
  * and chooses between leaving the section as it is and hiding it so it can
  * fade in when scrolled to.
+ *
+ * Only a section that starts off screen is hidden. Hiding one the visitor can
+ * already see would make it blink out and fade back. A visitor who asked for
+ * less motion gets no effect at all.
  */
-export function resolveInitialPhase(sectionPosition: SectionPosition): InitialRevealPhase {
-  // TODO(zack): decide the policy. Until then nothing is hidden, so nothing fades in.
-  void sectionPosition
-  return 'untouched'
+export function resolveInitialPhase({
+  prefersReducedMotion,
+  sectionTop,
+  viewportHeight,
+}: SectionPosition): InitialRevealPhase {
+  if (prefersReducedMotion) {
+    return 'untouched'
+  }
+
+  const startsBelowTheFold = sectionTop >= viewportHeight
+  return startsBelowTheFold ? 'hidden' : 'untouched'
 }
