@@ -58,8 +58,10 @@ export function EmailOption() {
         <form
           noValidate
           onSubmit={handleSubmit}
+          // The `!` is needed: globals.css sets `* { border-color }` outside any
+          // cascade layer, which beats Tailwind's layered border utilities.
           className={`flex items-center gap-2 rounded border bg-muted px-3 py-2 font-mono text-sm ${
-            isInvalid ? 'border-error-text' : 'border-border'
+            isInvalid ? 'border-error-text!' : 'border-border'
           }`}
         >
           <span aria-hidden="true" className="flex shrink-0 items-center gap-2">
@@ -83,12 +85,12 @@ export function EmailOption() {
             aria-invalid={isInvalid}
             aria-describedby={isInvalid ? statusId : undefined}
             className="min-w-0 flex-1 bg-transparent text-foreground caret-primary
-                       placeholder:text-muted-foreground/60"
+                       placeholder:text-muted-foreground"
           />
           <button
             type="submit"
             aria-disabled={isSubmitting}
-            className="shrink-0 cursor-pointer rounded border border-primary px-2 py-0.5 text-primary
+            className="shrink-0 cursor-pointer rounded border border-primary! px-2 py-0.5 text-primary
                        transition-colors hover:bg-primary hover:text-background
                        aria-disabled:cursor-wait aria-disabled:opacity-50"
           >

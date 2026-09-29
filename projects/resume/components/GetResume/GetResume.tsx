@@ -63,7 +63,7 @@ export function GetResume() {
               aria-label={CLOSE_BUTTON_LABEL}
               onClick={close}
               className="cursor-pointer rounded border border-border px-2 font-mono text-xs
-                         text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                         text-muted-foreground transition-colors hover:border-primary! hover:text-primary"
             >
               {CLOSE_BUTTON_TEXT}
             </button>

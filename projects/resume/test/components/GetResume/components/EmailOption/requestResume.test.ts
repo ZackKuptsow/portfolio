@@ -19,7 +19,20 @@ describe('requestResume', () => {
       credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
+      signal: expect.any(AbortSignal),
     })
+  })
+
+  it('reports a network error when the request times out', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError')),
+    )
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    await expect(requestResume('you@company.com')).resolves.toBe('network-error')
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(0)
   })
 
   it('reports success for a 202 whose body is not JSON', async () => {

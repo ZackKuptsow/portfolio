@@ -19,6 +19,13 @@ export const EMAIL_SECTION_HINT = 'have it emailed to you'
  */
 export const RESUME_REQUEST_API_URL = process.env.NEXT_PUBLIC_RESUME_REQUEST_API_URL
 
+/**
+ * How long a request may take before the visitor is sent to the download. The
+ * intake Lambda gives up after 10 s, so a request still open at 15 s is stuck
+ * on the network, and "One moment" would otherwise stay on screen indefinitely.
+ */
+export const RESUME_REQUEST_TIMEOUT_MILLISECONDS = 15_000
+
 export const SEND_BUTTON_TEXT = 'send'
 
 /**
