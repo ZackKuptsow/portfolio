@@ -7,6 +7,7 @@ AWS CDK stack that hosts the [`resume`](../resume) site at **[kups.me](https://k
 - **S3 bucket** — private origin holding the exported static site
 - **CloudFront distribution** — HTTPS via an ACM certificate, optimized caching, serving `kups.me`
 - **Route 53 A records** — aliases in the existing `kups.me` hosted zone
+- **Route 53 TXT record at the apex**: proves ownership of the domain to Google Search Console. A name holds one set of TXT records, so any later apex TXT value goes in the same list in the stack
 - **www → root redirect** — a second distribution plus a CloudFront Function that 301-redirects `www.kups.me` to `kups.me`
 - **Static deployment** — uploads `../resume/out` and invalidates the CloudFront cache on each deploy
 - **Real 404s**: the bucket's reader may not list it, so S3 answers 403 for a missing path. CloudFront turns that into the site's 404 page with a 404 status. Every 403 from the origin is turned, so a broken bucket policy would also show up as 404s
