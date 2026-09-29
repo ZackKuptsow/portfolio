@@ -13,7 +13,9 @@ export function DownloadOption() {
         download={RESUME_PDF_FILE_NAME}
       >
         <span className="relative z-10 flex items-center justify-center gap-2">
-          <span className="command-prompt">$</span>
+          <span aria-hidden="true" className="command-prompt">
+            $
+          </span>
           <span>
             wget <span className="underline underline-offset-2">resume.pdf</span>
           </span>

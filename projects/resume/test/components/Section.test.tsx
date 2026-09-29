@@ -16,6 +16,14 @@ describe('Section', () => {
     expect(isInaccessible(screen.getByText(/cd \.\/work_experience/))).toBe(true)
   })
 
+  it('adds no stray class when the caller passes none', () => {
+    render(<Section title="Work Experience">content</Section>)
+
+    const section = screen.getByRole('heading', { level: 2 }).closest('section')
+
+    expect(section?.classList.contains('undefined')).toBe(false)
+  })
+
   it('drops punctuation from the path in the prompt', () => {
     render(<Section title="Skills & Tools">content</Section>)
 

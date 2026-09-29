@@ -86,7 +86,6 @@ export default function AboutMe() {
               </div>
             </div>
 
-            {/* Bio */}
             <div className="terminal-philosophy-box">
               <div
                 aria-hidden="true"
@@ -107,7 +106,9 @@ export default function AboutMe() {
 
           {/* Second Command */}
           <div className="font-mono text-xs">
-            <span className="command-prompt">$</span>{' '}
+            <span aria-hidden="true" className="command-prompt">
+              $
+            </span>{' '}
             <span className="text-muted-foreground typing-animation">
               <span className="sm:hidden sm:text-base">
                 {' '}

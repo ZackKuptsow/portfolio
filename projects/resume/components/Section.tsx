@@ -8,9 +8,9 @@ interface SectionProps {
   title: string
 }
 
-export default function Section({ children, className, title }: SectionProps) {
+export default function Section({ children, className = '', title }: SectionProps) {
   return (
-    <section className={`mb-12 ${className}`}>
+    <section className={`mb-12 ${className}`.trim()}>
       {/* Simplified terminal-style section header */}
       <div className="mb-8">
         <div aria-hidden="true" className="font-mono text-sm text-muted-foreground mb-2">
