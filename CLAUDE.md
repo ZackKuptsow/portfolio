@@ -48,6 +48,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Component-based architecture in `components/` directory
 - Custom glow cursor effect and theme toggle functionality
 - Static export deployed to S3 via CloudFront
+- Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF download and delivery by email through the send_resume API
 
 ### Infrastructure Stack
 - AWS S3 bucket for static site hosting

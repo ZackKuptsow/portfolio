@@ -4,6 +4,7 @@ import { useId } from 'react'
 
 import { DownloadIcon } from './components/DownloadIcon'
 import { DownloadOption } from './components/DownloadOption'
+import { EmailOption } from './components/EmailOption'
 import {
   CLOSE_BUTTON_LABEL,
   CLOSE_BUTTON_TEXT,
@@ -79,6 +80,14 @@ export function GetResume() {
                 {SECTION_TITLE.download}
               </h3>
               <DownloadOption />
+            </section>
+
+            <section>
+              <h3 className="mb-2 font-mono text-sm text-primary">
+                <span aria-hidden="true">## </span>
+                {SECTION_TITLE.email}
+              </h3>
+              <EmailOption />
             </section>
           </div>
         </div>

@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { GetResume } from '@/components/GetResume'
 
@@ -8,6 +8,8 @@ import type { UserEvent } from '@testing-library/user-event'
 
 const CLOSE_NAME = 'Close (esc)'
 const DIALOG_NAME = 'Get the resume'
+const SUCCESS_MESSAGE =
+  'Got it. Look for an email from resume@kups.me titled "Zack Kuptsow Resume". It can take a minute, and it may land in spam.'
 const TRIGGER_NAME = './get_resume.sh'
 
 async function renderAndOpenDialog(user: UserEvent): Promise<HTMLElement> {
@@ -87,5 +89,36 @@ describe('GetResume', () => {
 
     expect(downloadLink.getAttribute('href')).toBe('/Zachary_Kuptsow_Resume.pdf')
     expect(downloadLink.getAttribute('download')).toBe('Zachary_Kuptsow_Resume.pdf')
+  })
+
+  it('still shows the result after closing mid-request and reopening', async () => {
+    let resolveResponse: (response: Response) => void = () => undefined
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveResponse = resolve
+          }),
+      ),
+    )
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    await user.type(
+      within(dialog).getByRole('textbox', { name: 'Your email address' }),
+      'you@company.com',
+    )
+    await user.click(within(dialog).getByRole('button', { name: 'send' }))
+    await user.click(within(dialog).getByRole('button', { name: CLOSE_NAME }))
+    expect(dialog.hasAttribute('open')).toBe(false)
+
+    await act(async () => {
+      resolveResponse(new Response(null, { status: 202 }))
+    })
+    await user.click(screen.getByRole('button', { name: TRIGGER_NAME }))
+
+    expect(dialog.hasAttribute('open')).toBe(true)
+    expect(within(dialog).getByRole('status').textContent).toBe(SUCCESS_MESSAGE)
   })
 })
