@@ -21,9 +21,13 @@ export const INTERSECTION_THRESHOLD = 0
 /**
  * Classes for each phase. Only `revealed` carries the transition, so hiding a
  * section when the script starts is instant and never seen as a fade-out.
+ *
+ * `hidden` is undone for print. The browser does not report scrolling while it
+ * lays a page out for paper, so a visitor who prints before scrolling would
+ * otherwise get the hero and then blank pages.
  */
 export const PHASE_CLASS_NAME: Record<RevealPhase, string> = {
-  hidden: 'opacity-0 translate-y-8',
+  hidden: 'opacity-0 translate-y-8 print:opacity-100 print:translate-y-0',
   revealed: 'opacity-100 translate-y-0 transition-all duration-700 ease-out',
   untouched: '',
 }

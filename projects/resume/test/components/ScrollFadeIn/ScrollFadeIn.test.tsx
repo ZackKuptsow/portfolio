@@ -125,6 +125,20 @@ describe('ScrollFadeIn', () => {
     expect(observers.map(({ options }) => options?.threshold)).toEqual([0])
   })
 
+  it('still prints a section the visitor has not scrolled to', () => {
+    placeSection({ prefersReducedMotion: false, sectionTop: BELOW_THE_FOLD })
+    render(<ScrollFadeIn>section content</ScrollFadeIn>)
+
+    // jsdom cannot lay a page out for print, so this pins the classes. Chrome's
+    // print emulation is what shows the section is visible on paper.
+    const hiddenSectionClasses = screen.getByText('section content').className.split(' ')
+
+    expect(revealPhase()).toBe('hidden')
+    expect(hiddenSectionClasses).toEqual(
+      expect.arrayContaining(['print:opacity-100', 'print:translate-y-0']),
+    )
+  })
+
   it('leaves a section that starts on screen alone, and never watches it', () => {
     placeSection({ prefersReducedMotion: false, sectionTop: ON_SCREEN })
     render(<ScrollFadeIn>section content</ScrollFadeIn>)

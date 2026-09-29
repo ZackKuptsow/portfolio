@@ -1,11 +1,11 @@
 'use client'
 
 import { toTerminalFileName } from '@/components/terminalFileName'
+import type { SkillGroup } from '@/data/profile'
 
-type SlimCardProps = {
+// Taken from the model, so a field renamed there stops compiling here.
+type SlimCardProps = Pick<SkillGroup, 'list' | 'title'> & {
   className?: string
-  list: readonly string[]
-  title: string
 }
 
 export default function SlimCard({ className = '', list, title }: SlimCardProps) {

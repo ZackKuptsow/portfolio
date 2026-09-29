@@ -16,6 +16,11 @@ const CANONICAL_PATH = '/'
  * `layout.tsx` so tests can import it without loading `next/font`.
  *
  * The share image is not listed here. Next adds it from `opengraph-image.png`.
+ *
+ * The root layout applies this to every route, the canonical address included.
+ * That is right while the site is one page. A second page must set its own
+ * `alternates.canonical`, or it tells search engines the home page is the real
+ * copy and drops out of results.
  */
 export const siteMetadata: Metadata = {
   alternates: { canonical: CANONICAL_PATH },
