@@ -8,9 +8,10 @@ import type { InitialRevealPhase, SectionPosition } from './types'
  * and chooses between leaving the section as it is and hiding it so it can
  * fade in when scrolled to.
  *
- * Only a section that starts off screen is hidden. Hiding one the visitor can
- * already see would make it blink out and fade back. A visitor who asked for
- * less motion gets no effect at all.
+ * Only a section that starts below the viewport is hidden. Hiding one the
+ * visitor can already see would make it blink out and fade back, and one above
+ * the viewport has already been scrolled past. A visitor who asked for less
+ * motion gets no effect at all.
  */
 export function resolveInitialPhase({
   prefersReducedMotion,

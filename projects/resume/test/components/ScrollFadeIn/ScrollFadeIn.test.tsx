@@ -3,43 +3,69 @@ import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ScrollFadeIn } from '@/components/ScrollFadeIn'
-import { resolveInitialPhase } from '@/components/ScrollFadeIn/resolveInitialPhase'
 
-// The policy is a separate decision with its own tests. Here it is replaced, so
-// these tests pin what the component does with each answer the policy can give.
-vi.mock('@/components/ScrollFadeIn/resolveInitialPhase', () => ({
-  resolveInitialPhase: vi.fn(),
-}))
-
+const BELOW_THE_FOLD = 1500
 const DELAY_MILLISECONDS = 200
-const SECTION_TOP = 1500
-const VIEWPORT_HEIGHT = 768
+const ON_SCREEN = 100
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+// jsdom's own window is 768 tall. A different height proves the stub is what the code reads.
+const VIEWPORT_HEIGHT = 900
 
 type IntersectionCallback = (entries: { isIntersecting: boolean; target: Element }[]) => void
+type ObserverRecord = {
+  callback: IntersectionCallback
+  disconnectCount: number
+  observed: Element[]
+  options: IntersectionObserverInit | undefined
+}
 
-let observedSections: { callback: IntersectionCallback; element: Element }[] = []
+let observers: ObserverRecord[] = []
 
 class IntersectionObserverStub {
-  private readonly callback: IntersectionCallback
+  private readonly record: ObserverRecord
 
-  constructor(callback: IntersectionCallback) {
-    this.callback = callback
+  constructor(callback: IntersectionCallback, options?: IntersectionObserverInit) {
+    this.record = { callback, disconnectCount: 0, observed: [], options }
+    observers.push(this.record)
   }
 
   observe(element: Element): void {
-    observedSections.push({ callback: this.callback, element })
+    this.record.observed.push(element)
   }
 
   unobserve(): void {}
 
-  disconnect(): void {}
+  disconnect(): void {
+    this.record.disconnectCount += 1
+  }
 }
 
-function scrollIntoView(): void {
+function placeSection({
+  prefersReducedMotion,
+  sectionTop,
+}: {
+  prefersReducedMotion: boolean
+  sectionTop: number
+}): void {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: prefersReducedMotion && query === REDUCED_MOTION_QUERY,
+  }))
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+    top: sectionTop,
+  } as DOMRect)
+}
+
+function reportToObserver(isIntersecting: boolean): void {
   act(() => {
-    observedSections.forEach(({ callback, element }) =>
-      callback([{ isIntersecting: true, target: element }]),
+    observers.forEach(({ callback, observed }) =>
+      observed.forEach((target) => callback([{ isIntersecting, target }])),
     )
+  })
+}
+
+function advanceTime(milliseconds: number): void {
+  act(() => {
+    vi.advanceTimersByTime(milliseconds)
   })
 }
 
@@ -49,14 +75,10 @@ function revealPhase(): string | null {
 
 describe('ScrollFadeIn', () => {
   beforeEach(() => {
-    observedSections = []
+    observers = []
     vi.useFakeTimers()
     vi.stubGlobal('IntersectionObserver', IntersectionObserverStub)
     vi.stubGlobal('innerHeight', VIEWPORT_HEIGHT)
-    vi.stubGlobal('matchMedia', () => ({ matches: true }))
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
-      top: SECTION_TOP,
-    } as DOMRect)
   })
 
   afterEach(() => {
@@ -70,37 +92,65 @@ describe('ScrollFadeIn', () => {
     expect(serverMarkup).toContain('data-reveal-phase="untouched"')
   })
 
-  it('hides a section the policy marks hidden, then reveals it after the delay once it scrolls into view', () => {
-    vi.mocked(resolveInitialPhase).mockReturnValue('hidden')
+  it('hides a section that starts below the fold, then reveals it after the delay once it is scrolled to', () => {
+    placeSection({ prefersReducedMotion: false, sectionTop: BELOW_THE_FOLD })
     render(<ScrollFadeIn delay={DELAY_MILLISECONDS}>section content</ScrollFadeIn>)
     expect(revealPhase()).toBe('hidden')
 
-    scrollIntoView()
-    act(() => {
-      vi.advanceTimersByTime(DELAY_MILLISECONDS - 1)
-    })
+    reportToObserver(true)
+    advanceTime(DELAY_MILLISECONDS - 1)
     expect(revealPhase()).toBe('hidden')
 
-    act(() => {
-      vi.advanceTimersByTime(1)
-    })
+    advanceTime(1)
     expect(revealPhase()).toBe('revealed')
   })
 
-  it('leaves a section the policy marks untouched alone, and never watches it', () => {
-    vi.mocked(resolveInitialPhase).mockReturnValue('untouched')
+  it('stays hidden while the browser reports the section is not in view', () => {
+    placeSection({ prefersReducedMotion: false, sectionTop: BELOW_THE_FOLD })
+    render(<ScrollFadeIn>section content</ScrollFadeIn>)
+
+    // A real browser reports once as soon as it starts watching, in view or not.
+    reportToObserver(false)
+    advanceTime(DELAY_MILLISECONDS)
+
+    expect(revealPhase()).toBe('hidden')
+  })
+
+  it('reveals as soon as any part of the section is in view, however tall the section is', () => {
+    placeSection({ prefersReducedMotion: false, sectionTop: BELOW_THE_FOLD })
+    render(<ScrollFadeIn>section content</ScrollFadeIn>)
+
+    // A fraction of the section would never fit on screen once the section is
+    // many screens tall, and the section would then stay hidden for good.
+    expect(observers.map(({ options }) => options?.threshold)).toEqual([0])
+  })
+
+  it('leaves a section that starts on screen alone, and never watches it', () => {
+    placeSection({ prefersReducedMotion: false, sectionTop: ON_SCREEN })
     render(<ScrollFadeIn>section content</ScrollFadeIn>)
 
     expect(revealPhase()).toBe('untouched')
-    expect(observedSections).toEqual([])
+    expect(observers).toEqual([])
   })
 
-  it('tells the policy where the section sits and whether the visitor asked for less motion', () => {
-    vi.mocked(resolveInitialPhase).mockReturnValue('untouched')
+  it('hides nothing for a visitor who asked for less motion', () => {
+    placeSection({ prefersReducedMotion: true, sectionTop: BELOW_THE_FOLD })
     render(<ScrollFadeIn>section content</ScrollFadeIn>)
 
-    expect(vi.mocked(resolveInitialPhase).mock.calls).toEqual([
-      [{ prefersReducedMotion: true, sectionTop: SECTION_TOP, viewportHeight: VIEWPORT_HEIGHT }],
-    ])
+    expect(revealPhase()).toBe('untouched')
+    expect(observers).toEqual([])
+  })
+
+  it('stops watching and drops a pending reveal when it is removed from the page', () => {
+    placeSection({ prefersReducedMotion: false, sectionTop: BELOW_THE_FOLD })
+    const { unmount } = render(
+      <ScrollFadeIn delay={DELAY_MILLISECONDS}>section content</ScrollFadeIn>,
+    )
+    reportToObserver(true)
+
+    unmount()
+
+    expect(observers.map(({ disconnectCount }) => disconnectCount)).toEqual([1])
+    expect(vi.getTimerCount()).toBe(0)
   })
 })
