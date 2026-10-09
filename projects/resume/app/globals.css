@@ -382,6 +382,14 @@ html.dark .command-prompt {
   text-shadow: 0 0 12px hsl(var(--primary) / 0.8);
 }
 
+/*
+ * On a terminal button the prompt takes the button's own text color. Its usual color
+ * is the fill of the button, so it would be invisible whenever the button is filled.
+ */
+.terminal-button .command-prompt {
+  color: inherit;
+}
+
 /* Terminal utility classes */
 .terminal-command-prompt {
   font-family: var(--font-mono);

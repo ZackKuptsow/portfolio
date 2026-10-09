@@ -23,9 +23,13 @@ export const SECTION_TITLE = {
   qrCode: 'qr code',
 } as const
 
-/** Shared by the trigger and the download link, so both keep the original button look. */
+/**
+ * Shared by the trigger and the download link, so both keep the original button look.
+ * `terminal-button` is the hook globals.css uses to give the prompt the button's own text
+ * color: its usual color is the fill of the button.
+ */
 export const TERMINAL_BUTTON_CLASS_NAME = [
-  'terminal-download-btn group relative overflow-hidden',
+  'terminal-button group relative overflow-hidden',
   'bg-primary text-background font-mono text-sm font-semibold',
   'px-6 py-3 rounded-lg border-2 border-primary',
   'hover:bg-transparent hover:text-primary',
@@ -43,6 +47,7 @@ export const TERMINAL_BUTTON_CLASS_NAME = [
  * unlayered `*` border color in globals.css outranks every Tailwind utility.
  */
 export const TERMINAL_OUTLINE_BUTTON_CLASS_NAME = [
+  'terminal-button',
   'bg-transparent text-primary font-mono text-sm font-semibold',
   'px-6 py-3 rounded-lg border-2 border-primary!',
   'hover:bg-primary hover:text-background',
