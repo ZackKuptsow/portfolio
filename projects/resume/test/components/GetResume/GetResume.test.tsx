@@ -91,6 +91,26 @@ describe('GetResume', () => {
     expect(downloadLink.getAttribute('download')).toBe('Zachary_Kuptsow_Resume.pdf')
   })
 
+  it('offers a link under the download that opens the PDF in the browser instead of saving it', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    const downloadLink = within(dialog).getByRole('link', { name: /wget resume\.pdf/ })
+    const openLink = within(dialog).getByRole('link', { name: /open resume\.pdf/ })
+    const downloadSection = within(dialog)
+      .getByRole('heading', { name: 'download' })
+      .closest('section')
+
+    expect(openLink.getAttribute('href')).toBe('/Zachary_Kuptsow_Resume.pdf')
+    expect(openLink.hasAttribute('download')).toBe(false)
+    expect(openLink.getAttribute('target')).toBe('_blank')
+    expect(downloadSection).not.toBeNull()
+    expect(within(downloadSection as HTMLElement).getAllByRole('link')).toEqual([
+      downloadLink,
+      openLink,
+    ])
+  })
+
   it('still shows the result after closing mid-request and reopening', async () => {
     let resolveResponse: (response: Response) => void = () => undefined
     vi.stubGlobal(

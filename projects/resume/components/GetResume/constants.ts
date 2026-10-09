@@ -36,5 +36,18 @@ export const TERMINAL_BUTTON_CLASS_NAME = [
   'before:transition-transform before:duration-700 before:ease-in-out',
 ].join(' ')
 
+/**
+ * The quieter twin of the terminal button, for a second action under it: outlined at rest
+ * and filled on hover, the reverse of the button above. The border needs `!` because the
+ * unlayered `*` border color in globals.css outranks every Tailwind utility.
+ */
+export const TERMINAL_OUTLINE_BUTTON_CLASS_NAME = [
+  'bg-transparent text-primary font-mono text-sm font-semibold',
+  'px-6 py-3 rounded-lg border-2 border-primary!',
+  'hover:bg-primary hover:text-background',
+  'transition-all duration-300 ease-out',
+  'hover:shadow-glow hover:-translate-y-1',
+].join(' ')
+
 /** Command text on the button that opens the dialog. */
 export const TRIGGER_COMMAND = './get_resume.sh'
