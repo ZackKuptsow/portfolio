@@ -11,7 +11,9 @@ export default function Footer() {
           <span className="command-prompt">$</span> ls -la ./contact/
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
+        {/* Side by side only from `md` up. The links and the copyright need about 750px
+            between them, so at `sm` they made the page wider than the screen. */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           {/* Links */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
             <a
@@ -61,7 +63,7 @@ export default function Footer() {
           </div>
 
           {/* Copyright & Tech stack */}
-          <div className="font-mono text-xs text-muted-foreground border-l-0 sm:border-l border-border/30 pl-0 sm:pl-6 text-left sm:text-right">
+          <div className="font-mono text-xs text-muted-foreground border-l-0 md:border-l border-border/30 pl-0 md:pl-6 text-left md:text-right">
             <div className="mb-1">
               © {new Date().getFullYear()} {PERSON_HANDLE}
             </div>
