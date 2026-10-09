@@ -11,6 +11,8 @@ const CLOSE_NAME = 'Close (esc)'
 const DIALOG_NAME = 'Get the resume'
 const HIDDEN_BELOW_SM_CLASS_NAME = 'max-sm:hidden'
 const QR_CODE_NAME = 'QR code that opens the resume PDF'
+// In CSS pixels: the drawing is 37 units a side, shown at 5px a unit.
+const QR_CODE_SIZE = '185'
 const SUCCESS_MESSAGE =
   'Got it. Look for an email from resume@kups.me titled "Zack Kuptsow Resume". It can take a minute, and it may land in spam.'
 const TRIGGER_NAME = './get_resume.sh'
@@ -138,21 +140,33 @@ describe('GetResume', () => {
       `0 0 ${artwork.unitsPerSide} ${artwork.unitsPerSide}`,
     )
     expect(qrCode.querySelector('path')?.getAttribute('d')).toBe(artwork.path)
+    // The stylesheet colors the code through this. Without it the squares are black in
+    // both themes, and the dark theme's tile is black too.
+    expect(qrCode.querySelector('path')?.getAttribute('fill')).toBe('currentColor')
+    expect(qrCode.getAttribute('width')).toBe(QR_CODE_SIZE)
+    expect(qrCode.getAttribute('height')).toBe(QR_CODE_SIZE)
     expect(within(qrCodeSection).getByText('scan to open it on your phone')).toBeTruthy()
   })
 
   // A phone cannot scan its own screen. jsdom ignores media queries, so this cannot open the
   // dialog "on a phone": it checks the class that hides the section below Tailwind's `sm`
   // breakpoint. Chrome's device emulation checks that the class does its job.
-  it('marks the QR code section as hidden on a phone-sized screen', async () => {
+  it('marks the QR code section, and nothing else in the dialog, as hidden on a phone-sized screen', async () => {
     const user = userEvent.setup()
     const dialog = await renderAndOpenDialog(user)
 
     const qrCodeSection = within(dialog)
       .getByRole('heading', { name: 'qr code' })
       .closest('section')
+    // Whole class names, so `overflow-hidden` on the buttons does not count.
+    const hiddenAtSomeWidth = [...dialog.querySelectorAll('*')].filter((element) =>
+      [...element.classList].some(
+        (className) => className === 'hidden' || className.endsWith(':hidden'),
+      ),
+    )
 
     expect(qrCodeSection?.classList.contains(HIDDEN_BELOW_SM_CLASS_NAME)).toBe(true)
+    expect(hiddenAtSomeWidth).toEqual([qrCodeSection])
   })
 
   it('still shows the result after closing mid-request and reopening', async () => {

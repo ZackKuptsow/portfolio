@@ -3,11 +3,12 @@ import { encodeQR } from 'qr'
 import type { QrCodeArtwork } from '@/components/GetResume/components/QrCodeOption/types'
 
 const DARK_SQUARE = '#'
-const LIGHT_SQUARE = '.'
-const RUN_OF_DARK_SQUARES = /#+/g
+// One run of dark squares in a row written out as text, one character a square.
+const DARK_SQUARES_IN_ROW_TEXT = /#+/g
 // The code still reads with about 15% of it damaged. For the resume address it is free:
 // the code is the same size as at `low`.
 const ERROR_CORRECTION = 'medium'
+const LIGHT_SQUARE = '.'
 // Light squares on every side. Four is the least the QR standard allows.
 const QUIET_ZONE_UNITS = 4
 
@@ -19,7 +20,7 @@ function buildSquaresPath(squares: boolean[][]): string {
   return squares
     .flatMap((row, rowIndex) => {
       const rowText = row.map((isDark) => (isDark ? DARK_SQUARE : LIGHT_SQUARE)).join('')
-      return [...rowText.matchAll(RUN_OF_DARK_SQUARES)].map(
+      return [...rowText.matchAll(DARK_SQUARES_IN_ROW_TEXT)].map(
         (run) => `M${run.index} ${rowIndex}h${run[0].length}v1h-${run[0].length}z`,
       )
     })
