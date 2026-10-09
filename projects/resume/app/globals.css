@@ -548,6 +548,11 @@ html.dark .terminal-about-me::before {
   overflow-y: auto;
 }
 
+/* Without this the dark window scrolls with the browser's light scrollbar, the brightest thing in it */
+html.dark .get-resume-dialog .terminal-window {
+  color-scheme: dark;
+}
+
 /* Literal colors, because ::backdrop does not reliably inherit custom properties */
 .get-resume-dialog::backdrop {
   background: hsl(0 0% 0% / 0.35);
