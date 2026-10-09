@@ -1,5 +1,10 @@
 import { QR_CODE_ALT_TEXT, QR_CODE_HINT, QR_CODE_SIZE_PIXELS } from './constants'
-import artwork from './qrCodeArtwork.json'
+import artworkFile from './qrCodeArtwork.json'
+
+import type { QrCodeArtwork } from './types'
+
+// Typed, so a drawing of another shape fails the typecheck and not just the tests.
+const artwork: QrCodeArtwork = artworkFile
 
 /**
  * A QR code that opens the resume PDF on a phone, with its caption underneath.

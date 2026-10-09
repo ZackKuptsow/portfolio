@@ -578,7 +578,7 @@ html:has(dialog[open]) {
   background: hsl(0 0% 100%);
   color: hsl(0 0% 7%);
   border-radius: var(--radius);
-  /* A shadow, not a border: a border would shrink the drawing off its whole-pixel grid */
+  /* A shadow, not a border: a border would shrink the drawing off its grid of whole CSS pixels */
   box-shadow: 0 0 0 1px hsl(var(--border));
 }
 

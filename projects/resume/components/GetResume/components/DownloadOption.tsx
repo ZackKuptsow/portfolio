@@ -31,8 +31,9 @@ export function DownloadOption() {
           <DownloadIcon />
         </span>
       </a>
-      {/* No `download` attribute here. The server sends the PDF with no Content-Disposition,
-          so the browser opens it in its viewer. */}
+      {/* No `download` attribute here, so the browser opens the PDF in its viewer. That
+          relies on the server sending it with no Content-Disposition header, as the
+          infrastructure project's S3 and CloudFront setup does today. */}
       <a
         href={RESUME_PDF_PATH}
         target="_blank"

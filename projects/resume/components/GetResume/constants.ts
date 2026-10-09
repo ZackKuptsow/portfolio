@@ -43,8 +43,8 @@ export const TERMINAL_BUTTON_CLASS_NAME = [
 
 /**
  * The quieter twin of the terminal button, for a second action under it: outlined at rest
- * and filled on hover, the reverse of the button above. The border needs `!` because the
- * unlayered `*` border color in globals.css outranks every Tailwind utility.
+ * and filled on hover. The border needs `!` because the unlayered `*` border color in
+ * globals.css outranks every Tailwind utility.
  */
 export const TERMINAL_OUTLINE_BUTTON_CLASS_NAME = [
   'terminal-button',
@@ -52,7 +52,7 @@ export const TERMINAL_OUTLINE_BUTTON_CLASS_NAME = [
   'px-6 py-3 rounded-lg border-2 border-primary!',
   'hover:bg-primary hover:text-background',
   'transition-all duration-300 ease-out',
-  'hover:shadow-glow hover:-translate-y-1',
+  'hover:-translate-y-1',
 ].join(' ')
 
 /** Command text on the button that opens the dialog. */
