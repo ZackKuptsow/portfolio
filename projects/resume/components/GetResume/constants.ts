@@ -20,6 +20,7 @@ export const RESUME_PDF_PATH = '/Zachary_Kuptsow_Resume.pdf'
 export const SECTION_TITLE = {
   download: 'download',
   email: 'email',
+  qrCode: 'qr code',
 } as const
 
 /** Shared by the trigger and the download link, so both keep the original button look. */

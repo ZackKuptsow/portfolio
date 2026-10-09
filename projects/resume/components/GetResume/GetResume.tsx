@@ -5,6 +5,7 @@ import { useId } from 'react'
 import { DownloadIcon } from './components/DownloadIcon'
 import { DownloadOption } from './components/DownloadOption'
 import { EmailOption } from './components/EmailOption'
+import { QrCodeOption } from './components/QrCodeOption'
 import {
   CLOSE_BUTTON_LABEL,
   CLOSE_BUTTON_TEXT,
@@ -88,6 +89,16 @@ export function GetResume() {
                 {SECTION_TITLE.email}
               </h3>
               <EmailOption />
+            </section>
+
+            {/* A phone cannot scan its own screen, so below the `sm` breakpoint the code is
+                not shown. The link that opens the PDF does the same job there. */}
+            <section className="max-sm:hidden">
+              <h3 className="mb-2 font-mono text-sm text-primary">
+                <span aria-hidden="true">## </span>
+                {SECTION_TITLE.qrCode}
+              </h3>
+              <QrCodeOption />
             </section>
           </div>
         </div>

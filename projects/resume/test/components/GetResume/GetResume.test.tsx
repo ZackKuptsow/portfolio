@@ -3,11 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { GetResume } from '@/components/GetResume'
+import artwork from '@/components/GetResume/components/QrCodeOption/qrCodeArtwork.json'
 
 import type { UserEvent } from '@testing-library/user-event'
 
 const CLOSE_NAME = 'Close (esc)'
 const DIALOG_NAME = 'Get the resume'
+const HIDDEN_BELOW_SM_CLASS_NAME = 'max-sm:hidden'
+const QR_CODE_NAME = 'QR code that opens the resume PDF'
 const SUCCESS_MESSAGE =
   'Got it. Look for an email from resume@kups.me titled "Zack Kuptsow Resume". It can take a minute, and it may land in spam.'
 const TRIGGER_NAME = './get_resume.sh'
@@ -109,6 +112,38 @@ describe('GetResume', () => {
       downloadLink,
       openLink,
     ])
+  })
+
+  it('shows the QR code for the PDF as the last section, with its caption', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    const sectionHeadings = ['download', 'email', 'qr code'].map((name) =>
+      within(dialog).getByRole('heading', { name }),
+    )
+    const qrCodeSection = sectionHeadings[2].closest('section') as HTMLElement
+    const qrCode = within(qrCodeSection).getByRole('img', { name: QR_CODE_NAME })
+
+    expect(within(dialog).getAllByRole('heading', { level: 3 })).toEqual(sectionHeadings)
+    expect(qrCode.getAttribute('viewBox')).toBe(
+      `0 0 ${artwork.unitsPerSide} ${artwork.unitsPerSide}`,
+    )
+    expect(qrCode.querySelector('path')?.getAttribute('d')).toBe(artwork.path)
+    expect(within(qrCodeSection).getByText('scan to open it on your phone')).toBeTruthy()
+  })
+
+  // A phone cannot scan its own screen. jsdom ignores media queries, so this cannot open the
+  // dialog "on a phone": it checks the class that hides the section below Tailwind's `sm`
+  // breakpoint. Chrome's device emulation checks that the class does its job.
+  it('marks the QR code section as hidden on a phone-sized screen', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    const qrCodeSection = within(dialog)
+      .getByRole('heading', { name: 'qr code' })
+      .closest('section')
+
+    expect(qrCodeSection?.classList.contains(HIDDEN_BELOW_SM_CLASS_NAME)).toBe(true)
   })
 
   it('still shows the result after closing mid-request and reopening', async () => {

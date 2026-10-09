@@ -9,6 +9,10 @@ import {
   STATUS_MESSAGE,
 } from '@/components/GetResume/components/EmailOption/constants'
 import {
+  QR_CODE_ALT_TEXT,
+  QR_CODE_HINT,
+} from '@/components/GetResume/components/QrCodeOption/constants'
+import {
   CLOSE_BUTTON_LABEL,
   CLOSE_BUTTON_TEXT,
   DIALOG_HEADER_PATH,
@@ -19,8 +23,9 @@ import {
 
 // Writing Voice hard rule for anything a visitor reads.
 const EM_OR_EN_DASH = /[–—]/
-// 7 strings in GetResume/constants.ts and 12 in EmailOption/constants.ts.
-const VISIBLE_STRING_COUNT = 19
+// 8 strings in GetResume/constants.ts, 12 in EmailOption/constants.ts and 2 in
+// QrCodeOption/constants.ts.
+const VISIBLE_STRING_COUNT = 22
 
 describe('visible copy', () => {
   it('has no em or en dashes in any string a visitor sees', () => {
@@ -37,6 +42,8 @@ describe('visible copy', () => {
       EMAIL_SECTION_HINT,
       SEND_BUTTON_TEXT,
       ...Object.values(STATUS_MESSAGE),
+      QR_CODE_ALT_TEXT,
+      QR_CODE_HINT,
     ]
 
     // Assert the exact count, so an empty or shortened list cannot pass unexamined.

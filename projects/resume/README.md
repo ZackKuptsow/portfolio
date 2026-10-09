@@ -75,6 +75,31 @@ falls back to another font, without an error, when it cannot.
   "file://$PWD/share-image/opengraph-image.html"
 ```
 
+## QR code
+
+The get-resume modal shows a QR code that opens the PDF on a phone. The code holds
+`QR_CODE_ADDRESS` from `components/GetResume/components/QrCodeOption/constants.ts`: the site
+URL followed by the PDF path.
+
+The drawing is committed as `qrCodeArtwork.json` in that folder. The component draws it inline,
+not as an image file, so the stylesheet can color it for each theme. `qr` makes the drawing and
+is a dev dependency only, so nothing from it ships to visitors. `qrCodeArtwork.test.ts` fails
+when the file is not the drawing of the address, which is what happens after the PDF is renamed
+or the site moves. To redraw it, from `projects/resume`:
+
+```bash
+yarn test -u test/components/GetResume/components/QrCodeOption/qrCodeArtwork.test.ts
+```
+
+A phone is not shown the code, because it cannot scan its own screen. "A phone" means a screen
+narrower than Tailwind's `sm` breakpoint, 640px: the section carries `max-sm:hidden`, and the
+link that opens the PDF stays. The rule looks at the width alone, so a phone held sideways still
+gets the code and a narrow laptop window does not. jsdom ignores media queries, so the tests
+check only that the class is there. After changing it, check it in Chrome's device emulation.
+
+Scan the code in both themes after changing its colors: the dark theme draws it light on dark,
+which older scanners can fail to read.
+
 ## Commands
 
 From inside `projects/resume`:
