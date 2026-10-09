@@ -232,8 +232,14 @@ html.dark .group:hover .terminal-glow-hover {
   z-index: 1;
 }
 
+/*
+ * The window dots are decoration. The second `content` gives them an empty text
+ * alternative, so a screen reader does not read them out. A browser that does not
+ * know that form ignores it and keeps the first.
+ */
 .terminal-window::after {
   content: '● ● ●';
+  content: '● ● ●' / '';
   position: absolute;
   top: 8px;
   left: 12px;
