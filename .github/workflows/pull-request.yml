@@ -11,16 +11,18 @@ on:
 permissions:
     contents: read
 
-# A newer push to the same pull request replaces the run of the older one.
-concurrency:
-    group: pull-request-${{ github.event.pull_request.number }}
-    cancel-in-progress: true
-
 jobs:
     gates:
         name: Gates
         # A draft is not checked. Marking it ready for review starts this.
         if: ${{ !github.event.pull_request.draft }}
+        # A newer push to the same pull request replaces the run of the older one. The group
+        # sits on the job and not on the workflow, so a run that skips this job cancels
+        # nothing. On the workflow, a late event that still said "draft" cancelled the run
+        # that "ready for review" had started, and no gate ran.
+        concurrency:
+            group: pull-request-${{ github.event.pull_request.number }}
+            cancel-in-progress: true
         uses: ./.github/workflows/gates.yml
         # Passed on every call by convention. The gates job names no environment, so the
         # deploy keys, which are secrets of `production`, do not reach it.

@@ -14,16 +14,17 @@ on:
 permissions:
     contents: read
 
-# A newer push to the same pull request replaces the run of the older one.
-concurrency:
-    group: send-resume-${{ github.event.pull_request.number }}
-    cancel-in-progress: true
-
 jobs:
     checks:
         name: Typecheck and test
         # A draft is not checked. Marking it ready for review starts this.
         if: ${{ !github.event.pull_request.draft }}
+        # A newer push to the same pull request replaces the run of the older one. The group
+        # sits on the job and not on the workflow, so a run that skips this job cancels
+        # nothing (see pull-request.yml).
+        concurrency:
+            group: send-resume-${{ github.event.pull_request.number }}
+            cancel-in-progress: true
         runs-on: ubuntu-24.04
         timeout-minutes: 10
         steps:
