@@ -232,8 +232,14 @@ html.dark .group:hover .terminal-glow-hover {
   z-index: 1;
 }
 
+/*
+ * The window dots are decoration. The second `content` gives them an empty text
+ * alternative, so a screen reader does not read them out. A browser that does not
+ * know that form ignores it and keeps the first.
+ */
 .terminal-window::after {
   content: '● ● ●';
+  content: '● ● ●' / '';
   position: absolute;
   top: 8px;
   left: 12px;
@@ -380,6 +386,14 @@ html.dark .terminal-card::before {
 
 html.dark .command-prompt {
   text-shadow: 0 0 12px hsl(var(--primary) / 0.8);
+}
+
+/*
+ * On a terminal button the prompt takes the button's own text color. Its usual color
+ * is the fill of the button, so it would be invisible whenever the button is filled.
+ */
+.terminal-button .command-prompt {
+  color: inherit;
 }
 
 /* Terminal utility classes */
@@ -534,6 +548,11 @@ html.dark .terminal-about-me::before {
   overflow-y: auto;
 }
 
+/* Without this the dark window scrolls with the browser's light scrollbar, the brightest thing in it */
+html.dark .get-resume-dialog .terminal-window {
+  color-scheme: dark;
+}
+
 /* Literal colors, because ::backdrop does not reliably inherit custom properties */
 .get-resume-dialog::backdrop {
   background: hsl(0 0% 0% / 0.35);
@@ -547,6 +566,25 @@ html.dark .get-resume-dialog::backdrop {
 /* Keep the page behind an open modal from scrolling */
 html:has(dialog[open]) {
   overflow: hidden;
+}
+
+/*
+ * The QR code in the get-resume modal. The light theme draws it black on white, the
+ * form every scanner is built for, in literal colors so a palette change cannot dull
+ * it. The dark theme draws it green on a tile the color of the card, so the quiet
+ * margin the code needs runs on into the window around it.
+ */
+.qr-code {
+  background: hsl(0 0% 100%);
+  color: hsl(0 0% 7%);
+  border-radius: var(--radius);
+  /* A shadow, not a border: a border would shrink the drawing off its grid of whole CSS pixels */
+  box-shadow: 0 0 0 1px hsl(var(--border));
+}
+
+html.dark .qr-code {
+  background: hsl(var(--card));
+  color: hsl(var(--primary));
 }
 
 /*

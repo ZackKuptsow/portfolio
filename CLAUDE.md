@@ -48,7 +48,8 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Component-based architecture in `components/` directory
 - Custom glow cursor effect and theme toggle functionality
 - Static export deployed to S3 via CloudFront
-- Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF download and delivery by email through the send_resume API
+- Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF as a download, as a link that opens it in the browser, and by email through the send_resume API
+- The modal's QR code opens the PDF on a phone. Its drawing is the committed `qrCodeArtwork.json`, which a test redraws when run with `-u` (see "QR code" in the resume README). The section is hidden below the `sm` breakpoint (`max-sm:hidden`), because a phone cannot scan its own screen, and only a browser can check that rule
 - Content lives in `data/`: `identity.ts` (name forms, role, location, email, profile links, site URL) and `profile.ts` (jobs, degrees, skills, about copy). Job highlights, skills and the bio are copied from the public resume, so change the resume first. The page shows a selection, and the Qlik entry and degree descriptions exist only on the page
 - No em dash or en dash in anything a visitor reads. `test/data/copy.test.ts` and `test/app/page.test.tsx` enforce it
 - Search engines: `app/siteMetadata.ts`, `components/StructuredData/` (schema.org `ProfilePage`), `app/robots.ts`, `app/sitemap.ts`, and the committed `app/opengraph-image.png` (source in `share-image/`)

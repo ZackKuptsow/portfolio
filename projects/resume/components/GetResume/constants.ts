@@ -20,11 +20,16 @@ export const RESUME_PDF_PATH = '/Zachary_Kuptsow_Resume.pdf'
 export const SECTION_TITLE = {
   download: 'download',
   email: 'email',
+  qrCode: 'qr code',
 } as const
 
-/** Shared by the trigger and the download link, so both keep the original button look. */
+/**
+ * Shared by the trigger and the download link, so both keep the original button look.
+ * `terminal-button` is the hook globals.css uses to give the prompt the button's own text
+ * color: its usual color is the fill of the button.
+ */
 export const TERMINAL_BUTTON_CLASS_NAME = [
-  'terminal-download-btn group relative overflow-hidden',
+  'terminal-button group relative overflow-hidden',
   'bg-primary text-background font-mono text-sm font-semibold',
   'px-6 py-3 rounded-lg border-2 border-primary',
   'hover:bg-transparent hover:text-primary',
@@ -34,6 +39,20 @@ export const TERMINAL_BUTTON_CLASS_NAME = [
   'before:from-transparent before:via-background/20 before:to-transparent',
   'before:-translate-x-full hover:before:translate-x-full',
   'before:transition-transform before:duration-700 before:ease-in-out',
+].join(' ')
+
+/**
+ * The quieter twin of the terminal button, for a second action under it: outlined at rest
+ * and filled on hover. The border needs `!` because the unlayered `*` border color in
+ * globals.css outranks every Tailwind utility.
+ */
+export const TERMINAL_OUTLINE_BUTTON_CLASS_NAME = [
+  'terminal-button',
+  'bg-transparent text-primary font-mono text-sm font-semibold',
+  'px-6 py-3 rounded-lg border-2 border-primary!',
+  'hover:bg-primary hover:text-background',
+  'transition-all duration-300 ease-out',
+  'hover:-translate-y-1',
 ].join(' ')
 
 /** Command text on the button that opens the dialog. */

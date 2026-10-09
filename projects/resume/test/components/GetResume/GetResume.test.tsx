@@ -3,11 +3,16 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { GetResume } from '@/components/GetResume'
+import artwork from '@/components/GetResume/components/QrCodeOption/qrCodeArtwork.json'
 
 import type { UserEvent } from '@testing-library/user-event'
 
 const CLOSE_NAME = 'Close (esc)'
 const DIALOG_NAME = 'Get the resume'
+const HIDDEN_BELOW_SM_CLASS_NAME = 'max-sm:hidden'
+const QR_CODE_NAME = 'QR code that opens the resume PDF'
+// In CSS pixels: the drawing is 37 units a side, shown at 5px a unit.
+const QR_CODE_SIZE = '185'
 const SUCCESS_MESSAGE =
   'Got it. Look for an email from resume@kups.me titled "Zack Kuptsow Resume". It can take a minute, and it may land in spam.'
 const TRIGGER_NAME = './get_resume.sh'
@@ -30,6 +35,15 @@ describe('GetResume', () => {
     await user.click(trigger)
 
     expect(screen.getByRole('dialog', { name: DIALOG_NAME }).hasAttribute('open')).toBe(true)
+  })
+
+  // A browser picks the first focusable thing in the dialog on its own. Once the window is
+  // taller than the screen that is the scrolling window itself, so the dialog says where to start.
+  it('starts keyboard focus on the close button', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: CLOSE_NAME }))
   })
 
   it('closes from the close button', async () => {
@@ -89,6 +103,70 @@ describe('GetResume', () => {
 
     expect(downloadLink.getAttribute('href')).toBe('/Zachary_Kuptsow_Resume.pdf')
     expect(downloadLink.getAttribute('download')).toBe('Zachary_Kuptsow_Resume.pdf')
+  })
+
+  it('offers a link under the download that opens the PDF in the browser instead of saving it', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    const downloadLink = within(dialog).getByRole('link', { name: /wget resume\.pdf/ })
+    const openLink = within(dialog).getByRole('link', { name: /open resume\.pdf/ })
+    const downloadSection = within(dialog)
+      .getByRole('heading', { name: 'download' })
+      .closest('section')
+
+    expect(openLink.getAttribute('href')).toBe('/Zachary_Kuptsow_Resume.pdf')
+    expect(openLink.hasAttribute('download')).toBe(false)
+    expect(openLink.getAttribute('target')).toBe('_blank')
+    expect(downloadSection).not.toBeNull()
+    expect(within(downloadSection as HTMLElement).getAllByRole('link')).toEqual([
+      downloadLink,
+      openLink,
+    ])
+  })
+
+  it('shows the QR code for the PDF as the last section, with its caption', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    const sectionHeadings = ['download', 'email', 'qr code'].map((name) =>
+      within(dialog).getByRole('heading', { name }),
+    )
+    const qrCodeSection = sectionHeadings[2].closest('section') as HTMLElement
+    const qrCode = within(qrCodeSection).getByRole('img', { name: QR_CODE_NAME })
+
+    expect(within(dialog).getAllByRole('heading', { level: 3 })).toEqual(sectionHeadings)
+    expect(qrCode.getAttribute('viewBox')).toBe(
+      `0 0 ${artwork.unitsPerSide} ${artwork.unitsPerSide}`,
+    )
+    expect(qrCode.querySelector('path')?.getAttribute('d')).toBe(artwork.path)
+    // The stylesheet colors the code through this. Without it the squares are black in
+    // both themes, and the dark theme's tile is black too.
+    expect(qrCode.querySelector('path')?.getAttribute('fill')).toBe('currentColor')
+    expect(qrCode.getAttribute('width')).toBe(QR_CODE_SIZE)
+    expect(qrCode.getAttribute('height')).toBe(QR_CODE_SIZE)
+    expect(within(qrCodeSection).getByText('scan to open it on your phone')).toBeTruthy()
+  })
+
+  // A phone cannot scan its own screen. jsdom ignores media queries, so this cannot open the
+  // dialog "on a phone": it checks the class that hides the section below Tailwind's `sm`
+  // breakpoint. Chrome's device emulation checks that the class does its job.
+  it('marks the QR code section, and nothing else in the dialog, as hidden on a phone-sized screen', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    const qrCodeSection = within(dialog)
+      .getByRole('heading', { name: 'qr code' })
+      .closest('section')
+    // Whole class names, so `overflow-hidden` on the buttons does not count.
+    const hiddenAtSomeWidth = [...dialog.querySelectorAll('*')].filter((element) =>
+      [...element.classList].some(
+        (className) => className === 'hidden' || className.endsWith(':hidden'),
+      ),
+    )
+
+    expect(qrCodeSection?.classList.contains(HIDDEN_BELOW_SM_CLASS_NAME)).toBe(true)
+    expect(hiddenAtSomeWidth).toEqual([qrCodeSection])
   })
 
   it('still shows the result after closing mid-request and reopening', async () => {

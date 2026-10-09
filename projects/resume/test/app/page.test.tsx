@@ -8,8 +8,8 @@ const CARD_COUNT = 6
 // No em or en dash in anything a visitor reads. See "Content" in the README.
 const EM_OR_EN_DASH = /[–—]/
 // Header 1, About 2, three section headings, six cards, three skill columns,
-// three in the resume dialog, and Footer 2.
-const PROMPT_SYMBOL_COUNT = 20
+// four for the resume button and its dialog, and Footer 2.
+const PROMPT_SYMBOL_COUNT = 21
 // One phrase that only its own region renders. A region that stopped rendering
 // would otherwise go unnoticed by every check that scans the whole page.
 const REGION_SENTINELS = {
