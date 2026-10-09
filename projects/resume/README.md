@@ -1,4 +1,4 @@
-#   resume
+# resume
 
 The portfolio site behind **[kups.me](https://kups.me)** — a Next.js 15 app exported to static HTML and served from S3 + CloudFront (provisioned by the [`infrastructure`](../infrastructure) project).
 
