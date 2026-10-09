@@ -68,8 +68,9 @@ export default function Card({
 
       {/* Terminal content area with command prompt - matches About Me */}
       <div className="px-6 py-8 space-y-8">
-        {/* Command Prompt */}
-        <div aria-hidden="true" className="font-mono text-base">
+        {/* Command Prompt. It wraps mid-word, as a terminal does: a long file name that could
+            not wrap would make the card wider than a narrow phone. */}
+        <div aria-hidden="true" className="font-mono text-base break-all">
           <span className="command-prompt">$</span>{' '}
           <span className="text-muted-foreground">cat {fileName}.txt</span>
         </div>
