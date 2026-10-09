@@ -35,6 +35,15 @@ describe('GetResume', () => {
     expect(screen.getByRole('dialog', { name: DIALOG_NAME }).hasAttribute('open')).toBe(true)
   })
 
+  // A browser picks the first focusable thing in the dialog on its own. Once the window is
+  // taller than the screen that is the scrolling window itself, so the dialog says where to start.
+  it('starts keyboard focus on the close button', async () => {
+    const user = userEvent.setup()
+    const dialog = await renderAndOpenDialog(user)
+
+    expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: CLOSE_NAME }))
+  })
+
   it('closes from the close button', async () => {
     const user = userEvent.setup()
     const dialog = await renderAndOpenDialog(user)

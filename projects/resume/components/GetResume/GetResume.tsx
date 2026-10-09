@@ -26,7 +26,8 @@ import { useModalDialog } from './hooks'
  */
 export function GetResume() {
   const titleId = useId()
-  const { close, dialogRef, handleDialogClick, handleDialogPointerDown, open } = useModalDialog()
+  const { close, closeButtonRef, dialogRef, handleDialogClick, handleDialogPointerDown, open } =
+    useModalDialog()
 
   return (
     <>
@@ -60,6 +61,7 @@ export function GetResume() {
               {DIALOG_HEADER_PATH}
             </span>
             <button
+              ref={closeButtonRef}
               type="button"
               aria-label={CLOSE_BUTTON_LABEL}
               onClick={close}
