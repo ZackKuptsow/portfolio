@@ -91,6 +91,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Every action is pinned to a commit SHA with the version in a comment. The `deploy` concurrency group never cancels a run in progress
 - CI runs `yarn lint`, `yarn format` and `yarn typecheck` as separate steps. Together they are `yarn check`, so a new part of `yarn check` needs its own step in `gates.yml`
 - A new gate is unproven until it has been seen red: break what it protects on a branch, open a pull request, and read the failing step
+- `.githooks/pre-push` runs the payload scan, then the static checks and tests of each project a push changes. It is on only in a clone where `git config core.hooksPath .githooks` was run. It reads the working tree, so the pushed commit must be the one checked out. It has no file extension, so name it explicitly to `shellcheck`
 
 ## Code Conventions
 

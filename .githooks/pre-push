@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+#
+# pre-push — run CI's quick checks before anything leaves this machine.
+#
+#   Turn on, once in each clone:  git config core.hooksPath .githooks
+#   Skip for one push:            git push --no-verify
+#
+# For every branch or tag being pushed: the payload scan on the commit, first. Then, for
+# each project the push changes, the static checks and the tests. It costs no Actions
+# minutes, and it is the only check that runs before the code is on GitHub.
+#
+# It does not build the site, so it leaves out the checks that need a build. CI runs those.
+set -uo pipefail
+
+readonly BASE_BRANCH='origin/main'
+readonly BUILT_SITE_HOME_PAGE='projects/resume/out/index.html'
+# Git reports a deleted branch as a commit ID made of zeros.
+readonly DELETED_REF_COMMIT='^0+$'
+readonly NODE_VERSION_FILE='projects/resume/.nvmrc'
+readonly PROJECTS=(resume infrastructure send_resume)
+readonly SKIP_HINT='To push without these checks: git push --no-verify'
+
+note() { printf 'pre-push: %s\n' "$1"; }
+
+stop() {
+  printf 'pre-push: %s\n' "$1" >&2
+  printf 'pre-push: the push was stopped. %s\n' "$SKIP_HINT" >&2
+  exit 1
+}
+
+node_has_major_version() {  # <major version>
+  [[ "$(node --version 2>/dev/null)" == "v$1."* ]]
+}
+
+# The projects pin their Node version, and Yarn comes from that Node's Corepack. The shell
+# that ran `git push` may have another Node first on PATH. So the right one is looked up
+# under nvm and put in front, and the result is checked instead of trusted.
+use_the_pinned_node() {
+  local wanted_major nvm_node_directory
+  wanted_major="$(tr -d '[:space:]v' < "$NODE_VERSION_FILE")"
+
+  if ! node_has_major_version "$wanted_major"; then
+    nvm_node_directory="$(find "${NVM_DIR:-$HOME/.nvm}/versions/node" -maxdepth 1 -type d \
+      -name "v${wanted_major}.*" 2>/dev/null | sort -V | tail -1)"
+    [[ -n "$nvm_node_directory" ]] && PATH="$nvm_node_directory/bin:$PATH"
+  fi
+
+  # Asked from inside a project: at the repository root Corepack answers with another Yarn.
+  if ! node_has_major_version "$wanted_major" \
+    || ! (cd projects/resume && corepack yarn --version > /dev/null 2>&1); then
+    stop "Node $wanted_major with Corepack was not found. Install it with: nvm install $wanted_major"
+  fi
+}
+
+# The files the push changes, measured from where the commit left origin/main. Not from the
+# branch's own copy on GitHub: after a first push that would report that nothing changed.
+list_changed_files() {  # <commit>...
+  local commit
+  for commit in "$@"; do
+    git diff --name-only "$BASE_BRANCH...$commit" || return 1
+  done
+}
+
+# The checks read the files in this folder, not the commit being pushed. Changes that are
+# not committed are therefore checked too. That is said out loud and does not stop the
+# push, because CI checks the exact commit afterwards.
+warn_about_uncommitted_changes() {  # <project>
+  if [[ -n "$(git status --porcelain --untracked-files=no -- "projects/$1")" ]]; then
+    note "WARNING: projects/$1 has changes that are not committed. The checks read them, and the push does not include them."
+  fi
+}
+
+# Prints one line for a check that passed, and everything the tool said for one that failed.
+run_project_script() {  # <project> <yarn script>
+  local project="$1" script="$2" output started_at
+  started_at=$SECONDS
+  if ! output="$(cd "projects/$project" && corepack yarn "$script" 2>&1)"; then
+    printf '%s\n' "$output" >&2
+    stop "$project: yarn $script failed."
+  fi
+  note "$project: yarn $script passed in $(( SECONDS - started_at ))s"
+}
+
+check_project() {  # <project>
+  warn_about_uncommitted_changes "$1"
+  case "$1" in
+    resume)
+      run_project_script resume check
+      run_project_script resume test
+      ;;
+    infrastructure)
+      run_project_script infrastructure typecheck
+      # The stack reads the built site when it is synthesized, so its tests need a build.
+      if [[ -f "$BUILT_SITE_HOME_PAGE" ]]; then
+        run_project_script infrastructure test
+      else
+        note "infrastructure: tests NOT RUN, they need a built site in projects/resume/out. CI runs them."
+      fi
+      ;;
+    send_resume)
+      run_project_script send_resume typecheck
+      run_project_script send_resume test
+      ;;
+    *) stop "no checks are written for the project '$1'." ;;
+  esac
+}
+
+repository_root="$(git rev-parse --show-toplevel)" || exit 1
+cd "$repository_root" || exit 1
+
+# Git writes one line for each ref being pushed: local ref, local commit, remote ref,
+# remote commit.
+pushed_commits=()
+while read -r _ local_commit _ _; do
+  [[ "$local_commit" =~ $DELETED_REF_COMMIT ]] && continue
+  pushed_commits+=("$local_commit")
+done
+if (( ${#pushed_commits[@]} == 0 )); then
+  exit 0
+fi
+
+# First, and on the commit itself: this is what stops a payload before any tool runs.
+for pushed_commit in "${pushed_commits[@]}"; do
+  bash .github/scripts/scan-for-payload.sh "$pushed_commit" \
+    || stop "the payload scan did not pass for $pushed_commit."
+done
+
+if git rev-parse --verify --quiet "$BASE_BRANCH" > /dev/null; then
+  changed_files="$(list_changed_files "${pushed_commits[@]}")" \
+    || stop "could not list what the push changes."
+else
+  # Without the base there is no telling what changed, so every project counts as changed.
+  note "$BASE_BRANCH is not known here, so every project is checked."
+  changed_files="$(printf 'projects/%s/\n' "${PROJECTS[@]}")"
+fi
+
+touched_projects=()
+for project in "${PROJECTS[@]}"; do
+  if grep -q "^projects/$project/" <<<"$changed_files"; then
+    touched_projects+=("$project")
+  fi
+done
+if (( ${#touched_projects[@]} == 0 )); then
+  note "the push changes no project, so there is nothing more to check."
+  exit 0
+fi
+
+checked_out_commit="$(git rev-parse HEAD)"
+for pushed_commit in "${pushed_commits[@]}"; do
+  [[ "$pushed_commit" == "$checked_out_commit" ]] \
+    || stop "$pushed_commit is not the commit that is checked out, and the checks read the files in this folder. Check it out first."
+done
+
+use_the_pinned_node
+for project in "${touched_projects[@]}"; do
+  check_project "$project"
+done
+note "checked ${#touched_projects[@]} project(s): ${touched_projects[*]}"

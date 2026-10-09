@@ -45,9 +45,23 @@ A red pull request can still be merged, because branch rules are not available o
 
 A draft runs nothing. Marking it ready for review starts the checks. Do not push and mark ready in the same second: GitHub then reports the newest commit as still a draft and skips it, and the pull request shows "skipped" where a result should be. `gh pr ready --undo` followed by `gh pr ready` starts the checks for the newest commit.
 
+### Before a push
+
+A pre-push hook runs the quick checks on your machine, before the code is on GitHub. It costs no Actions minutes. Turn it on once in each clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+For every commit being pushed it runs the payload scan first. Then, for each project the push changes, it runs the static checks and the tests: `yarn check` and `yarn test` for the site, `yarn typecheck` and `yarn test` for the other two. A push that changes the site takes about 10 seconds. The hook does not build the site, so the checks that need a build are left to CI, and the infrastructure tests run only when a build is already there.
+
+The checks read the files in your folder. So the commit being pushed has to be the one that is checked out, and changes that are not committed are checked too, which the hook says when it happens. `git push --no-verify` skips the hook.
+
+### The scripts
+
 The scripts the workflows call live in [`.github/scripts`](.github/scripts):
 
-- `scan-for-payload.sh` is the first step of every job that installs anything. It reads the commit for the build-config dropper and stops the job before an install or a build can run it. When it cannot run it answers UNKNOWN, which also stops the job.
+- `scan-for-payload.sh` is the first step of every job that installs anything, and of the pre-push hook. It reads the commit for the build-config dropper and stops the job before an install or a build can run it. When it cannot run it answers UNKNOWN, which also stops the job.
 - `report-static-check-inputs.sh` prints how many files lint, format and typecheck read, and fails when one of them reads none.
 - `check-live-site.sh` runs after a deploy. It asks the live site whether it serves the build that was just deployed.
 
