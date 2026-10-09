@@ -100,7 +100,8 @@ That run rewrites the file and still ends red, on purpose, until two things are 
   size holds. A longer one makes the code 41 units a side, not 37. Set `QR_CODE_SIZE_PIXELS` to
   a multiple of 41, such as 205, and update the size `GetResume.test.tsx` expects.
 
-CI does not run the tests (issue #8), so run `yarn test` before merging a change to the address.
+CI runs these tests on every pull request and before every deploy, and never with `-u`. A
+drawing that does not match the address fails there, and the deploy does not start.
 
 A phone is not shown the code, because it cannot scan its own screen. "A phone" means a screen
 narrower than Tailwind's `sm` breakpoint, 640px: the section carries `max-sm:hidden`, and the
@@ -144,4 +145,4 @@ silently moves to 3001 when 3000 is busy, and every request from there fails COR
 
 ## Deployment
 
-`yarn build` produces `out/`, which the **infrastructure** project uploads to S3 and serves through CloudFront. Pushing to `main` triggers the deploy workflow automatically.
+`yarn build` produces `out/`, which the **infrastructure** project uploads to S3 and serves through CloudFront. Pushing to `main` triggers the deploy workflow automatically. It deploys only when lint, format, typecheck, the tests and the build all pass (see "Checks" in the root README).

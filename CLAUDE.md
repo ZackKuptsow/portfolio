@@ -79,6 +79,16 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume; `app/`, `components/` and `data/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
 
+## Continuous Integration
+
+- `.github/workflows/gates.yml` holds the checks: payload scan, then lint, format, typecheck, tests and build for the site, then typecheck and tests for the infrastructure. `deploy.yml` calls it and its deploy job `needs` it, so a red gate means no deploy. `pull-request.yml` calls the same file on every pull request that is not a draft. `send-resume.yml` checks send_resume when a pull request changes it
+- Branch rules are not available on this private repository, so nothing can block a merge. The `needs` in `deploy.yml` is the only gate that blocks
+- The payload scan (`.github/scripts/scan-for-payload.sh`) is the first step of every job that installs. It reads the commit, not the working tree, and exits non-zero with UNKNOWN when it cannot run
+- The deploy job ships the `out/` folder the gates job built, runs only on `main`, and ends with `.github/scripts/check-live-site.sh`. Its keys are secrets of the `production` environment, which no other job names
+- Every action is pinned to a commit SHA with the version in a comment. The `deploy` concurrency group never cancels a run in progress
+- CI runs `yarn lint`, `yarn format` and `yarn typecheck` as separate steps. Together they are `yarn check`, so a new part of `yarn check` needs its own step in `gates.yml`
+- A new gate is unproven until it has been seen red: break what it protects on a branch, open a pull request, and read the failing step
+
 ## Code Conventions
 
 - TypeScript throughout all projects
