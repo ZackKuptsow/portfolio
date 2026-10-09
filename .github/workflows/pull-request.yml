@@ -15,6 +15,10 @@ jobs:
     gates:
         name: Gates
         # A draft is not checked. Marking it ready for review starts this.
+        #
+        # Do not push and mark ready in the same second. GitHub then sends "ready for review"
+        # with the older commit, and the push with a stale "draft", so the newest commit is
+        # skipped. `gh pr ready --undo` followed by `gh pr ready` sends a fresh event.
         if: ${{ !github.event.pull_request.draft }}
         # A newer push to the same pull request replaces the run of the older one. The group
         # sits on the job and not on the workflow, so a run that skips this job cancels

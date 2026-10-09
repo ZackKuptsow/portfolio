@@ -43,6 +43,8 @@ See the infrastructure README for the required secrets.
 
 A red pull request can still be merged, because branch rules are not available on this repository. It cannot be deployed: the `needs` in `deploy.yml` is the gate that blocks.
 
+A draft runs nothing. Marking it ready for review starts the checks. Do not push and mark ready in the same second: GitHub then reports the newest commit as still a draft and skips it, and the pull request shows "skipped" where a result should be. `gh pr ready --undo` followed by `gh pr ready` starts the checks for the newest commit.
+
 The scripts the workflows call live in [`.github/scripts`](.github/scripts):
 
 - `scan-for-payload.sh` is the first step of every job that installs anything. It reads the commit for the build-config dropper and stops the job before an install or a build can run it. When it cannot run it answers UNKNOWN, which also stops the job.
