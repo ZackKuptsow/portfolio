@@ -1,0 +1,27 @@
+# Runs the deploy's gates on a pull request, so a red gate shows before the merge.
+#
+# Nothing here can block a merge: branch rules are not available on this repository. The
+# gate that blocks is the `needs` in `deploy.yml`.
+name: Pull request
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+    contents: read
+
+# A newer push to the same pull request replaces the run of the older one.
+concurrency:
+    group: pull-request-${{ github.event.pull_request.number }}
+    cancel-in-progress: true
+
+jobs:
+    gates:
+        name: Gates
+        # A draft is not checked. Marking it ready for review starts this.
+        if: ${{ !github.event.pull_request.draft }}
+        uses: ./.github/workflows/gates.yml
+        # Passed on every call by convention. The gates job names no environment, so the
+        # deploy keys, which are secrets of `production`, do not reach it.
+        secrets: inherit

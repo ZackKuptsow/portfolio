@@ -1,0 +1,59 @@
+# Checks `send_resume` when a pull request changes it.
+#
+# The service is deployed by hand, so nothing waits for this: it only reports.
+name: send_resume
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, ready_for_review]
+        paths:
+            - 'projects/send_resume/**'
+            - '.github/workflows/send-resume.yml'
+            - '.github/scripts/**'
+
+permissions:
+    contents: read
+
+# A newer push to the same pull request replaces the run of the older one.
+concurrency:
+    group: send-resume-${{ github.event.pull_request.number }}
+    cancel-in-progress: true
+
+jobs:
+    checks:
+        name: Typecheck and test
+        # A draft is not checked. Marking it ready for review starts this.
+        if: ${{ !github.event.pull_request.draft }}
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+            # First, before anything is installed: that is when a payload would run.
+            - name: Scan for a payload
+              run: bash .github/scripts/scan-for-payload.sh
+            - name: Enable Corepack (Yarn v4)
+              run: corepack enable
+            - name: Use Node.js from project
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version-file: projects/send_resume/.nvmrc
+                  cache: 'yarn'
+                  cache-dependency-path: projects/send_resume/yarn.lock
+            - name: Install `send_resume` dependencies
+              id: install
+              working-directory: projects/send_resume
+              run: yarn install --immutable
+            # Both run even when the other failed, so one red check never hides the other.
+            - name: Typecheck `send_resume`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/send_resume
+              run: |
+                  yarn typecheck
+                  bash ../../.github/scripts/report-static-check-inputs.sh typecheck
+            - name: Test `send_resume`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/send_resume
+              run: yarn test
