@@ -45,6 +45,8 @@ A red pull request can still be merged, because branch rules are not available o
 
 A draft runs nothing. Marking it ready for review starts the checks. Do not push and mark ready in the same second: GitHub then reports the newest commit as still a draft and skips it, and the pull request shows "skipped" where a result should be. `gh pr ready --undo` followed by `gh pr ready` starts the checks for the newest commit.
 
+The build downloads the site's two fonts from Google Fonts. When that download fails, the build gate fails with "An error occurred in `next/font`", whatever the change was. It happened once in the ten builds of 2026-10-09 (run 37994551707), and the rerun passed. Rerun the failed job.
+
 ### Before a push
 
 A pre-push hook runs the quick checks on your machine, before the code is on GitHub. It costs no Actions minutes. Turn it on once in each clone:
