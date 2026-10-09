@@ -28,7 +28,7 @@ yarn install             # installs just that project
 
 The site deploys through GitHub Actions on every push to `main` that touches `projects/resume/**`, `projects/infrastructure/**` or the pipeline itself. [`deploy.yml`](.github/workflows/deploy.yml) runs two jobs:
 
-1. **Gates** ([`gates.yml`](.github/workflows/gates.yml)): a payload scan, then lint, format, typecheck and tests for the site, the build, and the typecheck and tests for the infrastructure.
+1. **Gates** ([`gates.yml`](.github/workflows/gates.yml)): a payload scan, then lint, format, typecheck and tests for the site, the build, the checks of the built files, the checks in a real browser, and the typecheck and tests for the infrastructure.
 2. **Deploy**: runs `cdk deploy` with the site the gates job built, then checks the live site. It needs the gates job, so a red gate means nothing is deployed. It runs only on `main`.
 
 See the infrastructure README for the required secrets.
