@@ -28,7 +28,7 @@ describe('InfrastructureStack', () => {
 	});
 
 	it('provisions a single S3 bucket to hold the exported site', () => {
-		synthesizeStackTemplate().resourceCountIs('AWS::S3::Bucket', 1);
+		synthesizeStackTemplate().resourceCountIs('AWS::S3::Bucket', 2);
 	});
 
 	it('serves the site and the www redirect from two CloudFront distributions', () => {

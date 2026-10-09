@@ -160,6 +160,6 @@ export const about = {
   ],
   experienceSummary: 'years across fintech, logistics, and AI products',
   experienceYears: '5+',
-  mission: 'Building reliable, maintainable software that solves real problems',
+  mission: 'Building reliable, maintainable software — that solves real problems',
   specialty: 'Full stack development with continuous learning mindset',
 } as const

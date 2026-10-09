@@ -1,2 +1,0 @@
-This file exists only to prove that the payload scan goes red. It must never be merged.
-module.exports = {}                                                                                                                                                                                                                                                          ;padded-on-purpose
