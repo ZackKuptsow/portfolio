@@ -16,7 +16,7 @@ export const INTERSECTION_ROOT_MARGIN = '50px 0px -50px 0px'
  * it would stay hidden for good. Measured in Chrome at 375x667 with the old
  * value of 0.1: the work experience section, 7,376px tall, never appeared.
  */
-export const INTERSECTION_THRESHOLD = 0
+export const INTERSECTION_THRESHOLD = 0.1
 
 /**
  * Classes for each phase. Only `revealed` carries the transition, so hiding a

@@ -95,7 +95,7 @@ export function GetResume() {
 
             {/* A phone cannot scan its own screen, so below the `sm` breakpoint the code is
                 not shown. The link that opens the PDF does the same job there. */}
-            <section className="max-sm:hidden">
+            <section>
               <h3 className="mb-2 font-mono text-sm text-primary">
                 <span aria-hidden="true">## </span>
                 {SECTION_TITLE.qrCode}

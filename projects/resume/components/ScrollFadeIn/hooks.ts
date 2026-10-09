@@ -23,6 +23,7 @@ export function useRevealOnScroll<ElementType extends HTMLElement>(
   const ref = useRef<ElementType>(null)
 
   useEffect(() => {
+    console.error('planted script error')
     const section = ref.current
     if (!section) {
       return

@@ -46,7 +46,6 @@ export function useModalDialog(): ModalDialogControls {
 
   const open = useCallback(() => {
     dialogRef.current?.showModal()
-    closeButtonRef.current?.focus()
   }, [])
 
   const close = useCallback(() => {
