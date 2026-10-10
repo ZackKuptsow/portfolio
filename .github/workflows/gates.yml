@@ -111,4 +111,6 @@ jobs:
                   if-no-files-found: error
                   # A file whose name starts with a dot is left out by default.
                   include-hidden-files: true
+                  # "Re-run all jobs" builds again, and its site replaces the earlier one.
+                  overwrite: true
                   retention-days: 1

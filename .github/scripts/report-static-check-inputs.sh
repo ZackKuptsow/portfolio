@@ -18,8 +18,11 @@ readonly POSITIVE_INTEGER='^[1-9][0-9]*$'
 count_lint_files() { yarn lint --format json | jq 'length'; }
 # Prettier's debug output names each file once, as the file whose config it resolves.
 count_format_files() { yarn format --log-level debug 2>&1 | grep -c 'resolve config from'; }
-# The compiler lists its own library files too. Those live under node_modules.
-count_typecheck_files() { yarn typecheck --listFilesOnly | grep -vc '/node_modules/'; }
+# The compiler lists its own library files too. Those live under node_modules. Only lines
+# that name a TypeScript file are counted, so an error message is never taken for a file.
+count_typecheck_files() {
+  yarn typecheck --listFilesOnly | grep -v '/node_modules/' | grep -c -E '\.[cm]?tsx?$'
+}
 
 if (( $# == 0 )); then
   printf 'usage: %s <lint|format|typecheck>...\n' "$(basename "$0")" >&2
