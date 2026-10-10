@@ -89,6 +89,27 @@ jobs:
                   file_count="$(find out -type f | wc -l | tr -d ' ')"
                   printf 'the build wrote %s files to out/\n' "$file_count"
                   printf 'file-count=%s\n' "$file_count" >> "$GITHUB_OUTPUT"
+            # What only the built files can show: the tags a search engine reads, and
+            # whether every file the page asks for was written.
+            - name: Check the built site
+              if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: yarn test:built-site
+            # What only a browser can show: layout, media queries and where the keyboard
+            # lands. It drives the Chrome that is already on the runner.
+            - name: Check the site in a browser
+              id: browser
+              if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: yarn test:browser
+            - name: Keep the traces of the failed browser checks
+              if: ${{ !cancelled() && steps.browser.conclusion == 'failure' }}
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: browser-check-traces
+                  path: projects/resume/test-results
+                  if-no-files-found: ignore
+                  retention-days: 7
             - name: Typecheck `infrastructure`
               if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
               working-directory: projects/infrastructure
