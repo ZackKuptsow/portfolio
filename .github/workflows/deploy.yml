@@ -15,11 +15,15 @@ on:
 permissions:
     contents: read
 
-# One run at a time, in the order the pushes arrived, so an older commit cannot be published
-# after a newer one. A run that is deploying is never cancelled: that could stop
+# One run at a time for each branch, so two pushes to `main` are published in order and never
+# at once. When several wait, only the newest is kept: it holds the commits of the ones it
+# replaced. A run that is deploying is never cancelled, because that could stop
 # CloudFormation halfway.
+#
+# The branch is part of the group so that "Run workflow" on another branch, which deploys
+# nothing, cannot take the place of a push to `main` that is waiting.
 concurrency:
-    group: deploy
+    group: deploy-${{ github.ref }}
     cancel-in-progress: false
 
 jobs:
@@ -39,6 +43,9 @@ jobs:
         # Only `main` is published. "Run workflow" on another branch runs the gates and stops.
         if: github.ref == 'refs/heads/main'
         runs-on: ubuntu-24.04
+        # A deploy takes about three minutes. A hung one would be billed for six hours and
+        # hold back every later push. Stopping the job does not stop CloudFormation.
+        timeout-minutes: 30
         environment:
             name: production
             url: https://kups.me
