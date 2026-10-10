@@ -5,8 +5,11 @@
 #   Turn on, once in each clone:  git config core.hooksPath .githooks
 #   Skip for one push:            git push --no-verify
 #
-# For every branch or tag being pushed: the payload scan on the commit, first. Then, for
-# each project the push changes, the static checks and the tests. It costs no Actions
+# Turning it on makes git read its hooks from .githooks only. A hook that sits in
+# .git/hooks, such as a checkout guard, stops running. See "Before a push" in the README.
+#
+# For every branch or tag being pushed: the payload scan on its newest commit, first. Then,
+# for each project the push changes, the static checks and the tests. It costs no Actions
 # minutes, and it is the only check that runs before the code is on GitHub.
 #
 # It does not build the site, so it leaves out the checks that need a build. CI runs those.
@@ -54,19 +57,21 @@ use_the_pinned_node() {
 
 # The files the push changes, measured from where the commit left origin/main. Not from the
 # branch's own copy on GitHub: after a first push that would report that nothing changed.
+# A moved file is listed at both ends, so the project it left is checked too.
 list_changed_files() {  # <commit>...
   local commit
   for commit in "$@"; do
-    git diff --name-only "$BASE_BRANCH...$commit" || return 1
+    git diff --name-only --no-renames "$BASE_BRANCH...$commit" || return 1
   done
 }
 
-# The checks read the files in this folder, not the commit being pushed. Changes that are
-# not committed are therefore checked too. That is said out loud and does not stop the
-# push, because CI checks the exact commit afterwards.
+# The checks read the files in this folder, not the commit being pushed. A change that is
+# not committed is therefore checked too, and so is a new file that was never added: a
+# check can pass here because of a file the push does not carry. That is said out loud and
+# does not stop the push, because CI checks the exact commit afterwards.
 warn_about_uncommitted_changes() {  # <project>
-  if [[ -n "$(git status --porcelain --untracked-files=no -- "projects/$1")" ]]; then
-    note "WARNING: projects/$1 has changes that are not committed. The checks read them, and the push does not include them."
+  if [[ -n "$(git status --porcelain -- "projects/$1")" ]]; then
+    note "WARNING: projects/$1 has files that are changed or new and not committed. The checks read them, and the push does not include them."
   fi
 }
 
@@ -147,9 +152,15 @@ fi
 
 checked_out_commit="$(git rev-parse HEAD)"
 for pushed_commit in "${pushed_commits[@]}"; do
-  [[ "$pushed_commit" == "$checked_out_commit" ]] \
+  # A tag with a message is its own object. What counts is the commit it points at.
+  [[ "$(git rev-parse "$pushed_commit^{commit}")" == "$checked_out_commit" ]] \
     || stop "$pushed_commit is not the commit that is checked out, and the checks read the files in this folder. Check it out first."
 done
+
+# The tools below run the files in this folder, which can differ from the commit that was
+# scanned above. So the folder is scanned as well, before any of them starts.
+bash .github/scripts/scan-for-payload.sh --working-tree \
+  || stop "the payload scan did not pass for the files in this folder."
 
 use_the_pinned_node
 for project in "${touched_projects[@]}"; do
