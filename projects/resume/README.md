@@ -19,6 +19,8 @@ data/profile.ts   # Resume content: work experience, education, skills, about co
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
 test/             # Vitest suites, mirroring app/, components/ and data/
+test-browser/     # Playwright checks of the built site in a real browser
+test-built-site/  # Vitest suites that read the built site in out/
 ```
 
 ## Content
@@ -60,7 +62,7 @@ without it.
 After changing only `opengraph-image.alt.txt`, run `yarn clean` before a local build. The build
 cache does not notice a change to that file alone, and the built page keeps the old text. CI
 builds from a clean checkout, so it is not affected. That stops being true if the workflow ever
-caches `.next/cache`.
+caches `.next/cache`. `yarn test:built-site` fails on a build that still carries the old text.
 
 The share picture is a committed PNG, not a generated route. A generated one is exported with
 no file extension, and S3 would serve it with the wrong content type. To change it, edit
@@ -100,16 +102,52 @@ That run rewrites the file and still ends red, on purpose, until two things are 
   size holds. A longer one makes the code 41 units a side, not 37. Set `QR_CODE_SIZE_PIXELS` to
   a multiple of 41, such as 205, and update the size `GetResume.test.tsx` expects.
 
-CI does not run the tests (issue #8), so run `yarn test` before merging a change to the address.
+CI runs these tests on every pull request and before every deploy, and never with `-u`. A
+drawing that does not match the address fails there, and the deploy does not start.
 
 A phone is not shown the code, because it cannot scan its own screen. "A phone" means a screen
 narrower than Tailwind's `sm` breakpoint, 640px: the section carries `max-sm:hidden`, and the
 link that opens the PDF stays. The rule looks at the width alone, so a phone held sideways still
-gets the code and a narrow laptop window does not. jsdom ignores media queries, so the tests
-check only that the class is there. After changing it, check it in Chrome's device emulation.
+gets the code and a narrow laptop window does not. jsdom ignores media queries, so the unit
+tests check only that the class is there. `yarn test:browser` checks what it does, at 639px and
+at 640px.
 
 Scan the code in both themes after changing its colors: the dark theme draws it light on dark,
 which older scanners can fail to read.
+
+## Checks that need a build
+
+`yarn test` reads the source. Two more suites read what `yarn build` wrote to `out/`, so run
+the build first. CI runs both on every pull request and before every deploy.
+
+`yarn test:built-site` (in `test-built-site/`) reads the files: the tags a search engine and a
+link preview read in the built page, `robots.txt`, `sitemap.xml`, the PDF, the 404 page, and
+whether every script, stylesheet and font the page asks for was written.
+
+`yarn test:browser` (in `test-browser/`) opens the site in Chrome with Playwright, for what
+jsdom cannot see:
+
+- Every section appears when a visitor scrolls to it on a 360x640 phone.
+- Nothing scrolls sideways at 15 widths from 320px to 1280px, with the get-resume window closed
+  and open.
+- The keyboard lands on the close button of the get-resume window, also when the window has to
+  scroll.
+- The QR code is shown at 640px wide and hidden at 639px.
+- No script error on load or when the window opens.
+
+Playwright is a dev dependency pinned to an exact version. It drives the Google Chrome that is
+already installed, on your machine and on the CI runner, so it downloads no browser. The site
+is served from `out/` on port 4173 by `python3 -m http.server`, and the run fails if something
+is already using that port, because that could be an older build. A page may talk to that
+server only. Every other request is aborted, so no check can reach the resume API and send an
+email, and a check fails when the page starts to depend on another site.
+
+A failed check leaves a trace in `test-results/`. Open it with
+`yarn playwright show-trace <path to trace.zip>`. CI keeps the folder for 7 days as the
+`browser-check-traces` artifact of the run.
+
+A new check is unproven until it has been seen red: break what it protects, build, and watch it
+fail.
 
 ## Commands
 
@@ -124,6 +162,8 @@ yarn check      # lint + format check + typecheck
 yarn check:fix  # autofix lint/format, then typecheck
 yarn test       # run the Vitest suites once
 yarn test:watch # re-run the suites on change
+yarn test:built-site  # after a build: check the files in out/
+yarn test:browser     # after a build: check the site in Chrome
 yarn clean      # remove .next / dist / coverage
 ```
 
@@ -144,4 +184,4 @@ silently moves to 3001 when 3000 is busy, and every request from there fails COR
 
 ## Deployment
 
-`yarn build` produces `out/`, which the **infrastructure** project uploads to S3 and serves through CloudFront. Pushing to `main` triggers the deploy workflow automatically.
+`yarn build` produces `out/`, which the **infrastructure** project uploads to S3 and serves through CloudFront. Pushing to `main` triggers the deploy workflow automatically. It deploys only when lint, format, typecheck, the tests and the build all pass (see "Checks" in the root README).

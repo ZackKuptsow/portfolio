@@ -1,0 +1,137 @@
+# The checks that must pass before the site may be deployed.
+#
+# `deploy.yml` calls this and makes its deploy job wait for it. `pull-request.yml` calls it
+# too, so the checks proven on a pull request are the same ones that guard a deploy.
+name: Gates
+
+on:
+    workflow_call:
+        inputs:
+            upload-site:
+                description: Keep the built site, so the caller's deploy job ships what was checked here.
+                type: boolean
+                default: false
+        outputs:
+            site-file-count:
+                description: How many files the build wrote. The deploy job checks it received as many.
+                value: ${{ jobs.site.outputs.site-file-count }}
+
+jobs:
+    site:
+        name: Site and infrastructure
+        runs-on: ubuntu-24.04
+        # A normal run takes about two minutes. This stops a hung one from being billed for hours.
+        timeout-minutes: 15
+        outputs:
+            site-file-count: ${{ steps.build.outputs.file-count }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+            # First, before anything is installed or built: that is when a payload would run.
+            - name: Scan for a payload
+              run: bash .github/scripts/scan-for-payload.sh
+            - name: Enable Corepack (Yarn v4)
+              run: corepack enable
+            - name: Use Node.js from project
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version-file: projects/resume/.nvmrc
+                  cache: 'yarn'
+                  cache-dependency-path: |
+                      projects/resume/yarn.lock
+                      projects/infrastructure/yarn.lock
+            - name: Install `resume` dependencies
+              working-directory: projects/resume
+              run: yarn install --immutable
+            - name: Install `infrastructure` dependencies
+              id: install
+              working-directory: projects/infrastructure
+              run: yarn install --immutable
+
+            # Every gate from here on runs even when an earlier one failed, so one red gate
+            # never hides another. A gate is skipped only when what it needs did not finish.
+            #
+            # The first three are what `yarn check` runs, as separate steps so that each
+            # reports on its own. Each also prints how many files it read.
+            - name: Lint `resume`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: |
+                  yarn lint
+                  bash ../../.github/scripts/report-static-check-inputs.sh lint
+            - name: Check the formatting of `resume`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: |
+                  yarn format
+                  bash ../../.github/scripts/report-static-check-inputs.sh format
+            - name: Typecheck `resume`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: |
+                  yarn typecheck
+                  bash ../../.github/scripts/report-static-check-inputs.sh typecheck
+            - name: Test `resume`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: yarn test
+            - name: Build `resume` site
+              id: build
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/resume
+              env:
+                  NEXT_PUBLIC_RESUME_REQUEST_API_URL: ${{ vars.RESUME_REQUEST_API_URL }}
+              run: |
+                  yarn build
+                  test -f out/index.html
+                  file_count="$(find out -type f | wc -l | tr -d ' ')"
+                  printf 'the build wrote %s files to out/\n' "$file_count"
+                  printf 'file-count=%s\n' "$file_count" >> "$GITHUB_OUTPUT"
+            # What only the built files can show: the tags a search engine reads, and
+            # whether every file the page asks for was written.
+            - name: Check the built site
+              if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: yarn test:built-site
+            # What only a browser can show: layout, media queries and where the keyboard
+            # lands. It drives the Chrome that is already on the runner.
+            - name: Check the site in a browser
+              id: browser
+              if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
+              working-directory: projects/resume
+              run: yarn test:browser
+            - name: Keep the traces of the failed browser checks
+              if: ${{ !cancelled() && steps.browser.conclusion == 'failure' }}
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: browser-check-traces
+                  path: projects/resume/test-results
+                  if-no-files-found: ignore
+                  retention-days: 7
+            - name: Typecheck `infrastructure`
+              if: ${{ !cancelled() && steps.install.conclusion == 'success' }}
+              working-directory: projects/infrastructure
+              run: |
+                  yarn typecheck
+                  bash ../../.github/scripts/report-static-check-inputs.sh typecheck
+            # The stack reads `../resume/out` when it is synthesized, so these need the build.
+            - name: Test `infrastructure`
+              if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
+              working-directory: projects/infrastructure
+              run: yarn test
+
+            # Only when every gate above passed. A red run has nothing worth deploying.
+            - name: Keep the built site for the deploy job
+              if: ${{ inputs.upload-site }}
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: site
+                  path: projects/resume/out
+                  if-no-files-found: error
+                  # A file whose name starts with a dot is left out by default.
+                  include-hidden-files: true
+                  # "Re-run all jobs" builds again, and its site replaces the earlier one.
+                  overwrite: true
+                  retention-days: 1

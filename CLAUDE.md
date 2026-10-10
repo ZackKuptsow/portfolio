@@ -22,6 +22,8 @@ yarn check:fix           # Auto-fix linting and formatting issues
 yarn typecheck          # TypeScript type checking only
 yarn test               # Run tests with Vitest
 yarn test:watch         # Run tests in watch mode
+yarn test:built-site    # After a build: check the files in out/
+yarn test:browser       # After a build: check the site in Chrome with Playwright
 ```
 
 ### Infrastructure (AWS CDK)
@@ -75,9 +77,21 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 ## Testing
 
 - Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `app/`, `components/` and `data/`
+- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: sections revealed on a phone, sideways scroll, focus in the modal, and the QR code's breakpoint. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
 - Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume; `app/`, `components/` and `data/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
+
+## Continuous Integration
+
+- `.github/workflows/gates.yml` holds the checks: payload scan, then lint, format, typecheck, tests and build for the site, the checks of the built site and the browser checks, then typecheck and tests for the infrastructure. `deploy.yml` calls it and its deploy job `needs` it, so a red gate means no deploy. `pull-request.yml` calls the same file on every pull request that is not a draft. `send-resume.yml` checks send_resume when a pull request changes it
+- Branch rules are not available on this private repository, so nothing can block a merge. The `needs` in `deploy.yml` is the only gate that blocks
+- The payload scan (`.github/scripts/scan-for-payload.sh`) is the first step of every job that installs. It reads the commit, not the working tree, and exits non-zero with UNKNOWN when it cannot run
+- The deploy job ships the `out/` folder the gates job built, runs only on `main`, and ends with `.github/scripts/check-live-site.sh`. Its keys are secrets of the `production` environment, which no other job names
+- Every action is pinned to a commit SHA with the version in a comment. The deploy workflow's concurrency group is per branch (`deploy-<ref>`) and never cancels a run in progress
+- CI runs `yarn lint`, `yarn format` and `yarn typecheck` as separate steps. Together they are `yarn check`, so a new part of `yarn check` needs its own step in `gates.yml`
+- A new gate is unproven until it has been seen red: break what it protects on a branch, open a pull request, and read the failing step
+- `.githooks/pre-push` runs the payload scan, then the static checks and tests of each project a push changes. It is on only in a clone where `git config core.hooksPath .githooks` was run, and that setting turns off any hook in `.git/hooks`. It reads the working tree, so the pushed commit must be the one checked out, and it scans the working tree as well as the commit. It has no file extension, so name it explicitly to `shellcheck`
 
 ## Code Conventions
 

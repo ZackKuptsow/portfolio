@@ -1,6 +1,9 @@
 module.exports = {
   root: true,
   extends: ['next/core-web-vitals', 'plugin:import/recommended', 'plugin:import/typescript'],
+  // Written by a build or a test run, not by a person. Without `out/`, lint read the built
+  // scripts whenever a build was lying around.
+  ignorePatterns: ['out/', 'playwright-report/', 'test-results/'],
   plugins: ['import'],
   rules: {
     'import/order': [

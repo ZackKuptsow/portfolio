@@ -46,4 +46,6 @@ cd projects/resume && yarn build          # produces ../resume/out
 cd ../infrastructure && yarn cdk:deploy
 ```
 
-Pushing to `main` runs this automatically via GitHub Actions using repository secrets: `CERTIFICATE_ARN`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `CDK_DEFAULT_ACCOUNT`.
+Pushing to `main` runs this automatically via GitHub Actions, once every gate has passed (see "Checks" in the root README). The deploy job does not build the site again: it fetches the `out/` folder the gates job built and checked. It uses the secrets of the `production` environment: `CERTIFICATE_ARN`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `CDK_DEFAULT_ACCOUNT`. Only the deploy job names that environment, so no other job can read them.
+
+`yarn test` needs `../resume/out` to exist, because the stack reads that folder when it is synthesized. Build the site first.
