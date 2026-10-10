@@ -88,9 +88,10 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Branch rules are not available on this private repository, so nothing can block a merge. The `needs` in `deploy.yml` is the only gate that blocks
 - The payload scan (`.github/scripts/scan-for-payload.sh`) is the first step of every job that installs. It reads the commit, not the working tree, and exits non-zero with UNKNOWN when it cannot run
 - The deploy job ships the `out/` folder the gates job built, runs only on `main`, and ends with `.github/scripts/check-live-site.sh`. Its keys are secrets of the `production` environment, which no other job names
-- Every action is pinned to a commit SHA with the version in a comment. The `deploy` concurrency group never cancels a run in progress
+- Every action is pinned to a commit SHA with the version in a comment. The deploy workflow's concurrency group is per branch (`deploy-<ref>`) and never cancels a run in progress
 - CI runs `yarn lint`, `yarn format` and `yarn typecheck` as separate steps. Together they are `yarn check`, so a new part of `yarn check` needs its own step in `gates.yml`
 - A new gate is unproven until it has been seen red: break what it protects on a branch, open a pull request, and read the failing step
+- `.githooks/pre-push` runs the payload scan, then the static checks and tests of each project a push changes. It is on only in a clone where `git config core.hooksPath .githooks` was run, and that setting turns off any hook in `.git/hooks`. It reads the working tree, so the pushed commit must be the one checked out, and it scans the working tree as well as the commit. It has no file extension, so name it explicitly to `shellcheck`
 
 ## Code Conventions
 
