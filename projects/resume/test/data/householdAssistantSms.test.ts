@@ -45,7 +45,7 @@ describe('the household assistant text', () => {
     const visibleStrings = collectStrings({ ...householdAssistantSms })
 
     // Anchors the check: an empty list would pass it unexamined.
-    expect(visibleStrings).toHaveLength(18)
+    expect(visibleStrings).toHaveLength(19)
     expect(visibleStrings.filter((text) => EM_OR_EN_DASH.test(text))).toEqual([])
   })
 

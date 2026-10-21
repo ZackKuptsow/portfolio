@@ -102,6 +102,13 @@ describe('the terms', () => {
 })
 
 describe('the sign-up page', () => {
+  // Twilio error 30912: a campaign that reads as people texting each other is not A2P.
+  it('says software sends the messages', () => {
+    render(<SmsSignUpPage />)
+
+    expect(pageText()).toContain('is software, not a person')
+  })
+
   // Twilio error 30924: the consent text sits at the call to action and names the kinds of
   // message, the frequency, the rates and how to stop.
   it('puts the full consent text beside the call to action', () => {
@@ -111,6 +118,8 @@ describe('the sign-up page', () => {
 
     expect(consentText).toContain(`Text ${SMS_OPT_IN_KEYWORD} to the household assistant's number`)
     expect(consentText).toContain(`By texting ${SMS_OPT_IN_KEYWORD}, you agree`)
+    // Twilio's pre-check: the consent must name the number that is agreeing.
+    expect(consentText).toContain('at the number you text from')
     expect(SMS_MESSAGE_KINDS.filter((messageKind) => !consentText.includes(messageKind))).toEqual(
       [],
     )

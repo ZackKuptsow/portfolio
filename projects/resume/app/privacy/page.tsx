@@ -8,6 +8,7 @@ import {
   SMS_OPT_IN_KEYWORD,
   SMS_PAGE_PATHS,
   SMS_POLICY_LAST_UPDATED,
+  SMS_PROGRAM_DESCRIPTION,
   SMS_PROGRAM_NAME,
   SMS_RATES_DISCLOSURE,
 } from '@/data/householdAssistantSms'
@@ -30,10 +31,9 @@ export default function PrivacyPolicyPage() {
     <SmsProgramPage lastUpdated={SMS_POLICY_LAST_UPDATED} title={PAGE_TITLE}>
       <ProgramSection title="What this covers">
         <p>
-          This policy covers {SMS_PROGRAM_NAME}, a private text-message assistant for the two adults
-          of one household, and its <a href={SMS_PAGE_PATHS.signUp}>sign-up page</a>.{' '}
-          {SMS_BRAND_NAME}, the brand its messages are registered under, runs it. It does not cover
-          the rest of kups.me.
+          This policy covers {SMS_PROGRAM_NAME}, {SMS_PROGRAM_DESCRIPTION}, and its{' '}
+          <a href={SMS_PAGE_PATHS.signUp}>sign-up page</a>. {SMS_BRAND_NAME}, the brand its messages
+          are registered under, runs it. It does not cover the rest of kups.me.
         </p>
       </ProgramSection>
 

@@ -7,6 +7,7 @@ import {
   SMS_OPT_IN_KEYWORD,
   SMS_PAGE_PATHS,
   SMS_POLICY_LAST_UPDATED,
+  SMS_PROGRAM_DESCRIPTION,
   SMS_PROGRAM_NAME,
   SMS_RATES_DISCLOSURE,
 } from '@/data/householdAssistantSms'
@@ -29,8 +30,8 @@ export default function TermsPage() {
     <SmsProgramPage lastUpdated={SMS_POLICY_LAST_UPDATED} title={PAGE_TITLE}>
       <ProgramSection title="What these cover">
         <p>
-          These terms cover {SMS_PROGRAM_NAME}, a private text-message assistant for the two adults
-          of one household. By texting {SMS_OPT_IN_KEYWORD} to its number you agree to them.
+          These terms cover {SMS_PROGRAM_NAME}, {SMS_PROGRAM_DESCRIPTION}. By texting{' '}
+          {SMS_OPT_IN_KEYWORD} to its number you agree to them.
         </p>
       </ProgramSection>
 
