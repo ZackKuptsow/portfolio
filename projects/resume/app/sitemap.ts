@@ -11,7 +11,10 @@ const HIGHEST_PRIORITY = 1
  */
 export const dynamic = 'force-static'
 
-/** Serves `/sitemap.xml`. The site is one page, stamped with the time of the build. */
+/**
+ * Serves `/sitemap.xml`: the home page, stamped with the time of the build. The household
+ * assistant's pages ask search engines to leave them out, so they are not listed.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
