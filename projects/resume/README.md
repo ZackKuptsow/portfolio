@@ -47,8 +47,10 @@ to show. `yarn typecheck` enforces it. `yarn test` does not, because Vitest does
 
 ## The household assistant's pages
 
-Three pages serve the Twilio A2P 10DLC campaign of the household assistant, a private SMS
-assistant for one household (the `household-assistant` repository). The campaign's registration
+Three pages serve the Twilio A2P 10DLC campaign of the household assistant, an automated SMS
+assistant whose users are, at present, the two adults of one household (the
+`household-assistant` repository). The pages describe it as software: the campaign was rejected
+on 2026-10-21 for reading as two people texting each other. The campaign's registration
 links each one, so each address must keep answering:
 
 | Address         | Source                 | What the campaign uses it for                                    |

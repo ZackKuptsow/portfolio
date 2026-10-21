@@ -1,8 +1,8 @@
 import { CONTACT_EMAIL, PERSON_NAME } from '@/data/identity'
 
 /**
- * The household assistant's text messages: a private assistant the two adults of one
- * household text, sent under a Twilio A2P 10DLC Sole Proprietor campaign. The campaign's
+ * The household assistant's text messages: an automated assistant its invited users text,
+ * sent under a Twilio A2P 10DLC Sole Proprietor campaign. The campaign's
  * registration links the three pages built from this file. The sign-up page is its opt-in
  * proof, and the other two are its privacy policy and its terms.
  *
@@ -16,6 +16,14 @@ export const SMS_BRAND_NAME = PERSON_NAME
 /** What every page and every message calls the assistant. Each begins with the brand. */
 export const SMS_PROGRAM_NAME = `${SMS_BRAND_NAME}'s household assistant`
 
+/**
+ * What the assistant is, as the privacy policy and the terms open with it. Software sends every
+ * message, which is what makes it application-to-person traffic: on 2026-10-21 the campaign was
+ * rejected for reading as two people texting each other.
+ */
+export const SMS_PROGRAM_DESCRIPTION =
+  'an automated text-message assistant for the people its developer invites in person, at present the two adults of his own household'
+
 /** The word a member texts to join. Twilio answers it with the opt-in message. */
 export const SMS_OPT_IN_KEYWORD = 'OTIS'
 
@@ -27,7 +35,7 @@ export const SMS_PAGE_PATHS = {
 } as const
 
 /** Shown at the top of the privacy policy and the terms. */
-export const SMS_POLICY_LAST_UPDATED = 'October 20, 2026'
+export const SMS_POLICY_LAST_UPDATED = 'October 21, 2026'
 
 /** Every kind of message the assistant sends, as the consent text and the terms list them. */
 export const SMS_MESSAGE_KINDS = [
