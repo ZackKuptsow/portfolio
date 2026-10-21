@@ -15,6 +15,9 @@ readonly EXIT_USAGE=2
 readonly MISSING_PAGE_PATH='/live-check-no-such-page'
 readonly NOT_FOUND_STATUS=404
 readonly OK_STATUS=200
+# The household assistant's pages. Its Twilio campaign links these addresses, so one that
+# stops answering gets the campaign rejected. Kept in step with `SMS_PAGE_PATHS`.
+readonly SMS_PROGRAM_PAGES=(sms.html privacy.html terms.html)
 # A path made of anything else would need encoding before it could go in a URL.
 readonly URL_SAFE_PATH='^[A-Za-z0-9._/-]+$'
 # The retries cover a dropped connection or a 5xx, not a wrong answer.
@@ -74,6 +77,10 @@ serves_the_built_file '/robots.txt' 'robots.txt'
 record $? 'robots.txt is the one that was built'
 serves_the_built_file '/sitemap.xml' 'sitemap.xml'
 record $? 'sitemap.xml is the one that was built'
+for program_page in "${SMS_PROGRAM_PAGES[@]}"; do
+  serves_the_built_file "/$program_page" "$program_page"
+  record $? "/$program_page is the one that was built"
+done
 answers_with_status "$MISSING_PAGE_PATH" "$NOT_FOUND_STATUS"
 record $? "a missing page answers $NOT_FOUND_STATUS"
 

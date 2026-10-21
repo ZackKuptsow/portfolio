@@ -16,6 +16,7 @@ app/              # App Router entry (layout, page, global styles), plus what se
 components/       # UI components (Header, AboutMe, Card, ThemeToggle, GlowCursor, ...)
 data/identity.ts  # Who the site is about: name forms, role, location, email, profile links, site URL
 data/profile.ts   # Resume content: work experience, education, skills, about copy
+data/householdAssistantSms.ts  # The household assistant's SMS pages: brand, keyword, the three Twilio replies
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
 test/             # Vitest suites, mirroring app/, components/ and data/
@@ -43,6 +44,32 @@ the data and the alt text, and `test/app/page.test.tsx` checks the rendered page
 
 `test/data/profile.typecheck.ts` holds values that must not compile, such as a job with nothing
 to show. `yarn typecheck` enforces it. `yarn test` does not, because Vitest does not check types.
+
+## The household assistant's pages
+
+Three pages serve the Twilio A2P 10DLC campaign of the household assistant, a private SMS
+assistant for one household (the `household-assistant` repository). The campaign's registration
+links each one, so each address must keep answering:
+
+| Address         | Source                 | What the campaign uses it for                                    |
+| --------------- | ---------------------- | ---------------------------------------------------------------- |
+| `/sms.html`     | `app/sms/page.tsx`     | The opt-in proof: the invitation, the consent text, the exchange |
+| `/privacy.html` | `app/privacy/page.tsx` | The privacy policy                                               |
+| `/terms.html`   | `app/terms/page.tsx`   | The terms, with their SMS Terms section                          |
+
+The `.html` is part of the address. CloudFront serves a file by its exact name and has no rule
+that adds an extension, so `/privacy` answers 404. Each page names itself as canonical, asks
+search engines to leave it out, and is not in the sitemap: the pages are for the campaign's
+reviewers and the household, not for a search for the name.
+
+`data/householdAssistantSms.ts` holds the brand, the keyword, the text the pages share, and
+the three messages Twilio sends in reply to the keyword, HELP and STOP. Those three are
+configured in Twilio word for word. Change Twilio first, then this file, so the pages never
+show a message the phone does not. `test/data/householdAssistantSms.test.ts` keeps each to one
+GSM-7 segment, and `test/app/smsProgramPages.test.tsx` checks the statements Twilio's form
+names: the page titles, the brand on every page, the rates disclosure, the non-sharing
+statement, the SMS Terms section, and the consent text inside the call to action. The deploy's
+live check requests all three pages.
 
 ## Search engines
 

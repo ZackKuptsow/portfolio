@@ -56,6 +56,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - No em dash or en dash in anything a visitor reads. `test/data/copy.test.ts` and `test/app/page.test.tsx` enforce it
 - Search engines: `app/siteMetadata.ts`, `components/StructuredData/` (schema.org `ProfilePage`), `app/robots.ts`, `app/sitemap.ts`, and the committed `app/opengraph-image.png` (source in `share-image/`)
 - Every prompt symbol (`.command-prompt`) sits inside an `aria-hidden` element, and `test/app/page.test.tsx` checks all of them. Arrows and `[EOF]` are hidden too
+- Three pages serve the household assistant's Twilio SMS campaign: `/sms.html` (opt-in proof), `/privacy.html` and `/terms.html`, built from `data/householdAssistantSms.ts`. The campaign links these exact addresses, with `.html`, so renaming one breaks the registration. They are noindex and outside the sitemap. The three Twilio replies in that file are configured in Twilio word for word (see "The household assistant's pages" in the resume README)
 - Sections render visible on the server, and the running script hides only one that starts below the fold (`components/ScrollFadeIn/`). The observer's threshold must stay 0: a fraction of a section many screens tall never fits on a phone, and the section would stay hidden
 
 ### Infrastructure Stack
