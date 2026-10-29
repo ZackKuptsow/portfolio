@@ -1,12 +1,13 @@
 /**
- * Projects shown on their own page: side projects and open source, most
- * recent first.
+ * Projects shown on their own page: side projects and open source, in the
+ * order a reviewer should read them.
  *
- * Every project links somewhere a visitor can go (the code, a live site, a
- * recorded demo), because a project card with nowhere to go is only a claim.
- * The copy follows the resume's rules: plain sentences, numbers only where
- * the repository can back them, and no em or en dash, which
- * `test/data/copy.test.ts` enforces.
+ * Every project gives a visitor somewhere to go (the code, a live site, a
+ * recorded demo) or says, in a few words, why there is nowhere to go yet. A
+ * project card with neither is only a claim. The copy follows the resume's
+ * rules: plain sentences, numbers only where the repository can back them,
+ * and no em or en dash, which `test/data/copy.test.ts` enforces. The private
+ * products are described at the level of their public pages and no further.
  */
 
 import type { NonEmptyList } from '@/data/profile'
@@ -42,12 +43,14 @@ export type ProjectVideo = {
 }
 
 /**
- * Where a visitor can go from the card: at least one link, or a recording to open. A project
- * with neither is only a claim, and does not compile.
+ * Where a visitor can go from the card: at least one link, a recording to open, or the
+ * reason the code is private, in a few words, shown where the link would be. A project with
+ * none of the three is only a claim, and does not compile.
  */
 type ProjectDestination =
-  | { links: NonEmptyList<ProjectLink>; video?: ProjectVideo }
-  | { links: readonly ProjectLink[]; video: ProjectVideo }
+  | { links: NonEmptyList<ProjectLink>; privateBecause?: string; video?: ProjectVideo }
+  | { links: readonly ProjectLink[]; privateBecause?: string; video: ProjectVideo }
+  | { links: readonly ProjectLink[]; privateBecause: string; video?: ProjectVideo }
 
 /** One project on the page. A project shows a paragraph, and may add highlights. */
 export type ProjectEntry = ProjectDestination & {
@@ -66,20 +69,20 @@ export type ProjectsOptions = {
   saveStateLiveUrl?: string
 }
 
-/** The Save State tour, 90 seconds of the iPhone build, recorded 2026-10-28. */
+/** The Save State tour, 91 seconds of the iPhone build, the fifth cut (2026-10-28). */
 export const SAVE_STATE_TOUR: ProjectVideo = {
   description:
-    'A 90 second tour of Save State on an iPhone: the daily session, a card graded with a certainty, an estimation drill, the mock interview clock, and the progress screens.',
-  durationLabel: '1:30',
+    "A 91 second tour of Save State on an iPhone: the day's session, a card and its follow-up question, a bottleneck drill graded with the reason, mastery by concept, the interview track and its common problems, duels and the mistake bank, Survival, the Estimation Ladder, and the web IDE that is coming.",
+  durationLabel: '1:31',
   posterPath: '/save-state-tour-poster.jpg',
   sourcePath: '/save-state-tour.mp4',
-  title: 'Save State, a 90 second tour',
+  title: 'Save State, a 91 second tour',
   triggerLabel: 'watch the tour',
 }
 
 /**
- * The projects, most recent first, with the links a build is allowed to show. Save State's
- * repository is private while it is being prepared, so its card has the tour and no code link.
+ * The projects, with the links a build is allowed to show. Save State's repository is
+ * private while it is being prepared, so its card has the tour and no code link.
  */
 export function buildProjects({ saveStateLiveUrl }: ProjectsOptions): NonEmptyList<ProjectEntry> {
   const saveStateLinks: readonly ProjectLink[] = saveStateLiveUrl
@@ -111,6 +114,46 @@ export function buildProjects({ saveStateLiveUrl }: ProjectsOptions): NonEmptyLi
       subtitle: 'System design interview prep on iOS and web · Expo, TypeScript, AWS · 2026',
       title: 'Save State',
       video: SAVE_STATE_TOUR,
+    },
+    {
+      description:
+        'A text assistant for one household, and the home automation behind it. The assistant runs on AWS and acts on the commands people text it: the shared shopping list, to-dos, the day\u0027s calendar, reminders. The home runs Home Assistant with no remote access, and on the Mac at home Hermes Agent, on a local model through Ollama, answers one person\u0027s texts and forwards household commands to the assistant.',
+      highlights: [
+        'The model only translates a message into a command (ADR 0004). What runs is code.',
+        'No process Hermes can launch gets Full Disk Access, and nothing in the home is reachable from outside it.',
+        'Every decision is written down: 73 decision records in the assistant and 37 in the home, and 169 test files in the assistant.',
+      ],
+      links: [],
+      privateBecause: "it holds the household's data and the home's automations",
+      subtitle: 'Two private repositories · Python, AWS, Home Assistant, Hermes Agent · 2026',
+      title: 'A household assistant by text, and the Mac that answers it',
+    },
+    {
+      description:
+        'A place for creatives to find collaborators around projects rather than follower counts, from a startup I co-founded. The landing site and its waitlist are live; a mobile app is in progress.',
+      highlights: [
+        'The waitlist collects an email and nothing else, counts before it writes and compensates on failure, and rate limits by a window carried in the counter key. Eight decision records say why.',
+        'A static export on AWS, built with Terraform rather than CDK and DynamoDB rather than RDS.',
+      ],
+      links: [{ href: 'https://theakin.app', label: 'live site' }],
+      subtitle: 'A startup · Next.js, AWS, Terraform · 2026',
+      title: 'akin',
+    },
+    {
+      description:
+        'A second brain for travel, for two people, started this month: a design system, a web app, a mobile app and a backend, each its own repository. The model work will run on Amazon Bedrock.',
+      links: [],
+      privateBecause: 'early days',
+      subtitle: 'A second brain for travel · TypeScript, AWS · 2026',
+      title: 'awty',
+    },
+    {
+      description:
+        'Two tools built in a day each, with their tests. One turns a folder of notes into a Gemini Notebook audio overview from a single command. The other is a local, CodeSignal style practice server for interview problems, in Python with no build step: a vim editor, locked test files and a phase clock.',
+      links: [],
+      privateBecause: 'wired to my notes vault',
+      subtitle: 'Two small tools · Python · 2026',
+      title: 'Smaller tools',
     },
     {
       description:

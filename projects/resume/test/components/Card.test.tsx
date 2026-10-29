@@ -103,4 +103,37 @@ describe('Card', () => {
 
     expect(container.querySelector('ul')).toBeNull()
   })
+
+  it('shows the note in the link row as plain text, after the links and before the action', () => {
+    const { container } = render(
+      <Card
+        action={<button type="button">open the demo</button>}
+        description="A project."
+        links={[{ href: 'https://example.com/live', label: 'live site' }]}
+        note="private: early days"
+        title="A project"
+      />,
+    )
+
+    const items = [...container.querySelectorAll('ul > li')]
+
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
+      '→ live site',
+      'private: early days',
+      'open the demo',
+    ])
+    expect(screen.getAllByRole('link')).toHaveLength(1)
+    expect(screen.getByText('private: early days').closest('a')).toBeNull()
+  })
+
+  it('renders the row for a note alone, so a private project still says why', () => {
+    const { container } = render(
+      <Card description="A project." note="private: early days" title="A project" />,
+    )
+
+    expect([...container.querySelectorAll('ul > li')].map((item) => item.textContent)).toEqual([
+      'private: early days',
+    ])
+    expect(screen.queryByRole('link')).toBeNull()
+  })
 })

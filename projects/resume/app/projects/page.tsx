@@ -57,6 +57,7 @@ export default function ProjectsPage() {
               description={project.description}
               highlights={project.highlights}
               links={project.links}
+              note={project.privateBecause && `private: ${project.privateBecause}`}
               subtitle={project.subtitle}
               title={project.title}
             />

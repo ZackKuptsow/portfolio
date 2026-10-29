@@ -11,8 +11,8 @@ import type { ProjectLink } from '@/data/projects'
  * button inside an anchor is invalid HTML, and browsers split it unpredictably.
  */
 type CardLinking =
-  | { action?: never; href?: string; links?: never }
-  | { action?: ReactNode; href?: never; links?: readonly ProjectLink[] }
+  | { action?: never; href?: string; links?: never; note?: never }
+  | { action?: ReactNode; href?: never; links?: readonly ProjectLink[]; note?: string }
 
 type CardProps = CardLinking & {
   className?: string
@@ -33,9 +33,11 @@ type CardProps = CardLinking & {
  * card's only heading. The prompt above it and the `[EOF]` below are
  * decoration, hidden from assistive technology.
  *
- * The links open in a new tab, since the visitor is leaving the page. The
- * action, when there is one, ends the same row: a control that does something
- * here, such as opening a demo, styled as the links are.
+ * The links open in a new tab, since the visitor is leaving the page. The note,
+ * when there is one, follows them in the same row as plain text: what stands
+ * where a link would be, such as why the code is private. The action, when
+ * there is one, ends the row: a control that does something here, such as
+ * opening a demo, styled as the links are.
  */
 export default function Card({
   action,
@@ -46,13 +48,14 @@ export default function Card({
   href,
   icon,
   links = [],
+  note,
   subtitle,
   title,
 }: CardProps) {
   const Wrapper = href ? 'a' : 'div'
   const handleCursorGlowMove = useCursorGlow<HTMLElement>()
   const fileName = toTerminalFileName(`${fileNamePrefix} ${title}`)
-  const hasLinkRow = links.length > 0 || action !== undefined
+  const hasLinkRow = links.length > 0 || note !== undefined || action !== undefined
 
   return (
     <Wrapper
@@ -135,7 +138,7 @@ export default function Card({
             </ul>
           )}
 
-          {/* Where the project can be seen, then what can be done here */}
+          {/* Where the project can be seen, what stands in for a link, then what can be done here */}
           {hasLinkRow && (
             <ul className="flex flex-wrap gap-x-6 gap-y-2 mt-4 font-mono text-sm">
               {links.map((link) => (
@@ -152,6 +155,7 @@ export default function Card({
                   </a>
                 </li>
               ))}
+              {note !== undefined && <li className="text-muted-foreground">{note}</li>}
               {action !== undefined && <li>{action}</li>}
             </ul>
           )}
