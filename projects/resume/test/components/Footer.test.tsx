@@ -26,6 +26,15 @@ describe('Footer', () => {
     expect(emailLink.hasAttribute('target')).toBe(false)
   })
 
+  it('links to the projects page on this site, in this tab', () => {
+    render(<Footer />)
+
+    const projectsLink = screen.getByRole('link', { name: 'Projects' })
+
+    expect(projectsLink.getAttribute('href')).toBe('/projects.html')
+    expect(projectsLink.hasAttribute('target')).toBe(false)
+  })
+
   it('hides the decorative prompt and arrows from assistive technology', () => {
     render(<Footer />)
 
@@ -34,7 +43,7 @@ describe('Footer', () => {
       ...screen.getAllByText('→'),
     ]
 
-    // One arrow per link row: LinkedIn, GitHub, Email and the projects placeholder.
+    // One arrow per link: LinkedIn, GitHub, Email and Projects.
     expect(decorativeElements).toHaveLength(5)
     expect(decorativeElements.filter((element) => !isInaccessible(element))).toEqual([])
   })

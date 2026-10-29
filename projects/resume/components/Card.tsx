@@ -4,8 +4,17 @@ import { ReactNode } from 'react'
 
 import { toTerminalFileName } from '@/components/terminalFileName'
 import useCursorGlow from '@/components/useCursorGlow'
+import type { ProjectLink } from '@/data/projects'
 
-type CardProps = {
+/**
+ * A card is a link, or it holds links and controls. Never both: an anchor or a
+ * button inside an anchor is invalid HTML, and browsers split it unpredictably.
+ */
+type CardLinking =
+  | { action?: never; href?: string; links?: never }
+  | { action?: ReactNode; href?: never; links?: readonly ProjectLink[] }
+
+type CardProps = CardLinking & {
   className?: string
   /** A paragraph under the subtitle. Left out when the card shows only highlights. */
   description?: string
@@ -13,8 +22,6 @@ type CardProps = {
   fileNamePrefix?: string
   /** Shown as a list, in the order given. An empty list renders no list at all. */
   highlights?: readonly string[]
-  /** When set, the whole card is a link. */
-  href?: string
   icon?: ReactNode
   /** A line under the title, such as a role and its dates. It is a paragraph, not a heading. */
   subtitle?: string
@@ -22,23 +29,30 @@ type CardProps = {
 }
 
 /**
- * One terminal window holding a job or a degree. The title is the card's only
- * heading. The prompt above it and the `[EOF]` below are decoration, hidden
- * from assistive technology.
+ * One terminal window holding a job, a degree or a project. The title is the
+ * card's only heading. The prompt above it and the `[EOF]` below are
+ * decoration, hidden from assistive technology.
+ *
+ * The links open in a new tab, since the visitor is leaving the page. The
+ * action, when there is one, ends the same row: a control that does something
+ * here, such as opening a demo, styled as the links are.
  */
 export default function Card({
+  action,
   className = '',
   description,
   fileNamePrefix = '',
   highlights = [],
   href,
   icon,
+  links = [],
   subtitle,
   title,
 }: CardProps) {
   const Wrapper = href ? 'a' : 'div'
   const handleCursorGlowMove = useCursorGlow<HTMLElement>()
   const fileName = toTerminalFileName(`${fileNamePrefix} ${title}`)
+  const hasLinkRow = links.length > 0 || action !== undefined
 
   return (
     <Wrapper
@@ -118,6 +132,27 @@ export default function Card({
                   </span>
                 </li>
               ))}
+            </ul>
+          )}
+
+          {/* Where the project can be seen, then what can be done here */}
+          {hasLinkRow && (
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 mt-4 font-mono text-sm">
+              {links.map((link) => (
+                <li key={link.href}>
+                  <a
+                    className="text-primary underline-offset-4 hover:underline
+                               terminal-glow-hover transition-all duration-200"
+                    href={link.href}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <span aria-hidden="true">→ </span>
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+              {action !== undefined && <li>{action}</li>}
             </ul>
           )}
 

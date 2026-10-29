@@ -57,4 +57,50 @@ describe('Card', () => {
     expect(decorativeElements).toHaveLength(4)
     expect(decorativeElements.filter((element) => !isInaccessible(element))).toEqual([])
   })
+
+  it('lists each link as a link that opens in a new tab, in the order given', () => {
+    const links = [
+      { href: 'https://example.com/code', label: 'code' },
+      { href: '/tour.mp4', label: 'watch the tour' },
+    ]
+    render(<Card description="A project." links={links} title="A project" />)
+
+    const renderedLinks = screen.getAllByRole('link')
+
+    // The accessible name leaves out the decorative arrow, so this also checks the arrow is hidden.
+    expect(renderedLinks.map((link) => link.getAttribute('href'))).toEqual(
+      links.map((link) => link.href),
+    )
+    expect(screen.getByRole('link', { name: 'code' })).toBe(renderedLinks[0])
+    expect(screen.getByRole('link', { name: 'watch the tour' })).toBe(renderedLinks[1])
+    expect(renderedLinks.filter((link) => link.getAttribute('target') !== '_blank')).toEqual([])
+    expect(renderedLinks.filter((link) => link.getAttribute('rel') !== 'noreferrer')).toEqual([])
+  })
+
+  it('renders no link when there are none', () => {
+    render(<Card description="A degree." title="A degree" />)
+
+    expect(screen.queryByRole('link')).toBeNull()
+  })
+
+  it('ends the link row with the action, and renders no row without links or an action', () => {
+    const { container, rerender } = render(
+      <Card
+        action={<button type="button">open the demo</button>}
+        description="A project."
+        links={[{ href: 'https://example.com/code', label: 'code' }]}
+        title="A project"
+      />,
+    )
+
+    const row = container.querySelector('ul')
+    const items = [...(row?.querySelectorAll(':scope > li') ?? [])]
+
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['→ code', 'open the demo'])
+    expect(screen.getByRole('button', { name: 'open the demo' })).toBeTruthy()
+
+    rerender(<Card description="A project." title="A project" />)
+
+    expect(container.querySelector('ul')).toBeNull()
+  })
 })

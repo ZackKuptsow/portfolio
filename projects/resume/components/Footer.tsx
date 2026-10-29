@@ -1,6 +1,7 @@
 'use client'
 
 import { CONTACT_EMAIL, PERSON_HANDLE, PROFILE_LINKS } from '@/data/identity'
+import { PROJECTS_PAGE_PATH } from '@/data/projects'
 
 export default function Footer() {
   return (
@@ -50,16 +51,17 @@ export default function Footer() {
               </span>
               Email
             </a>
-            <span
-              className="flex items-center gap-3 text-muted-foreground/70
-                         font-mono text-sm cursor-not-allowed"
-              aria-disabled="true"
+            {/* Same site, so it opens in this tab, with the `.html` the bucket serves. */}
+            <a
+              className="group flex items-center gap-3 text-muted-foreground hover:text-primary
+                         transition-colors duration-200 font-mono text-sm"
+              href={PROJECTS_PAGE_PATH}
             >
-              <span aria-hidden="true" className="text-primary/30">
+              <span aria-hidden="true" className="text-primary/40 group-hover:text-primary/80">
                 →
               </span>
-              Projects <span className="text-xs opacity-70">(coming soon)</span>
-            </span>
+              Projects
+            </a>
           </div>
 
           {/* Copyright & Tech stack */}

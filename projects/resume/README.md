@@ -16,6 +16,7 @@ app/              # App Router entry (layout, page, global styles), plus what se
 components/       # UI components (Header, AboutMe, Card, ThemeToggle, GlowCursor, ...)
 data/identity.ts  # Who the site is about: name forms, role, location, email, profile links, site URL
 data/profile.ts   # Resume content: work experience, education, skills, about copy
+data/projects.ts  # The projects page: side projects and open source, each with its links and any demo
 data/householdAssistantSms.ts  # The household assistant's SMS pages: brand, keyword, the three Twilio replies
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
@@ -44,6 +45,28 @@ the data and the alt text, and `test/app/page.test.tsx` checks the rendered page
 
 `test/data/profile.typecheck.ts` holds values that must not compile, such as a job with nothing
 to show. `yarn typecheck` enforces it. `yarn test` does not, because Vitest does not check types.
+
+## The projects page
+
+`/projects.html` (`app/projects/page.tsx`) lists side projects and open source, one card each,
+from `data/projects.ts`. The footer of the home page links it. As with the household
+assistant's pages, the `.html` is part of the address. Unlike them, it names itself as canonical
+and is in the sitemap: the point of the page is to be found.
+
+Every project gives a visitor somewhere to go: a link, or a recording to open. A project card
+with neither is only a claim, so `ProjectEntry` does not compile without one or the other, and
+`test/data/projects.test.ts` checks that each link is `https://` or a file in `public/`. A project
+may carry a recording (`video`). The card then ends its link row with a control that opens the
+recording in a `TerminalDialog`, the same window the get-resume button opens. Only the poster and
+the file's metadata load with the page; closing the window pauses the recording.
+
+The Save State card shows a `live site` link only when `NEXT_PUBLIC_SAVE_STATE_LIVE_URL` is set
+at build time (see Environment). Leave it unset until the site is behind a login, so the card
+offers no way to a site anyone could write to. Its code link waits on the repository being
+public.
+
+`test/data/projects.typecheck.ts` holds the values that must not compile: a project with no
+links and no recording, and a card that is a link while also holding links or a control.
 
 ## The household assistant's pages
 
@@ -82,7 +105,7 @@ The goal is that a search for "Zack Kuptsow" or "Zachary Kuptsow" finds this pag
 | `app/siteMetadata.ts`        | Title, description, canonical link, and link-preview tags                                  |
 | `components/StructuredData/` | A schema.org `ProfilePage` naming the person, both name forms, and the public profiles     |
 | `app/robots.ts`              | `/robots.txt`. It blocks nothing, the PDF included (see the infrastructure README)         |
-| `app/sitemap.ts`             | `/sitemap.xml`, stamped with the time of the build                                         |
+| `app/sitemap.ts`             | `/sitemap.xml`: the home page and the projects page, stamped with the time of the build    |
 | `app/opengraph-image.png`    | The share picture. `opengraph-image.alt.txt` is its alt text and must not end in a newline |
 
 `robots.ts` and `sitemap.ts` each export `dynamic = 'force-static'`. The static export fails
@@ -163,6 +186,8 @@ jsdom cannot see:
   scroll.
 - The QR code is shown at 640px wide and hidden at 639px.
 - No script error on load or when the window opens.
+- On the projects page, the Save State tour opens in a window that fits a phone and a laptop
+  screen, Escape and the close button close it, and nothing scrolls sideways on a phone.
 
 Playwright is a dev dependency pinned to an exact version. It drives the Google Chrome that is
 already installed, on your machine and on the CI runner, so it downloads no browser. The site
@@ -210,6 +235,14 @@ The value is the `ResumeRequestApiUrl` output of `SendResumeStack`. CI reads it 
 `RESUME_REQUEST_API_URL` repository variable. The API accepts browser requests only from
 `https://kups.me` and `http://localhost:3000`, so test the form on port 3000. `next dev`
 silently moves to 3001 when 3000 is busy, and every request from there fails CORS.
+
+One more value is optional. When it is set, the Save State card on the projects page gets a
+`live site` link to it; unset, the card shows the code link only. Set it only once the site is
+behind a login:
+
+```bash
+NEXT_PUBLIC_SAVE_STATE_LIVE_URL=https://dojo.kups.me
+```
 
 ## Deployment
 

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import * as identity from '@/data/identity'
 import * as profile from '@/data/profile'
+import * as projects from '@/data/projects'
 
 // No em or en dash in anything a visitor reads. See "Content" in the README.
 const EM_OR_EN_DASH = /[–—]/
@@ -37,7 +38,11 @@ function countStringsByExport(moduleExports: Record<string, unknown>): Record<st
 
 describe('resume content', () => {
   it('has no em or en dashes in any string a visitor sees', () => {
-    const visibleStrings = [...collectStrings({ ...identity }), ...collectStrings({ ...profile })]
+    const visibleStrings = [
+      ...collectStrings({ ...identity }),
+      ...collectStrings({ ...profile }),
+      ...collectStrings({ ...projects }),
+    ]
 
     expect(visibleStrings.filter((text) => EM_OR_EN_DASH.test(text))).toEqual([])
   })
@@ -69,6 +74,16 @@ describe('resume content', () => {
       education: 8,
       skillGroups: 21,
       workExperience: 28,
+    })
+  })
+
+  it('examines every project string', () => {
+    expect(countStringsByExport({ ...projects })).toEqual({
+      PROJECTS_PAGE_PATH: 1,
+      SAVE_STATE_TOUR: 6,
+      // A function holds no visible string.
+      buildProjects: 0,
+      projects: 27,
     })
   })
 
