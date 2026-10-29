@@ -28,9 +28,15 @@ describe('sitemap', () => {
     vi.useRealTimers()
   })
 
-  it('lists the one page, stamped with the time of the build', () => {
+  it('lists the home page first, then the projects page, stamped with the time of the build', () => {
     expect(sitemap()).toEqual([
       { changeFrequency: 'monthly', lastModified: BUILD_TIME, priority: 1, url: 'https://kups.me' },
+      {
+        changeFrequency: 'monthly',
+        lastModified: BUILD_TIME,
+        priority: 0.8,
+        url: 'https://kups.me/projects.html',
+      },
     ])
   })
 })

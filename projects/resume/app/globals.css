@@ -524,13 +524,14 @@ html.dark .terminal-about-me::before {
 }
 
 /*
- * Get-resume modal. The terminal window is the dialog's only visible box, so a
+ * A modal that looks like a terminal window: the get-resume dialog and the
+ * project demos. The terminal window is the dialog's only visible box, so a
  * click whose target is the dialog element itself landed on the backdrop (see
  * useModalDialog). No display value is set here. The UA hides a closed dialog
  * with display: none, and overriding display would show the dialog while it is
  * closed.
  */
-.get-resume-dialog {
+.terminal-dialog {
   width: min(28rem, calc(100vw - 2rem));
   max-width: none;
   max-height: none;
@@ -543,23 +544,23 @@ html.dark .terminal-about-me::before {
 }
 
 /* The window scrolls, not the dialog, so a scrollbar can never count as the backdrop */
-.get-resume-dialog .terminal-window {
+.terminal-dialog .terminal-window {
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
 }
 
 /* Without this the dark window scrolls with the browser's light scrollbar, the brightest thing in it */
-html.dark .get-resume-dialog .terminal-window {
+html.dark .terminal-dialog .terminal-window {
   color-scheme: dark;
 }
 
 /* Literal colors, because ::backdrop does not reliably inherit custom properties */
-.get-resume-dialog::backdrop {
+.terminal-dialog::backdrop {
   background: hsl(0 0% 0% / 0.35);
   backdrop-filter: blur(2px);
 }
 
-html.dark .get-resume-dialog::backdrop {
+html.dark .terminal-dialog::backdrop {
   background: hsl(0 0% 0% / 0.7);
 }
 

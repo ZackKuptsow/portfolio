@@ -56,9 +56,10 @@ next-env.d.ts
 # 🧹 CDK / AWS
 # =============================
 cdk.out/
+# Every context file stays out, send_resume's included: its hosted-zone entry carries the AWS
+# account id, which a public repository should not publish. A deploy does one live lookup
+# and rewrites the file locally; the tests pass without it (checked 2026-10-28).
 cdk.context.json
-# send_resume's hosted-zone lookup is committed so synthesis does not depend on a live lookup.
-!projects/send_resume/cdk.context.json
 **/*.assets.json
 cdk*.log
 cdk*.tsbuildinfo

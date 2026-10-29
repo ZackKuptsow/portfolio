@@ -13,18 +13,17 @@ import {
   QR_CODE_HINT,
 } from '@/components/GetResume/components/QrCodeOption/constants'
 import {
-  CLOSE_BUTTON_LABEL,
-  CLOSE_BUTTON_TEXT,
   DIALOG_HEADER_PATH,
   DIALOG_TITLE,
   SECTION_TITLE,
   TRIGGER_COMMAND,
 } from '@/components/GetResume/constants'
+import { CLOSE_BUTTON_LABEL, CLOSE_BUTTON_TEXT } from '@/components/TerminalDialog/constants'
 
 // Writing Voice hard rule for anything a visitor reads.
 const EM_OR_EN_DASH = /[–—]/
-// 8 strings in GetResume/constants.ts, 12 in EmailOption/constants.ts and 2 in
-// QrCodeOption/constants.ts.
+// 6 strings in GetResume/constants.ts, 2 in TerminalDialog/constants.ts, 12 in
+// EmailOption/constants.ts and 2 in QrCodeOption/constants.ts.
 const VISIBLE_STRING_COUNT = 22
 
 describe('visible copy', () => {

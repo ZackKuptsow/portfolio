@@ -777,7 +777,7 @@ AWS_PROFILE=personal aws sts get-caller-identity --query Account --output text
 AWS_PROFILE=personal aws cloudformation describe-stacks --stack-name SendResumeStack --region us-east-1 --query "Stacks[0].Outputs[?OutputKey=='ResumeRequestApiUrl'].OutputValue" --output text
 ```
 
-Expected: `654654426829`, then
+Expected: `<account-id>`, then
 `https://qp11fvbq77.execute-api.us-east-1.amazonaws.com/resume-requests`.
 
 If the account is anything else, stop. `hbv` is a different org. If the session has expired,
@@ -2083,7 +2083,7 @@ AWS_PROFILE=personal aws sts get-caller-identity --query Account --output text
 AWS_PROFILE=personal aws dynamodb scan --table-name SendResumeStack-RequestsTable419243C7-1LM3XK4BXAWC1 --region us-east-1 --output json --query 'Items[].requestKey.S'
 ```
 
-Expected: `654654426829`, then today's counter keys. If
+Expected: `<account-id>`, then today's counter keys. If
 `email:success@simulator.amazonses.com#<today>` is already present, step 4 will return 429.
 Use a labeled simulator address from step 3 instead. Don't delete counters without asking
 Zack.

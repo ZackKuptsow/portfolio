@@ -1,7 +1,8 @@
 import { expect } from '@playwright/test'
 
 import { QR_CODE_ALT_TEXT } from '@/components/GetResume/components/QrCodeOption/constants'
-import { CLOSE_BUTTON_LABEL, TRIGGER_COMMAND } from '@/components/GetResume/constants'
+import { TRIGGER_COMMAND } from '@/components/GetResume/constants'
+import { CLOSE_BUTTON_LABEL } from '@/components/TerminalDialog/constants'
 
 import type { Locator, Page } from '@playwright/test'
 

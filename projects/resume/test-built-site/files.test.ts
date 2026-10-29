@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { RESUME_PDF_PATH } from '@/components/GetResume/constants'
+import { PROJECTS_PAGE_PATH, projects } from '@/data/projects'
 
 import { listBuiltPaths, parseHomePage } from './builtSite'
 
@@ -27,6 +28,20 @@ describe('the files of the built site', () => {
 
   it('holds the page CloudFront answers a missing path with', () => {
     expect(builtPaths).toContain(NOT_FOUND_PAGE_PATH)
+  })
+
+  it('holds the projects page at the path the footer links', () => {
+    expect(builtPaths).toContain(PROJECTS_PAGE_PATH)
+  })
+
+  it('holds every project demo and its poster, at the paths the cards play from', () => {
+    const demoPaths = projects.flatMap((project) =>
+      project.video ? [project.video.posterPath, project.video.sourcePath] : [],
+    )
+
+    // Without this, a page with no demos would pass.
+    expect(demoPaths.length).toBeGreaterThan(0)
+    expect(demoPaths.filter((demoPath) => !builtPaths.includes(demoPath))).toEqual([])
   })
 
   it('holds every script, stylesheet, font and icon the home page asks for', () => {

@@ -2,20 +2,20 @@
 
 import { useId } from 'react'
 
+import { TerminalDialog } from '@/components/TerminalDialog'
+import { useModalDialog } from '@/components/useModalDialog'
+
 import { DownloadIcon } from './components/DownloadIcon'
 import { DownloadOption } from './components/DownloadOption'
 import { EmailOption } from './components/EmailOption'
 import { QrCodeOption } from './components/QrCodeOption'
 import {
-  CLOSE_BUTTON_LABEL,
-  CLOSE_BUTTON_TEXT,
   DIALOG_HEADER_PATH,
   DIALOG_TITLE,
   SECTION_TITLE,
   TERMINAL_BUTTON_CLASS_NAME,
   TRIGGER_COMMAND,
 } from './constants'
-import { useModalDialog } from './hooks'
 
 /**
  * The page's one way to get the resume: a terminal-styled button that opens a
@@ -26,8 +26,7 @@ import { useModalDialog } from './hooks'
  */
 export function GetResume() {
   const titleId = useId()
-  const { close, closeButtonRef, dialogRef, handleDialogClick, handleDialogPointerDown, open } =
-    useModalDialog()
+  const controls = useModalDialog()
 
   return (
     <>
@@ -35,7 +34,7 @@ export function GetResume() {
         <button
           type="button"
           aria-haspopup="dialog"
-          onClick={open}
+          onClick={controls.open}
           className={`${TERMINAL_BUTTON_CLASS_NAME} cursor-pointer`}
         >
           <span className="relative z-10 flex items-center gap-2">
@@ -48,63 +47,39 @@ export function GetResume() {
         </button>
       </div>
 
-      <dialog
-        ref={dialogRef}
-        aria-labelledby={titleId}
-        className="get-resume-dialog"
-        onClick={handleDialogClick}
-        onPointerDown={handleDialogPointerDown}
-      >
-        <div className="terminal-window shadow-card">
-          <div className="terminal-header terminal-header-style gap-3 pl-16">
-            <span className="flex-1 text-center font-mono text-xs text-primary sm:text-sm">
-              {DIALOG_HEADER_PATH}
-            </span>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              aria-label={CLOSE_BUTTON_LABEL}
-              onClick={close}
-              className="cursor-pointer rounded border border-border px-2 font-mono text-xs
-                         text-muted-foreground transition-colors hover:border-primary! hover:text-primary"
-            >
-              {CLOSE_BUTTON_TEXT}
-            </button>
-          </div>
+      <TerminalDialog controls={controls} headerPath={DIALOG_HEADER_PATH} labelledBy={titleId}>
+        <div className="flex flex-col gap-6 p-6">
+          <h2 id={titleId} className="font-mono text-xl font-bold text-primary">
+            {DIALOG_TITLE}
+          </h2>
 
-          <div className="flex flex-col gap-6 p-6">
-            <h2 id={titleId} className="font-mono text-xl font-bold text-primary">
-              {DIALOG_TITLE}
-            </h2>
+          <section>
+            <h3 className="mb-2 font-mono text-sm text-primary">
+              <span aria-hidden="true">## </span>
+              {SECTION_TITLE.download}
+            </h3>
+            <DownloadOption />
+          </section>
 
-            <section>
-              <h3 className="mb-2 font-mono text-sm text-primary">
-                <span aria-hidden="true">## </span>
-                {SECTION_TITLE.download}
-              </h3>
-              <DownloadOption />
-            </section>
+          <section>
+            <h3 className="mb-2 font-mono text-sm text-primary">
+              <span aria-hidden="true">## </span>
+              {SECTION_TITLE.email}
+            </h3>
+            <EmailOption />
+          </section>
 
-            <section>
-              <h3 className="mb-2 font-mono text-sm text-primary">
-                <span aria-hidden="true">## </span>
-                {SECTION_TITLE.email}
-              </h3>
-              <EmailOption />
-            </section>
-
-            {/* A phone cannot scan its own screen, so below the `sm` breakpoint the code is
-                not shown. The link that opens the PDF does the same job there. */}
-            <section className="max-sm:hidden">
-              <h3 className="mb-2 font-mono text-sm text-primary">
-                <span aria-hidden="true">## </span>
-                {SECTION_TITLE.qrCode}
-              </h3>
-              <QrCodeOption />
-            </section>
-          </div>
+          {/* A phone cannot scan its own screen, so below the `sm` breakpoint the code is
+              not shown. The link that opens the PDF does the same job there. */}
+          <section className="max-sm:hidden">
+            <h3 className="mb-2 font-mono text-sm text-primary">
+              <span aria-hidden="true">## </span>
+              {SECTION_TITLE.qrCode}
+            </h3>
+            <QrCodeOption />
+          </section>
         </div>
-      </dialog>
+      </TerminalDialog>
     </>
   )
 }
