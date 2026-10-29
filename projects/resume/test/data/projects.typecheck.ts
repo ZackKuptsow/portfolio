@@ -24,6 +24,12 @@ export const projectWithNoLinks: ProjectEntry = { ...PROJECT_HEADING, links: [] 
 
 export const projectWithOneLink: ProjectEntry = { ...PROJECT_HEADING, links: [LINK] }
 
+export const projectKeptPrivateWithNoLinks: ProjectEntry = {
+  ...PROJECT_HEADING,
+  links: [],
+  privateBecause: 'it holds other people',
+}
+
 export const projectWithARecordingAndNoLinks: ProjectEntry = {
   ...PROJECT_HEADING,
   links: [],
@@ -70,5 +76,14 @@ export const cardThatIsALinkAndHoldsLinks: CardProps = {
 export const cardThatIsALinkAndHoldsAnAction: CardProps = {
   action: 'open',
   href: 'https://example.com',
+  title: 'A card',
+}
+
+export const cardWithANoteAndNoLinks: CardProps = { note: 'private: early days', title: 'A card' }
+
+// @ts-expect-error a note stands where a link would be, so a card that is itself a link has no place for one
+export const cardThatIsALinkAndHoldsANote: CardProps = {
+  href: 'https://example.com',
+  note: 'private: early days',
   title: 'A card',
 }

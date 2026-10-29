@@ -58,6 +58,19 @@ describe('projects page', () => {
     expect(within(saveStateCard).queryByRole('link', { name: /tour/ })).toBeNull()
   })
 
+  it('says why where the code is private, as text and not a link', () => {
+    render(<ProjectsPage />)
+
+    const privateProjects = projects.filter((project) => project.privateBecause)
+    const notes = screen.getAllByText(/^private: /)
+
+    expect(privateProjects.length).toBeGreaterThanOrEqual(1)
+    expect(notes.map((note) => note.textContent)).toEqual(
+      privateProjects.map((project) => `private: ${project.privateBecause}`),
+    )
+    expect(notes.filter((note) => note.closest('a') !== null)).toEqual([])
+  })
+
   it('has no em or en dash anywhere a visitor reads', () => {
     const { container } = render(<ProjectsPage />)
 

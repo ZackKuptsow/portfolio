@@ -53,12 +53,16 @@ from `data/projects.ts`. The footer of the home page links it. As with the house
 assistant's pages, the `.html` is part of the address. Unlike them, it names itself as canonical
 and is in the sitemap: the point of the page is to be found.
 
-Every project gives a visitor somewhere to go: a link, or a recording to open. A project card
-with neither is only a claim, so `ProjectEntry` does not compile without one or the other, and
-`test/data/projects.test.ts` checks that each link is `https://` or a file in `public/`. A project
-may carry a recording (`video`). The card then ends its link row with a control that opens the
-recording in a `TerminalDialog`, the same window the get-resume button opens. Only the poster and
-the file's metadata load with the page; closing the window pauses the recording.
+Every project gives a visitor somewhere to go: a link, a recording to open, or, where the code
+is private, the reason in a few words shown where the link would be (`privateBecause`, rendered
+as `private: <reason>` through the card's `note`). A project card with none of the three is
+only a claim, so `ProjectEntry` does not compile without one, and `test/data/projects.test.ts`
+checks that each link is `https://` or a file in `public/`, that each reason is a phrase and not
+a sentence, and that the mobile app's legacy name never appears. The private products are
+described at the level of their public pages and no further. A project may carry a recording
+(`video`). The card then ends its link row with a control that opens the recording in a
+`TerminalDialog`, the same window the get-resume button opens. Only the poster and the file's
+metadata load with the page; closing the window pauses the recording.
 
 The Save State card shows a `live site` link only when `NEXT_PUBLIC_SAVE_STATE_LIVE_URL` is set
 at build time (see Environment). Leave it unset until the site is behind a login, so the card
@@ -66,7 +70,8 @@ offers no way to a site anyone could write to. Its code link waits on the reposi
 public.
 
 `test/data/projects.typecheck.ts` holds the values that must not compile: a project with no
-links and no recording, and a card that is a link while also holding links or a control.
+links, no recording and no reason, and a card that is a link while also holding links, a note or
+a control.
 
 ## The household assistant's pages
 

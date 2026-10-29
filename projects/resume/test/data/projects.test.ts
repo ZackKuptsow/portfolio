@@ -11,10 +11,28 @@ const SITE_PATH = /^\/(?!\/)/
 const LIVE_SITE_URL = 'https://example.com/save-state'
 
 describe('projects', () => {
-  it('gives every project somewhere to go: a link, or a recording to open', () => {
-    const nowhere = projects.filter((project) => project.links.length === 0 && !project.video)
+  it('gives every project somewhere to go: a link, a recording to open, or the reason it is private', () => {
+    const nowhere = projects.filter(
+      (project) => project.links.length === 0 && !project.video && !project.privateBecause,
+    )
 
     expect(nowhere).toEqual([])
+  })
+
+  it('says why in a few words when the code is private, as a phrase and not a sentence', () => {
+    const reasons = projects.flatMap((project) =>
+      project.privateBecause ? [project.privateBecause] : [],
+    )
+
+    // Without this, a list with no private project would pass.
+    expect(reasons.length).toBeGreaterThanOrEqual(1)
+    expect(reasons.filter((reason) => reason.length > 60 || /[.!?]$/.test(reason))).toEqual([])
+  })
+
+  it('never names the mobile app by its legacy name, and keeps the private products at concept level', () => {
+    const everything = JSON.stringify(projects)
+
+    expect(everything).not.toMatch(/kindrd/i)
   })
 
   it('links only to pages that exist: https elsewhere, or a file this site serves', () => {
