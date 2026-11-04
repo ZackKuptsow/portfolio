@@ -1,6 +1,6 @@
 import './globals.css'
 
-import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 
 import { siteMetadata } from '@/app/siteMetadata'
 import ClientOnly from '@/components/ClientOnly'
@@ -12,25 +12,28 @@ import type { Metadata, Viewport } from 'next'
 
 /**
  * JetBrains Mono powers every terminal surface: headings, labels, and command
- * prompts. It is a variable font, so next/font pulls the full weight range and
- * exposes it through the `--font-jetbrains-mono` CSS variable.
+ * prompts. The file is variable, and a variable file needs its weight given as
+ * a range: with one number the browser draws bold by smearing the regular
+ * weight. This range is the file's whole weight axis.
  */
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
+const jetBrainsMono = localFont({
   display: 'swap',
+  src: './fonts/jetbrains-mono/latin.woff2',
   variable: '--font-jetbrains-mono',
+  weight: '100 800',
 })
 
 /**
  * IBM Plex Sans carries the long-form body copy where a monospace face would
- * hurt readability. It is a static font, so the required weights are listed
- * explicitly.
+ * hurt readability. The file is variable as well, with a weight axis from 100
+ * to 700. The range starts at 400 because the page offers nothing lighter: a
+ * lighter request keeps drawing regular, not a thin weight no design chose.
  */
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const ibmPlexSans = localFont({
   display: 'swap',
+  src: './fonts/ibm-plex-sans/latin.woff2',
   variable: '--font-ibm-plex-sans',
+  weight: '400 700',
 })
 
 /**

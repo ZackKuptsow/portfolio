@@ -39,6 +39,20 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
+    // next/font/google downloads during the build, and a failed download fails the build
+    // whatever the change was (issue #17).
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            message:
+              'A build must need nothing from Google Fonts. Use next/font/local and the files in app/fonts/.',
+            name: 'next/font/google',
+          },
+        ],
+      },
+    ],
   },
   settings: {
     'import/resolver': {
