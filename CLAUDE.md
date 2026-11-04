@@ -52,6 +52,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Static export deployed to S3 via CloudFront
 - Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF as a download, as a link that opens it in the browser, and by email through the send_resume API
 - The modal's QR code opens the PDF on a phone. Its drawing is the committed `qrCodeArtwork.json`, which a test redraws when run with `-u` (see "QR code" in the resume README). The section is hidden below the `sm` breakpoint (`max-sm:hidden`), because a phone cannot scan its own screen, and only a browser can check that rule
+- Fonts are committed in `app/fonts/` with their licenses and loaded with `next/font/local`, so a build needs no network, and ESLint forbids `next/font/google`. Each variable file needs its weight given as a range, or bold is smeared. `→` and `←` are in neither file, so the generated `… Fallback` rule sets their width (see "Fonts" in the resume README)
 - Content lives in `data/`: `identity.ts` (name forms, role, location, email, profile links, site URL) and `profile.ts` (jobs, degrees, skills, about copy). Job highlights, skills and the bio are copied from the public resume, so change the resume first. The page shows a selection, and the Qlik entry and degree descriptions exist only on the page
 - No em dash or en dash in anything a visitor reads. `test/data/copy.test.ts` and `test/app/page.test.tsx` enforce it
 - Search engines: `app/siteMetadata.ts`, `components/StructuredData/` (schema.org `ProfilePage`), `app/robots.ts`, `app/sitemap.ts`, and the committed `app/opengraph-image.png` (source in `share-image/`)
@@ -78,7 +79,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 ## Testing
 
 - Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `app/`, `components/` and `data/`
-- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: sections revealed on a phone, sideways scroll, focus in the modal, and the QR code's breakpoint. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
+- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: sections revealed on a phone, matching section headers, sideways scroll, focus in the modal, and the QR code's breakpoint. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
 - Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume; `app/`, `components/` and `data/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`

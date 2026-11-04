@@ -13,6 +13,7 @@ The portfolio site behind **[kups.me](https://kups.me)** — a Next.js 15 app ex
 
 ```
 app/              # App Router entry (layout, page, global styles), plus what search engines read
+app/fonts/        # The two font files the site serves, with their licenses and source
 components/       # UI components (Header, AboutMe, Card, ThemeToggle, GlowCursor, ...)
 data/identity.ts  # Who the site is about: name forms, role, location, email, profile links, site URL
 data/profile.ts   # Resume content: work experience, education, skills, about copy
@@ -134,6 +135,22 @@ falls back to another font, without an error, when it cannot.
   "file://$PWD/share-image/opengraph-image.html"
 ```
 
+## Fonts
+
+`app/fonts/` holds the two files the site serves, and `app/layout.tsx` loads them with
+`next/font/local`, so `yarn build` needs no network. ESLint forbids importing `next/font/google`,
+which downloads during the build. `app/fonts/README.md` records each file's source, version and
+license.
+
+Both files are variable, so `layout.tsx` gives each weight as a range. With one number the browser
+draws bold by smearing the regular weight.
+
+`next/font` computes a `… Fallback` rule for each font from its file: Arial, scaled to match. The
+rule does more than hold the text in place until the font arrives. `→` and `←` are in neither file,
+so every arrow on the page is drawn through that rule for good, and its `size-adjust` sets their
+width. A change to a font file can therefore move the text beside the arrows and change where lines
+wrap, so look at the page at 360x640 afterwards.
+
 ## QR code
 
 The get-resume modal shows a QR code that opens the PDF on a phone. The code holds
@@ -185,6 +202,8 @@ whether every script, stylesheet and font the page asks for was written.
 jsdom cannot see:
 
 - Every section appears when a visitor scrolls to it on a 360x640 phone.
+- The headers of Work Experience, Education and Skills have the same layout at 360, 767, 768 and
+  1366 wide, with the prompt above the heading.
 - Nothing scrolls sideways at 15 widths from 320px to 1280px, with the get-resume window closed
   and open.
 - The keyboard lands on the close button of the get-resume window, also when the window has to

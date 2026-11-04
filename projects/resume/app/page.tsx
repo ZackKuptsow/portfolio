@@ -49,13 +49,12 @@ export default function Home() {
         </ScrollFadeIn>
 
         <ScrollFadeIn delay={600}>
-          <Section
-            title="Skills"
-            className="[&>div]:space-y-0 [&>div]:md:grid [&>div]:md:grid-cols-3 [&>div]:md:gap-8 [&>div]:space-y-6 [&>div]:md:space-y-0"
-          >
-            {skillGroups.map((skillGroup) => (
-              <SlimCard key={skillGroup.title} list={skillGroup.list} title={skillGroup.title} />
-            ))}
+          <Section title="Skills">
+            <div className="space-y-6 md:grid md:grid-cols-3 md:gap-8 md:space-y-0">
+              {skillGroups.map((skillGroup) => (
+                <SlimCard key={skillGroup.title} list={skillGroup.list} title={skillGroup.title} />
+              ))}
+            </div>
           </Section>
         </ScrollFadeIn>
 

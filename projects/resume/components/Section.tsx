@@ -4,13 +4,12 @@ import { toTerminalFileName } from '@/components/terminalFileName'
 
 interface SectionProps {
   children: React.ReactNode
-  className?: string
   title: string
 }
 
-export default function Section({ children, className = '', title }: SectionProps) {
+export default function Section({ children, title }: SectionProps) {
   return (
-    <section className={`mb-12 ${className}`.trim()}>
+    <section className="mb-12">
       {/* Simplified terminal-style section header */}
       <div className="mb-8">
         <div aria-hidden="true" className="font-mono text-sm text-muted-foreground mb-2">

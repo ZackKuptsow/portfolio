@@ -4,10 +4,9 @@ import { describe, expect, it, vi } from 'vitest'
 import RootLayout, { metadata } from '@/app/layout'
 
 // next/font only works inside the Next compiler, so it cannot be imported for
-// real here. The layout reads exactly these two fonts, and both are supplied.
-vi.mock('next/font/google', () => ({
-  IBM_Plex_Sans: () => ({ variable: 'font-ibm-plex-sans-stub' }),
-  JetBrains_Mono: () => ({ variable: 'font-jetbrains-mono-stub' }),
+// real here. The layout calls it once per font and reads only the variable name.
+vi.mock('next/font/local', () => ({
+  default: ({ variable }: { variable: string }) => ({ variable }),
 }))
 
 // The stylesheet needs the Tailwind PostCSS plugin, which only the Next build
