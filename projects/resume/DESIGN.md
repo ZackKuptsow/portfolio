@@ -332,15 +332,14 @@ branch's values, which Zack kept on 2026-11-04.
 ### Budget
 
 What a screen may ask of the person. The resume sits at the end of the scroll by design, so its
-action does not have to be visible without scrolling. These pages are read top to bottom, so the
-limit on blocks above the action is set too high to fire: 999 stands for no limit, because the row
-must hold a whole number, and the most on any page today is 22 (both Zack, 2026-11-04).
+action does not have to be visible without scrolling. These pages are read top to bottom, so there
+is no limit on the blocks above the action (both Zack, 2026-11-04).
 
 | Rule                                                        | Value |
 | ----------------------------------------------------------- | ----- |
 | main actions per screen                                     | 1     |
 | main action visible without scrolling at the smallest width | no    |
-| blocks above the main action                                | 999   |
+| blocks above the main action                                | no    |
 
 ## Elevation and shape
 
@@ -397,7 +396,8 @@ Each with its states. The browser's own controls, with a visible focus: 2 points
 One row per screen. Render is what the rendered check opens. `/` and `/projects.html` are one terminal
 at two starting points, and Home owns the projects. The three SMS pages stay plain reading pages, in
 the site's colours, at their exact `.html` addresses, because the Twilio campaign links them. Not found
-has no main action today, so its cell is empty and the check reports it as not measured.
+has no main action today, so its cell is empty, and with both of the Budget's action rules off the check
+does not ask for one.
 
 ### Screens
 
