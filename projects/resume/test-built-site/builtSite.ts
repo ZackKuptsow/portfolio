@@ -26,7 +26,12 @@ export function listBuiltPaths(): string[] {
     )
 }
 
+/** One built page, parsed the way a browser parses it. */
+export function parseBuiltPage(relativePath: string): Document {
+  return new DOMParser().parseFromString(readBuiltFile(relativePath), 'text/html')
+}
+
 /** The built home page, parsed the way a browser parses it. */
 export function parseHomePage(): Document {
-  return new DOMParser().parseFromString(readBuiltFile(HOME_PAGE_FILE), 'text/html')
+  return parseBuiltPage(HOME_PAGE_FILE)
 }

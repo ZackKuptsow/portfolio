@@ -40,8 +40,7 @@ export function ProjectDemo({ video }: ProjectDemoProps) {
       <button
         type="button"
         aria-haspopup="dialog"
-        className="cursor-pointer text-primary underline-offset-4 hover:underline
-                   terminal-glow-hover transition-all duration-200"
+        className="terminal-link-button terminal-glow-hover"
         onClick={controls.open}
       >
         <span aria-hidden="true">→ </span>
