@@ -202,6 +202,8 @@ whether every script, stylesheet and font the page asks for was written.
 jsdom cannot see:
 
 - Every section appears when a visitor scrolls to it on a 360x640 phone.
+- The headers of Work Experience, Education and Skills have the same layout at 360, 767, 768 and
+  1366 wide, with the prompt above the heading.
 - Nothing scrolls sideways at 15 widths from 320px to 1280px, with the get-resume window closed
   and open.
 - The keyboard lands on the close button of the get-resume window, also when the window has to

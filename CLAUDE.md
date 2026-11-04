@@ -79,7 +79,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 ## Testing
 
 - Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `app/`, `components/` and `data/`
-- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: sections revealed on a phone, sideways scroll, focus in the modal, and the QR code's breakpoint. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
+- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: sections revealed on a phone, matching section headers, sideways scroll, focus in the modal, and the QR code's breakpoint. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
 - Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume; `app/`, `components/` and `data/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`
