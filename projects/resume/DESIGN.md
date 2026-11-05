@@ -6,11 +6,10 @@ its exact name and keeps its column headers as written: a renamed header or a mi
 a check with exit 2, never a pass. Edit the values and the prose freely; keep the headings and the
 headers.
 
-**Status: a direction, not a description.** The colours, fonts and SMS pages below are what the
-site has today. The terminal direction was reached with Zack over nine rounds of live prototypes
-on 2026-11-04 and has not been built, so most of the home page does not match it yet. "Page N"
-below means the decision page of that round. The prototypes are throwaway, so this brief carries
-everything they decided.
+**Status: built.** This describes the site. The terminal direction was reached with Zack over nine
+rounds of live prototypes on 2026-11-04 and built the same day (`components/Terminal/`, and see
+"The terminal" in the README for how). "Page N" below means the decision page of that round. The
+prototypes are throwaway, so this brief carries everything they decided.
 
 ## Brand and style
 
@@ -42,8 +41,8 @@ Brand: short form, 2026-11-04
 - **Voice:** "playful, should speak kinda like I am a hacker communicating with you over terminal
   (there are secret agent-ish hacker apps that do this storyline well)." Rules, as he stated them:
   "You should never talk about comp, why I left jobs." "Each new copy line (even outside this)
-  should be run by me." Comment lines are "true stories about building site and my experience but
-  also include some jokes."
+  should be run by me." No comment lines: shown six drafts, "Let's not do funny comments. I will add
+  them if I want them."
 - **Recognisable by:** The terminal look, "the site's identity" (issue #7), and `./tech.polyglot`:
   "I couldn't think of anything else that makes it seem like I experiment with all tech (i.e. smart
   home, local llm, hermes, text assistant, productivity and tooling)."
@@ -75,6 +74,12 @@ with later notes folded in below.
 ### Commands
 
 Upward commands read as the reverse trip. `tac` was rejected ("That doesn't make sense").
+
+These are the commands of a straight read, and a command must be true of the fake filesystem by
+any route, so `components/Terminal/buildCommand.ts` works each one out from the folder the prompt
+is in. Going up, the table's `cd ..` is true only for the first hop out of a folder: after it the
+prompt is in the portfolio, so the next hop is `cat education/<file>.txt`. The session starts in
+`~/portfolio`, which makes the first command true as typed.
 
 | Section         | Scrolling down types                                                  | Scrolling up types                                                                 | Menu types                                       |
 | --------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
@@ -143,22 +148,17 @@ The values the prototype ended on, which he approved by feel.
 | Download: after saved, then before the window            | 240 ms, then 550 ms                              |
 | Drawer closes                                            | 190 ms                                           |
 
-### Draft copy, not approved
+### New copy
 
-New wording from the prototypes. None of it ships until Zack has approved the line, and a comment
-line must be true when it does.
+Each line approved by Zack on 2026-11-04.
 
-- Comments: `# the fonts live in the repo now. google fonts used to take down one build in twelve.`,
-  `# 400,000+ lines touched, zero downtime. feature flags are a love language.`,
-  `# two degrees, one school, so the files need prefixes.`,
-  `# this header sat beside its heading for 14 months. one css selector. fixed today.`,
-  `# hundreds of escalated production issues. the django shell and i are close.`,
-  `# threshold 0. at 0.1 this section is eleven screens tall on a phone and never appears. ask me how i know.`
 - Download: `--<date> <time>--  https://kups.me/get_resume.sh`, `Resolving kups.me... done.`,
   `Connecting to kups.me:443... connected.`, `HTTP request sent, awaiting response... 200 OK`,
-  `Saving to: 'get_resume.sh'`, `'get_resume.sh' saved`, `Opening the resume...`
-- Menu: `light mode`, `dark mode`, `plain view`, `terminal view`, and the section entries `~/whoami`,
-  `developer.profile`, `work_experience/`, `education/`, `skills/`, `get_resume.sh`, `projects/`
+  `Saving to: 'get_resume.sh'`, `get_resume.sh  62%[====>   ] 1.3K`, `'get_resume.sh' saved`,
+  `Opening the resume...`
+- Menu: `$ ls ~/portfolio`, `light mode`, `dark mode`, `plain view`, `terminal view`, and the section
+  entries `~/whoami`, `developer.profile`, `work_experience/`, `education/`, `skills/`,
+  `get_resume.sh`, `projects/`
 
 ## Colours
 
@@ -196,9 +196,9 @@ the project's own CSS variables, so a later build can use them as they are. `tex
 | primary-foreground     | #ffffff | #000000 | Text on primary where a component asks for it (from app/globals.css)                                                                                     |
 | arrow                  | #858585 | #07a007 | List arrows, drawn as primary at 60% over background (from components/Card.tsx:130)                                                                      |
 | muted                  | #ebebeb | #141414 | The email field (from app/globals.css)                                                                                                                   |
-| muted-foreground       | #666666 | #a3c2a3 | Subtitles, listings, comments, footer links, placeholder (from app/globals.css)                                                                          |
+| muted-foreground       | #666666 | #a3c2a3 | Subtitles, listings, footer links, placeholder (from app/globals.css)                                                                                    |
 | border                 | #cccccc | #004d00 | Dividers and decoration, which carry no meaning (from app/globals.css)                                                                                   |
-| control-edge           | #858585 | #004d00 | The edge of a control. Light as drawn on page 9, dark from the border token in app/globals.css                                                           |
+| control-edge           | #858585 | #07a007 | The edge of a control. Light as drawn on page 9. Dark is the arrow's colour, his pick: #004d00 measured 1.94                                             |
 | error-text             | #b81e1e | #ef4444 | Email errors (from app/globals.css)                                                                                                                      |
 | ring                   | #333333 | #00ff00 | Keyboard focus (from app/globals.css)                                                                                                                    |
 | destructive            | #ef4444 | #ef4444 | Kept from the theme, used by nothing the direction draws (from app/globals.css)                                                                          |
@@ -230,7 +230,7 @@ scheme, as `contrast.py` computes it. Read from `components/Card.tsx`, `componen
 | background       | primary    | text     | 12.63       | 13.65      |
 | error-text       | card       | text     | 6.2         | 5.26       |
 | arrow            | background | boundary | 3.69        | 5.39       |
-| control-edge     | card       | boundary | 3.54        | 1.94       |
+| control-edge     | card       | boundary | 3.54        | 5.69       |
 | ring             | background | boundary | 12.63       | 13.65      |
 
 ## Typography
@@ -261,7 +261,6 @@ phone, and 17 and 15 at the terminal's widest. The build changes that comment wi
 | Listing and download | 13/21     | JetBrains Mono                 | muted-foreground | `low_rate_co.txt   draynow.txt`, the fake download        |
 | Prompt               | 13/20     | JetBrains Mono                 | foreground       | The path, `$` and the typed command                       |
 | Button               | 14/20     | JetBrains Mono 600             | background       | The terminal button                                       |
-| Comment              | 12/18     | JetBrains Mono italic          | muted-foreground | The true stories and jokes                                |
 | Footer and title bar | 12/18     | JetBrains Mono                 | muted-foreground | Footer links, the title bar's path                        |
 | Built-with line      | 11/15     | JetBrains Mono                 | muted-foreground | Footer and menu                                           |
 | SMS body             | 16/26     | IBM Plex Sans                  | foreground       | The three SMS pages, which a reviewer reads word for word |
@@ -373,8 +372,8 @@ Each with its states. The browser's own controls, with a visible focus: 2 points
 - **Footer:** arrows and links on `card`, pinned under the prompt. Hover: `primary`. Focus: ring.
 - **Drawer:** entries on `card`, from the right, 240 wide and at most 80% of the screen. Hover: a tint of
   `primary`. Current section: `primary` with glow. Focus: ring. Opening it moves nothing behind it.
-- **Output:** heading, listing, entry title, subtitle, list with arrows, `[EOF]` and comment, on
-  `background`. Headings glow on hover. Links: `primary`, underlined with glow on hover, focus ring.
+- **Output:** heading, listing, entry title, subtitle, list with arrows and `[EOF]`, on `background`.
+  Headings glow on hover. Links: `primary`, underlined with glow on hover, focus ring.
 - **Terminal button:** filled `primary` with `background` text. Hover: transparent with `primary` text
   and glow. Pressed: as hover. Focus: ring. Its quieter twin is outlined and fills on hover (from
   components/GetResume/constants.ts).
@@ -417,12 +416,10 @@ does not ask for one.
 - Do keep the name in the `<h1>`, with the role and city, and both name forms visible somewhere in the
   page. It is how the site is found by name. The hero's line is hidden visually, never removed.
 - Do keep every prompt symbol, arrow and `[EOF]` inside an `aria-hidden` element, because
-  `test/app/page.test.tsx` checks them. Typed commands and comments are decoration for the same reason.
+  `test/app/page.test.tsx` checks them. Typed commands are decoration for the same reason.
 - Don't use an em dash or en dash in anything a visitor reads, because `test/data/copy.test.ts` enforces
   it.
 - Do keep sections a visitor never scrolled to in the printout: print gets the plain flow.
-- Do keep the fade-in observer's threshold at 0 wherever an observer reveals a section, because a
-  fraction of a section many screens tall never fits on a phone.
 
 **The direction:**
 
@@ -432,8 +429,8 @@ does not ask for one.
 - Don't add a logout screen. "I just want it to go back to the hero page."
 - Don't add colour to the light theme, because he chose it as it is, on page 9.
 - Don't make `kups.me/get_resume.sh` real, because he chose decoration on page 8.
-- Don't ship a new line of copy, comment or joke without his approval, or mention comp or why he left a
-  job.
+- Don't ship a new line of copy without his approval, or mention comp or why he left a job. Don't add
+  comment lines or jokes: "I will add them if I want them."
 
 **Traps the prototypes found, each measured in Chrome:**
 
@@ -447,12 +444,11 @@ does not ask for one.
 - Don't let the code's own scroll moves read as the reader scrolling on. It made the menu skip the
   download and its printing, and only a timing gave it away.
 - Do keep the text in the HTML for search, screen readers and find in page. A scene hidden with
-  `display: none` is invisible to all three, and Ctrl+F needs plain view unless `hidden="until-found"`
-  covers it.
-- Do make the commands true of the fake filesystem. The prototype's paths after `cd ..` are not exact.
+  `display: none` is invisible to all three. A hidden section carries `hidden="until-found"`, and find
+  in page reaching one changes the page to the plain flow.
+- Do make the commands true of the fake filesystem, by any route. `buildCommand.ts` tracks the folder.
 - Do test touch and pull-to-refresh on a real phone before this ships. No prototype has been on one.
 - Do fit the email placeholder at phone width: the prototype clipped it to `you@company.c`.
-- Do give the hamburger, plain view and footer links a target of 44 by 44. The prototype's bars are only
+- Do give the hamburger, plain view and footer links a target of 44 by 44. The prototype's bars were only
   30 and 32 high, and the rendered check holds every control to 44 on every width.
-- Do check the terminal at 200% text. No prototype has been, and the site as it is overflows there: 149
-  of its 151 text-overflow findings are at 200%.
+- Do check the terminal at 200% text. The prototypes never were.
