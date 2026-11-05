@@ -11,6 +11,8 @@ import {
   INITIAL_PATH,
   SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS,
   SCROLL_UP_AT_TOP_TO_EXIT_PIXELS,
+  SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_BY_TOUCH_PIXELS,
+  SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS,
 } from '../constants'
 import { CommandClock } from './commandClock'
 import { playDownload } from './playDownload'
@@ -44,6 +46,7 @@ export type TerminalEngineOptions = {
 /** Keys that jump instead of scrolling, which would race every command they pass. */
 const JUMP_KEY_SECTION: Partial<Record<string, SectionId>> = { End: 'projects', Home: 'hero' }
 const KEYS_THAT_SCROLL_UP = new Set(['ArrowUp', 'PageUp'])
+const KEYS_THAT_SCROLL = new Set([...KEYS_THAT_SCROLL_UP, ' ', 'ArrowDown', 'PageDown'])
 
 /**
  * The terminal, on top of the plain flow in the server's HTML: one stationary screen that the
@@ -94,6 +97,9 @@ export class TerminalEngine {
       onJump: (reached, scrollTop) => this.jumpTo(reached, scrollTop),
       onMoveDown: () => this.moveDownOneStep(),
       onMoveUp: () => this.moveUpOneStep(),
+      onPullForgotten: () => {
+        this.exitPull = 0
+      },
       readCurrentStep: () => this.currentStepIndex,
       readMappedSteps: () => this.layout.mappedSteps,
       scroller: options.elements.scroller,
@@ -115,11 +121,14 @@ export class TerminalEngine {
         onResize: this.handleResize,
         onScroll: this.scroll.schedule,
         onTouchPull: (pulled) => {
-          this.scroll.noteFlick()
+          this.scroll.noteSwipe(
+            Math.abs(pulled),
+            SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_BY_TOUCH_PIXELS,
+          )
           this.countUpwardAtTop(pulled, SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS)
         },
         onWheelUp: (amount) => {
-          this.scroll.noteFlick()
+          this.scroll.noteSwipe(Math.abs(amount), SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS)
           this.countUpwardAtTop(amount, SCROLL_UP_AT_TOP_TO_EXIT_PIXELS)
         },
       },
@@ -343,17 +352,17 @@ export class TerminalEngine {
   }
 
   /**
-   * A reader still moving can carry the scroll past this step while the command types. Land
-   * where the scroll is, and leave it alone: setting it would cancel a smooth scroll that is
-   * still running. A wheel or touch stays on the next step unless the reader is fast-forwarding,
-   * so a short section isn't skipped. The resume is never skipped, only shortened.
+   * A dragged scrollbar can carry the scroll past this step while the command types. Land where
+   * the scroll is, and leave it alone: setting it would cancel a smooth scroll that is still
+   * running. A swipe always stays on the next step, so no section is skipped, even if a browser
+   * ignored being held in place. The resume is never skipped, only shortened.
    */
   private landFromScroll(target: number, way: ScrollDirection, done: () => void): void {
     const liveScrollTop = this.elements.scroller.scrollTop
     const liveTarget = findStepAt(this.layout.mappedSteps, liveScrollTop)
     const isPastTarget = way === 'down' ? liveTarget > target : liveTarget < target
     const isResume = this.steps[target].sectionId === 'resume'
-    if (isPastTarget && !isResume && (this.clock.isFastForwarding || !this.scroll.isFlicking())) {
+    if (isPastTarget && !isResume && !this.scroll.isGestureGoing()) {
       this.land(liveTarget, way, done, liveScrollTop)
     } else {
       this.land(target, way, done)
@@ -419,7 +428,7 @@ export class TerminalEngine {
 
   /** Up from the first screen types `exit` and reprints the hero. There is no logout screen. */
   private countUpwardAtTop(amount: number, needed: number): void {
-    if (this.isBusy || this.isPlain) {
+    if (this.isBusy || this.isPlain || this.scroll.isGestureSpent()) {
       return
     }
     const isAtTop = this.currentStepIndex === 0 && this.elements.scroller.scrollTop <= 0
@@ -444,7 +453,14 @@ export class TerminalEngine {
     if (this.isPlain) {
       return
     }
-    this.fastForwardIfBusy()
+    if (KEYS_THAT_SCROLL.has(event.key)) {
+      this.scroll.noteScrollKey()
+    }
+    // A held key repeats by itself, which is no more the reader asking to hurry than momentum is.
+    if (this.isBusy && !event.repeat) {
+      this.scroll.spendGesture()
+      this.clock.fastForward()
+    }
     if (KEYS_THAT_SCROLL_UP.has(event.key)) {
       this.countUpwardAtTop(SCROLL_UP_AT_TOP_TO_EXIT_PIXELS, SCROLL_UP_AT_TOP_TO_EXIT_PIXELS)
     }

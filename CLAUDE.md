@@ -49,6 +49,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Tailwind CSS for styling with custom CSS variables for theming
 - Component-based architecture in `components/` directory
 - `/` and `/projects.html` are one stationary terminal that scrolling drives (`components/Terminal/`, spec in `projects/resume/DESIGN.md`, how it works in "The terminal" in the resume README). The server HTML is the plain flow: every section in one reading column, which is what no script, reduced motion, plain view and print get. The engine moves, clips and hides that markup and writes no text of its own, so every word stays in the HTML
+- One swipe does one thing in the terminal, momentum included: it starts a command, finishes one, or stops at the last line of the output, and what is left of it does nothing until the input goes quiet (`engine/scrollGesture.ts`). Every scroll check has to allow for this, or a steady wheel never gets past the end of a section. Zack sets the scroll distances and animation times by feel, and they are all in `components/Terminal/constants.ts`
 - `app/prePaintScript.ts` sets the theme and turns the terminal on before the first paint. Dark for everyone unless a stored choice says otherwise. Its failsafe hands the page back to the plain flow if the script has not taken over in 6 seconds
 - The terminal's theme switch is in its menu. The SMS pages and the 404 have no menu, so they keep the corner `ThemeToggle`
 - Custom glow cursor effect

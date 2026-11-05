@@ -69,8 +69,15 @@ plain flow instead of one stranded screen. The engine starts only if the class i
 section with no cards. `engine/scrollMap.ts` puts each on a virtual track, and a step's length is
 exactly the output that does not fit on screen, so its last line can always be reached.
 `engine/textRows.ts` clips whole rows at every position. A command runs on its own clock
-(`typeCommand`, `streamOutput`, `playDownload`, all through `commandClock`), so scrolling on or
-clicking fast-forwards it.
+(`typeCommand`, `streamOutput`, `playDownload`, all through `commandClock`), so a new swipe or a
+click fast-forwards it.
+
+**One swipe does one thing.** macOS goes on sending wheel events for seconds after the fingers lift,
+so distance alone reads momentum as the reader scrolling on: one flick used to run five commands
+into the download. `engine/scrollGesture.ts` tells one swipe from the next by the input going quiet,
+and `engine/ScrollDriver.ts` spends a swipe once it has started a command, finished one, or reached
+the last line of the output. What is left of it is held in place. A dragged scrollbar is no gesture,
+and still jumps.
 
 **Commands are worked out, not listed.** `buildCommand.ts` tracks the fake folder the prompt is in,
 so a command is true by any route. A straight read down gives the table in `DESIGN.md` word for
@@ -257,7 +264,10 @@ jsdom cannot see:
 - A straight read down types the commands in `DESIGN.md` word for word, and they stay true going
   back up. The screen clears between sections, End and Home jump, and up from the first screen
   types `exit`.
-- The resume, from the terminal: the end of Skills opens the real window after about 4 seconds, a
+- One swipe does one thing: played as a trackpad sends it, momentum and all, the hardest flick types
+  one command in full and moves one step, a gentle swipe types nothing, and a flick stops on the last
+  line of long output (`swipes.spec.ts`).
+- The resume, from the terminal: the end of Skills opens the real window after about 6.5 seconds, a
   click skips that, the menu does not skip it, closing by any route loads Projects, going up never
   opens it, and an email request survives closing.
 - Rotating a phone, or the address bar changing size, keeps the reader on the same step at the

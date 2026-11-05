@@ -68,7 +68,12 @@ with later notes folded in below.
 - Cards print one at a time within Work Experience, Education and Projects, with no clearing inside
   a section. Skills is one cluster with one command, every column printing together line by line.
 - No command lines appear in the output. The prompt shows them.
-- Scrolling on while a command runs, or clicking, fast-forwards it.
+- One swipe does one thing, momentum included: it starts a command, finishes one, or stops at the
+  last line of the output. What is left of it does nothing, until the input goes quiet. So a flick
+  moves one step at most, however hard, and no section is ever skipped by scrolling.
+- A new swipe while a command runs, or clicking, fast-forwards it.
+- A swipe that stops short of a command is forgotten a moment later, so swipes a while apart never
+  add up to one.
 - Scrolling up from the first screen types `exit` and reprints the hero. There is no logout screen.
 
 ### Commands
@@ -94,10 +99,10 @@ prompt is in the portfolio, so the next hop is `cat education/<file>.txt`. The s
 ### The resume
 
 Reaching the end of Skills types the `wget` command, clears the screen, runs a fake download with a
-progress bar that hesitates in the middle, and opens the resume window, about 4 seconds from the
-scroll point (slowed at his word on page 8, confirmed on page 9). Scrolling or clicking skips it to
-under 0.1 seconds. Closing the window, by any route, types the Projects command and loads Projects
-under it.
+progress bar that hesitates in the middle, and opens the resume window, about 6.5 seconds from the
+scroll point (slowed at his word on page 8, and again on trying the build). A new swipe or a click
+skips it to under 0.1 seconds. Closing the window, by any route, types the Projects command and
+loads Projects under it.
 
 `get_resume.sh` is decoration, and `kups.me/get_resume.sh` stays a 404 (his choice, page 8).
 
@@ -132,21 +137,25 @@ prompt to type it into.
 
 ### Timing
 
-The values the prototype ended on, which he approved by feel.
+The prototype's values read trackpad momentum as the reader scrolling on. On trying the build (Zack,
+2026-11-04): "The scroll sensitivity and thresholds needs A LOT more grace. It's spazzing out. The
+animations need to be slowed down a lot as well." These are the values after that, all in
+`components/Terminal/constants.ts`, and they are his to set by feel.
 
-| What                                                     | Value                                            |
-| -------------------------------------------------------- | ------------------------------------------------ |
-| Scroll past the end of a section that triggers a command | 90 points                                        |
-| Scroll while a command runs that fast-forwards it        | 260 points                                       |
-| Scroll up on the first screen that types `exit`          | 120 points, 90 by touch                          |
-| A flick holds at the end of a section                    | 320 ms                                           |
-| Typing a command                                         | 800 ms in all, 20 to 62 ms a character, jittered |
-| Pause after Enter                                        | 120 ms                                           |
-| Printing a section's output                              | 420 ms in all                                    |
-| Download: pauses before each of its five lines           | 180, 360, 340, 300, 140 ms                       |
-| Download: progress tick                                  | 90 ms, 240 ms between 55% and 75%                |
-| Download: after saved, then before the window            | 240 ms, then 550 ms                              |
-| Drawer closes                                            | 190 ms                                           |
+| What                                                     | Value                                              |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| Scroll past the end of a section that triggers a command | 300 points                                         |
+| A new swipe while a command runs that fast-forwards it   | 500 points, 160 by touch                           |
+| Scroll up on the first screen that types `exit`          | 400 points, 240 by touch                           |
+| Input this far apart is two swipes                       | 200 ms                                             |
+| A swipe short of a command is forgotten after            | 700 ms                                             |
+| Typing a command                                         | 1800 ms in all, 40 to 120 ms a character, jittered |
+| Pause after Enter                                        | 320 ms                                             |
+| Printing a section's output                              | 70 ms a line, 1500 ms at most                      |
+| Download: pauses before each of its five lines           | 270, 540, 510, 450, 210 ms                         |
+| Download: progress tick                                  | 130 ms, 360 ms between 55% and 75%                 |
+| Download: after saved, then before the window            | 360 ms, then 800 ms                                |
+| Drawer closes                                            | 190 ms                                             |
 
 ### New copy
 

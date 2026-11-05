@@ -84,11 +84,13 @@ export const DOWNLOAD_COPY = {
   scriptAddress: 'https://kups.me/get_resume.sh',
 } as const
 
-/** Scroll distances, in CSS pixels. DESIGN.md's Timing table holds what Zack approved by feel. */
-export const SCROLL_PAST_END_TO_TRIGGER_PIXELS = 90
-export const SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS = 260
-export const SCROLL_UP_AT_TOP_TO_EXIT_PIXELS = 120
-export const SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS = 90
+/** Scroll distances, in CSS pixels. DESIGN.md's Timing table holds what Zack set them to, and why. */
+export const SCROLL_PAST_END_TO_TRIGGER_PIXELS = 300
+export const SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS = 500
+/** A phone reports only the finger, and none of the momentum a wheel counts, so this is less. */
+export const SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_BY_TOUCH_PIXELS = 160
+export const SCROLL_UP_AT_TOP_TO_EXIT_PIXELS = 400
+export const SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS = 240
 /** Below this a change of scroll position is noise, not a direction. */
 export const SCROLL_NOISE_PIXELS = 2
 /** Tall enough to lay every scene out while measuring it. */
@@ -97,22 +99,27 @@ export const MEASURING_TRACK_PIXELS = 100000
 export const PROMPT_CLEARANCE_PIXELS = 20
 
 /** Times, in milliseconds, from the same table. */
-export const END_HOLD_MILLISECONDS = 320
-export const RECENT_INPUT_MILLISECONDS = 220
+/** Input this far apart is two swipes. A trackpad's momentum never leaves a gap this long. */
+export const GESTURE_QUIET_MILLISECONDS = 200
+/** How long a swipe short of a command still counts towards the next one. */
+export const PULL_FORGOTTEN_AFTER_MILLISECONDS = 700
 export const JUMP_SETTLE_MILLISECONDS = 80
 export const RESIZE_SETTLE_MILLISECONDS = 150
 export const DRAWER_CLOSE_MILLISECONDS = 190
-export const TYPING_TOTAL_MILLISECONDS = 800
-export const TYPING_FASTEST_CHARACTER_MILLISECONDS = 20
-export const TYPING_SLOWEST_CHARACTER_MILLISECONDS = 62
-export const ENTER_PAUSE_MILLISECONDS = 120
-export const OUTPUT_TOTAL_MILLISECONDS = 420
-export const OUTPUT_TICK_MILLISECONDS = 18
-export const DOWNLOAD_LINE_PAUSES_MILLISECONDS = [180, 360, 340, 300, 140] as const
-export const DOWNLOAD_PROGRESS_TICK_MILLISECONDS = 90
-export const DOWNLOAD_PROGRESS_STALL_MILLISECONDS = 240
-export const DOWNLOAD_AFTER_SAVED_MILLISECONDS = 240
-export const DOWNLOAD_BEFORE_WINDOW_MILLISECONDS = 550
+export const TYPING_TOTAL_MILLISECONDS = 1800
+export const TYPING_FASTEST_CHARACTER_MILLISECONDS = 40
+export const TYPING_SLOWEST_CHARACTER_MILLISECONDS = 120
+export const ENTER_PAUSE_MILLISECONDS = 320
+/** The output prints a line at a time at this pace, however little of it there is. */
+export const OUTPUT_LINE_MILLISECONDS = 70
+/** Long output prints faster, to be done in this time. */
+export const OUTPUT_TOTAL_MILLISECONDS = 1500
+export const OUTPUT_TICK_MILLISECONDS = 40
+export const DOWNLOAD_LINE_PAUSES_MILLISECONDS = [270, 540, 510, 450, 210] as const
+export const DOWNLOAD_PROGRESS_TICK_MILLISECONDS = 130
+export const DOWNLOAD_PROGRESS_STALL_MILLISECONDS = 360
+export const DOWNLOAD_AFTER_SAVED_MILLISECONDS = 360
+export const DOWNLOAD_BEFORE_WINDOW_MILLISECONDS = 800
 
 /** A character's typing time is its share of the total, times a factor from this range. */
 export const TYPING_JITTER_LOWEST = 0.55

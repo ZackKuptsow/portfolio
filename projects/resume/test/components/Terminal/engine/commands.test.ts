@@ -5,11 +5,13 @@ import {
   DOWNLOAD_BAR_SMALLEST_CHARACTERS,
   DOWNLOAD_BAR_WIDE_CHARACTERS,
   ENTER_PAUSE_MILLISECONDS,
+  OUTPUT_LINE_MILLISECONDS,
+  OUTPUT_TICK_MILLISECONDS,
   OUTPUT_TOTAL_MILLISECONDS,
+  TYPING_SLOWEST_CHARACTER_MILLISECONDS,
   TYPING_TOTAL_MILLISECONDS,
 } from '@/components/Terminal/constants'
 import { CommandClock } from '@/components/Terminal/engine/commandClock'
-import { EdgeHold } from '@/components/Terminal/engine/edgeHold'
 import {
   chooseDownloadBar,
   drawDownloadBar,
@@ -20,10 +22,10 @@ import { streamOutput } from '@/components/Terminal/engine/streamOutput'
 import { typeCommand } from '@/components/Terminal/engine/typeCommand'
 
 const COMMAND = 'clear && cd ./work_experience && ls'
-// DESIGN.md: the download takes about 4 seconds from the scroll point. The command and the Enter
-// pause take about 0.9 of those, so this is what the download itself should take.
-const DOWNLOAD_SHORTEST_MILLISECONDS = 2_000
-const DOWNLOAD_LONGEST_MILLISECONDS = 5_000
+// DESIGN.md: the download takes about 6.5 seconds from the scroll point. The command and the Enter
+// pause take about 2.2 of those, so this is what the download itself should take.
+const DOWNLOAD_SHORTEST_MILLISECONDS = 3_500
+const DOWNLOAD_LONGEST_MILLISECONDS = 6_000
 // A random jitter is pinned here, so a test is not flaky about it.
 const MIDDLE_OF_THE_RANGE = 0.5
 
@@ -109,36 +111,53 @@ describe('the timed parts of a command', () => {
       const element = document.createElement('span')
 
       typeCommand({ clock, command: 'ls', element, onEntered: vi.fn() })
-      vi.advanceTimersByTime(62)
+      vi.advanceTimersByTime(TYPING_SLOWEST_CHARACTER_MILLISECONDS)
 
       expect(element.textContent).toBe('ls')
     })
   })
 
   describe('streamOutput', () => {
-    function stream(clock: CommandClock, onDone: () => void) {
+    const LINE_HEIGHT = 23
+
+    function stream(clock: CommandClock, onDone: () => void, lines = 1_000) {
       const heights: number[] = []
       streamOutput({
         clock,
         fromHeight: 100,
-        lineHeight: 23,
+        lineHeight: LINE_HEIGHT,
         onDone,
         showTo: (height) => heights.push(height),
-        toHeight: 600,
+        toHeight: 100 + lines * LINE_HEIGHT,
       })
       return heights
     }
 
-    it('prints top down, and is done in about the time the brief allows', () => {
+    it('prints top down, and long output is done in the time the brief allows', () => {
       const onDone = vi.fn()
       const heights = stream(new CommandClock(), onDone)
 
       expect(heights[0]).toBe(100)
-      vi.advanceTimersByTime(OUTPUT_TOTAL_MILLISECONDS)
+      vi.advanceTimersByTime(OUTPUT_TOTAL_MILLISECONDS - 2 * OUTPUT_TICK_MILLISECONDS)
+      expect(onDone).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(3 * OUTPUT_TICK_MILLISECONDS)
 
       expect(onDone).toHaveBeenCalledOnce()
       expect(heights).toEqual([...heights].sort((first, second) => first - second))
       expect(heights.length).toBeGreaterThan(5)
+    })
+
+    // Before Zack asked for it slowed down, a floor of a line a tick printed a card in 120 ms.
+    it('gives short output the pace of a line, and does not flash it up', () => {
+      const lines = 6
+      const onDone = vi.fn()
+      stream(new CommandClock(), onDone, lines)
+
+      vi.advanceTimersByTime(lines * OUTPUT_LINE_MILLISECONDS - 2 * OUTPUT_TICK_MILLISECONDS)
+      expect(onDone).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(3 * OUTPUT_TICK_MILLISECONDS)
+
+      expect(onDone).toHaveBeenCalledOnce()
     })
 
     it('finishes at once when fast-forwarded', () => {
@@ -246,43 +265,5 @@ describe('chooseDownloadBar and drawDownloadBar', () => {
   it('draws an empty bar at zero and a full one at a hundred', () => {
     expect(drawDownloadBar(0, 42)).toBe(`  0%[${' '.repeat(20)}] 1.3K`)
     expect(drawDownloadBar(100, 42)).toBe(`100%[${'='.repeat(19)}>] 1.3K`)
-  })
-})
-
-describe('EdgeHold', () => {
-  const mapped = { end: 900, length: 500, offsetEnd: 500, offsetStart: 0, start: 400 }
-  const HOLD_MILLISECONDS = 320
-
-  it('holds a flick that runs past the end of long output', () => {
-    expect(new EdgeHold().check(mapped, true, 950, true, 1_000)).toBe(mapped.end)
-  })
-
-  it('lets go once the hold has run, so long output can end', () => {
-    const edgeHold = new EdgeHold()
-
-    edgeHold.check(mapped, true, 950, true, 1_000)
-
-    expect(edgeHold.check(mapped, true, 950, true, 1_000 + HOLD_MILLISECONDS)).toBeNull()
-  })
-
-  it('does not restart the wait when the scroll is put back on the edge', () => {
-    const edgeHold = new EdgeHold()
-
-    edgeHold.check(mapped, true, 950, true, 1_000)
-    edgeHold.check(mapped, true, mapped.end, false, 1_100)
-
-    expect(edgeHold.check(mapped, true, 950, true, 1_000 + HOLD_MILLISECONDS)).toBeNull()
-  })
-
-  it('leaves a slow scroll alone, which is not a flick', () => {
-    expect(new EdgeHold().check(mapped, true, 950, false, 1_000)).toBeNull()
-  })
-
-  it('holds at the start when going up', () => {
-    expect(new EdgeHold().check(mapped, false, 350, true, 1_000)).toBe(mapped.start)
-  })
-
-  it('has nothing to hold on output that fits the screen', () => {
-    expect(new EdgeHold().check({ ...mapped, length: 0 }, true, 950, true, 1_000)).toBeNull()
   })
 })

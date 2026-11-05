@@ -1,6 +1,8 @@
 import { expect } from '@playwright/test'
 
-import { chooseFromMenu, waitUntilIdle } from './terminal'
+import { SCROLL_PAST_END_TO_TRIGGER_PIXELS } from '@/components/Terminal/constants'
+
+import { chooseFromMenu, fastForward, waitUntilIdle } from './terminal'
 
 import type { Page } from '@playwright/test'
 
@@ -164,14 +166,15 @@ async function walkSection(page: Page, label: string, positionStep: number): Pro
 
     // Scroll on to the next card, or stop at the end of the section or the site.
     const stepBefore = await readStep()
-    await page.evaluate(() => {
+    await page.evaluate((pastTheEnd) => {
       const root = document.querySelector<HTMLElement>('.terminal-root')
       const scroller = document.querySelector<HTMLElement>('.terminal-scroller')
       if (root && scroller) {
-        scroller.scrollTop = Number(root.dataset.stepEnd) + 100
+        scroller.scrollTop = Number(root.dataset.stepEnd) + pastTheEnd
       }
-    })
+    }, SCROLL_PAST_END_TO_TRIGGER_PIXELS + 1)
     await page.waitForTimeout(100)
+    await fastForward(page)
     await waitUntilIdle(page)
     // The end of Skills runs the download and opens the resume window. Close it to go on.
     if (await page.locator('dialog[open]').count()) {

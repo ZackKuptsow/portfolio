@@ -11,6 +11,7 @@ import {
   recordCommands,
   waitForTerminal,
   waitUntilIdle,
+  wheelUntilBusy,
   wheelUntilNextCommand,
 } from './terminal'
 
@@ -19,10 +20,10 @@ import type { Page } from '@playwright/test'
 const RESUME_COMMAND = 'wget kups.me/get_resume.sh && sh get_resume.sh'
 const FIRST_PROJECTS_COMMAND = 'clear && cd ../projects && ls'
 const DIALOG_NAME = 'Get the resume'
-// DESIGN.md: about 4 seconds from the scroll point. Measured 4.0 to 4.4 in the prototype, and
-// this leaves room for a loaded machine without letting a skipped download pass.
-const DOWNLOAD_SHORTEST_MILLISECONDS = 3_000
-const DOWNLOAD_LONGEST_MILLISECONDS = 7_000
+// DESIGN.md: about 6.5 seconds from the scroll point. This leaves room for a loaded machine
+// without letting a skipped download pass.
+const DOWNLOAD_SHORTEST_MILLISECONDS = 5_000
+const DOWNLOAD_LONGEST_MILLISECONDS = 10_000
 // DESIGN.md asks for under 100ms. A little more here, since a browser driven from outside has
 // its own latency, and a real skip is still an order of magnitude under the wait it replaces.
 const SKIPPED_DOWNLOAD_LONGEST_MILLISECONDS = 400
@@ -51,11 +52,7 @@ async function readToTheEndOfSkills(page: Page): Promise<void> {
 
 /** Scrolls on from Skills, which types the `wget` command and runs the fake download. */
 async function scrollIntoTheDownload(page: Page): Promise<void> {
-  await expect(async () => {
-    await page.mouse.wheel(0, 120)
-    await page.waitForTimeout(30)
-    expect((await readTerminal(page)).isBusy).toBe(true)
-  }).toPass()
+  await wheelUntilBusy(page, 'down')
 }
 
 test.describe('on a laptop', () => {
@@ -479,9 +476,12 @@ test.describe('on a phone', () => {
       ;(window as unknown as { promptReading: typeof reading }).promptReading = reading
     })
 
-    // Two cards on from the first is `cat a_household_assistant_by_text_and_...txt`.
-    await wheelUntilNextCommand(page, 'down')
-    await wheelUntilNextCommand(page, 'down')
+    // Two cards on from the first is `cat a_household_assistant_by_text_and_...txt`. Typed at its
+    // own pace, because a fast-forwarded command is gone before the prompt can be read.
+    await wheelUntilBusy(page, 'down')
+    await waitUntilIdle(page)
+    await wheelUntilBusy(page, 'down')
+    await waitUntilIdle(page)
 
     const { overlap, tallest } = await page.evaluate(
       () =>

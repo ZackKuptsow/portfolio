@@ -4,9 +4,11 @@ import type { Page } from '@playwright/test'
 
 const ROOT = '.terminal-root'
 const SCROLLER = '.terminal-scroller'
-// Past the distance that triggers a command, which is 90 points, and short of a jump.
+const PROMPT = '.terminal-prompt'
 const WHEEL_NOTCH_PIXELS = 120
-const WHEEL_NOTCH_MILLISECONDS = 30
+// Far enough apart to be separate swipes, as a stop at the end of the output needs, and close
+// enough together for them to add up to a command.
+const WHEEL_NOTCH_MILLISECONDS = 250
 const LANDING_LIMIT_MILLISECONDS = 15_000
 
 /** What the terminal publishes about itself on its root. */
@@ -69,15 +71,63 @@ export async function pointAtOutput(page: Page): Promise<void> {
   await page.mouse.move(viewport.width / 2, viewport.height / 2)
 }
 
-/** Scrolls with the wheel, as a reader does, until a command starts and has finished. */
-export async function wheelUntilNextCommand(page: Page, direction: 'down' | 'up'): Promise<void> {
+/** Scrolls with the wheel, a notch at a time as a reader does, until a command starts. */
+export async function wheelUntilBusy(page: Page, direction: 'down' | 'up'): Promise<void> {
   const notch = direction === 'down' ? WHEEL_NOTCH_PIXELS : -WHEEL_NOTCH_PIXELS
-  await expect(async () => {
+  const deadline = Date.now() + LANDING_LIMIT_MILLISECONDS
+  while (!(await readTerminal(page)).isBusy) {
+    if (Date.now() > deadline) {
+      throw new Error(`Scrolling ${direction} did not start a command`)
+    }
     await page.mouse.wheel(0, notch)
     await page.waitForTimeout(WHEEL_NOTCH_MILLISECONDS)
-    expect((await readTerminal(page)).isBusy).toBe(true)
-  }).toPass({ timeout: LANDING_LIMIT_MILLISECONDS })
+  }
+}
+
+/** Skips the rest of a command the way a click does, for checks that are not about its pace. */
+export async function fastForward(page: Page): Promise<void> {
+  await page.locator(PROMPT).evaluate((prompt: HTMLElement) => prompt.click())
+}
+
+/** Scrolls on until a command starts, and skips to the end of it. */
+export async function wheelUntilNextCommand(page: Page, direction: 'down' | 'up'): Promise<void> {
+  await wheelUntilBusy(page, direction)
+  await fastForward(page)
   await waitUntilIdle(page)
+}
+
+/** What macOS sends for one swipe: the fingers speed up, lift, and momentum runs down from there. */
+export type Swipe = {
+  /** How much of its speed the momentum keeps from one frame to the next. */
+  decay: number
+  /** The fastest it goes, in pixels a frame. */
+  peak: number
+}
+
+const FRAME_MILLISECONDS = 16
+const FINGERS_SPEEDING_UP = [0.15, 0.3, 0.5, 0.7, 0.85, 1]
+const MOMENTUM_ENDS_BELOW_PIXELS = 0.8
+
+function buildSwipe({ decay, peak }: Swipe): number[] {
+  const deltas = FINGERS_SPEEDING_UP.map((share) => peak * share)
+  for (let speed = peak * decay; speed > MOMENTUM_ENDS_BELOW_PIXELS; speed *= decay) {
+    deltas.push(speed)
+  }
+  return deltas
+}
+
+/** Plays one swipe with its momentum, a frame at a time, as a trackpad does. */
+export async function swipe(page: Page, gesture: Swipe, direction: 'down' | 'up'): Promise<void> {
+  const sign = direction === 'down' ? 1 : -1
+  const startedAt = Date.now()
+  const deltas = buildSwipe(gesture)
+  for (const [frame, delta] of deltas.entries()) {
+    await page.mouse.wheel(0, sign * delta)
+    const wait = startedAt + (frame + 1) * FRAME_MILLISECONDS - Date.now()
+    if (wait > 0) {
+      await page.waitForTimeout(wait)
+    }
+  }
 }
 
 /**
@@ -92,13 +142,16 @@ export async function recordCommands(page: Page): Promise<void> {
     }
     const commands: string[] = []
     let longestSoFar = ''
-    new MutationObserver(() => {
-      const text = typed.textContent ?? ''
-      if (text === '' && longestSoFar !== '') {
-        commands.push(longestSoFar)
-        longestSoFar = ''
-      } else if (text.length > longestSoFar.length) {
-        longestSoFar = text
+    new MutationObserver((records) => {
+      // Each record and not the element: fast-forwarded, a command is written and wiped in one go.
+      for (const record of records) {
+        const text = record.addedNodes[0]?.textContent ?? ''
+        if (text === '' && longestSoFar !== '') {
+          commands.push(longestSoFar)
+          longestSoFar = ''
+        } else if (text.length > longestSoFar.length) {
+          longestSoFar = text
+        }
       }
     }).observe(typed, { characterData: true, childList: true, subtree: true })
     ;(window as unknown as { typedCommands: string[] }).typedCommands = commands

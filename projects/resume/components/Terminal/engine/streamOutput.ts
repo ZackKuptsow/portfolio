@@ -1,4 +1,8 @@
-import { OUTPUT_TICK_MILLISECONDS, OUTPUT_TOTAL_MILLISECONDS } from '../constants'
+import {
+  OUTPUT_LINE_MILLISECONDS,
+  OUTPUT_TICK_MILLISECONDS,
+  OUTPUT_TOTAL_MILLISECONDS,
+} from '../constants'
 
 import type { CommandClock } from './commandClock'
 
@@ -24,10 +28,12 @@ export function streamOutput({
   toHeight,
 }: StreamOutputOptions): void {
   const lineCount = Math.max(1, Math.ceil((toHeight - fromHeight) / lineHeight))
-  const linesPerTick = Math.max(
-    1,
-    lineCount / (OUTPUT_TOTAL_MILLISECONDS / OUTPUT_TICK_MILLISECONDS),
+  const printingMilliseconds = Math.min(
+    OUTPUT_TOTAL_MILLISECONDS,
+    lineCount * OUTPUT_LINE_MILLISECONDS,
   )
+  // Often under one: only whole rows ever show, so a part of a line waits for the rest of it.
+  const linesPerTick = lineCount / (printingMilliseconds / OUTPUT_TICK_MILLISECONDS)
   let printedTo = fromHeight
 
   const printNextBurst = () => {
