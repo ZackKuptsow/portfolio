@@ -30,7 +30,7 @@ export function TerminalDialog({
   labelledBy,
   onClose,
 }: TerminalDialogProps) {
-  const { close, closeButtonRef, dialogRef, handleDialogClick, handleDialogPointerDown } = controls
+  const { close, dialogRef, handleDialogClick, handleDialogPointerDown, windowRef } = controls
 
   return (
     <dialog
@@ -41,13 +41,12 @@ export function TerminalDialog({
       onClose={onClose}
       onPointerDown={handleDialogPointerDown}
     >
-      <div className="terminal-window shadow-card">
+      <div ref={windowRef} className="terminal-window shadow-card" tabIndex={-1}>
         <div className="terminal-header terminal-header-style gap-3">
           <span className="flex-1 truncate text-center font-mono text-xs text-primary sm:text-sm">
             {headerPath}
           </span>
           <button
-            ref={closeButtonRef}
             type="button"
             aria-label={CLOSE_BUTTON_LABEL}
             onClick={close}

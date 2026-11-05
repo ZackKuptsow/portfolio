@@ -1,10 +1,12 @@
 import { CLOSE_BUTTON_LABEL } from '@/components/TerminalDialog/constants'
+import { projects } from '@/data/projects'
 
 import { expect, test } from './browserTest'
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from './constants'
 import {
   chooseFromMenu,
   enterPlainView,
+  fastForward,
   pointAtOutput,
   readCommands,
   readTerminal,
@@ -36,6 +38,10 @@ const PROMPT_ONE_ROW_PIXELS = 37
 
 /** The commands between the top of the page and Skills: About, 4 jobs, 2 degrees, then Skills. */
 const COMMANDS_TO_SKILLS = 8
+/** Counted from the first of Projects' cards. */
+const LAST_PROJECT_CARD = projects.length - 1
+/** Where cards that fit on screen together all end in one place. */
+const SCREEN_THAT_FITS_EVERY_SECTION = { height: 6000, width: 1366 }
 
 async function openTerminal(page: Page): Promise<void> {
   await page.goto('/')
@@ -75,6 +81,57 @@ test.describe('on a laptop', () => {
     ])
   })
 
+  // Zack: "My eleg entry is being completely skipped." Its command was typed, and the screen went on
+  // to Skills: two cards that fit on screen end in one place, so the scroll read as past them both.
+  for (const [screen, viewport] of [
+    ['a laptop', LAPTOP_VIEWPORT],
+    ['a screen that fits every section whole', SCREEN_THAT_FITS_EVERY_SECTION],
+  ] as const) {
+    test(`a read down lands on every card in turn, and prints it, on ${screen}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport)
+      await openTerminal(page)
+
+      for (let command = 1; command <= COMMANDS_TO_SKILLS; command += 1) {
+        await wheelUntilNextCommand(page, 'down')
+        expect((await readTerminal(page)).step).toBe(command)
+      }
+      await expect(page.locator('[data-scene="skills"]')).toBeVisible()
+
+      await chooseFromMenu(page, 'education/')
+      await waitUntilIdle(page)
+      await expect(page.getByText('Bachelor of Electrical Engineering')).toBeHidden()
+
+      await wheelUntilNextCommand(page, 'down')
+
+      await expect(page.getByText('Bachelor of Electrical Engineering')).toBeVisible()
+      expect((await readCommands(page)).at(-1)).toBe('cat eleg_university_of_delaware.txt')
+    })
+
+    // The last section has no track of its own after it, and cards that fit all end in one place.
+    test(`every card of the last section can be reached by scrolling, on ${screen}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport)
+      await openTerminal(page)
+      await chooseFromMenu(page, 'projects/')
+      await fastForward(page)
+      await waitUntilIdle(page)
+      const { step: firstCard } = await readTerminal(page)
+
+      for (let card = 1; card <= LAST_PROJECT_CARD; card += 1) {
+        await wheelUntilNextCommand(page, 'down')
+        expect((await readTerminal(page)).step).toBe(firstCard + card)
+      }
+      // Without the whole section on screen here, the track has room anyway and this proves nothing.
+      if (viewport === SCREEN_THAT_FITS_EVERY_SECTION) {
+        const { sectionStart, stepEnd } = await readTerminal(page)
+        expect(stepEnd).toBe(sectionStart)
+      }
+    })
+  }
+
   test('the commands stay true going back up, and the prompt shows where they leave you', async ({
     page,
   }) => {
@@ -86,9 +143,10 @@ test.describe('on a laptop', () => {
     await expect(page.locator('.terminal-title')).toHaveText('zack@kups: ~/portfolio')
     await wheelUntilNextCommand(page, 'up')
 
+    // The first card of Education was already on screen, so going up passes it and types nothing.
     const commands = await readCommands(page)
     expect(commands.at(-2)).toBe('cd .. && cat education/eleg_university_of_delaware.txt')
-    expect(commands.at(-1)).toBe('cat education/cyber_university_of_delaware.txt')
+    expect(commands.at(-1)).toBe('cat work_experience/qlik.txt')
     await expect(page.locator('.terminal-title')).toHaveText('zack@kups: ~/portfolio')
   })
 
@@ -162,12 +220,12 @@ test.describe('on a laptop', () => {
     await expect(page.getByRole('heading', { exact: true, name: 'Education' })).toBeVisible()
   })
 
-  test('the menu marks the section on screen, and its Projects footer link goes there', async ({
+  test('the menu marks the section on screen, and stays on this page to go there', async ({
     page,
   }) => {
     await openTerminal(page)
 
-    await page.getByRole('link', { name: 'Projects' }).click()
+    await chooseFromMenu(page, 'projects/')
     await waitUntilIdle(page)
 
     await expect(page.getByRole('heading', { name: 'hermes-imessage-shortcuts' })).toBeVisible()

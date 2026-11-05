@@ -76,6 +76,11 @@
     visibility: hidden;
   }
 
+  /* The engine measures what the screen has. Until then, about that much, so the name stays put. */
+  html.terminal-on .terminal-hero {
+    min-height: var(--terminal-hero-height, 72dvh);
+  }
+
   /* The `echo` line types when a reader arrives, not once while they are somewhere else. */
   html.terminal-on .terminal-scene:not(.is-active) .terminal-typing {
     animation: none;
@@ -146,6 +151,11 @@
 
   .terminal-block.is-cleared {
     visibility: visible !important;
+  }
+
+  /* Paper can arrive while a column is part way through printing. */
+  [data-print-column] {
+    clip-path: none !important;
   }
 
   .terminal-hero {

@@ -11,12 +11,12 @@ const SINGLE_CLICK_COUNT = 1
 /** What `useModalDialog` hands to the component that renders the dialog. */
 export type ModalDialogControls = {
   close: () => void
-  /** For the dialog's close button: keyboard focus starts there when the dialog opens. */
-  closeButtonRef: RefObject<HTMLButtonElement | null>
   dialogRef: RefObject<HTMLDialogElement | null>
   handleDialogClick: (event: MouseEvent<HTMLDialogElement>) => void
   handleDialogPointerDown: (event: PointerEvent<HTMLDialogElement>) => void
   open: () => void
+  /** For the window inside the dialog: keyboard focus starts there when the dialog opens. */
+  windowRef: RefObject<HTMLDivElement | null>
 }
 
 /**
@@ -33,20 +33,23 @@ export type ModalDialogControls = {
  *   double-clicked, the first click opens the dialog and the second lands on
  *   the backdrop.
  *
- * It also picks where focus starts. `showModal()` focuses the first focusable
- * thing in the dialog. When the window is taller than the screen it scrolls, and
- * Chrome then counts the scrolling window itself, which has no name. So the
- * starting point would depend on the height of the browser window. Opening
- * always moves focus to the close button, where it lands when nothing scrolls.
+ * It also picks where focus starts: the window itself, which draws no ring. Left
+ * to `showModal()` it lands on the first focusable thing, which depends on the
+ * height of the browser window, because Chrome counts a scrolling window before
+ * the buttons in it. And the terminal opens this without a click, so a browser
+ * would draw its ring around whatever got the focus: on the close button, that
+ * makes the way out the loudest thing on the window, and a key still held from
+ * scrolling would press it. From the window, Tab reaches the close button first,
+ * Escape closes, and the arrow keys scroll it when it is taller than the screen.
  */
 export function useModalDialog(): ModalDialogControls {
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const didPressStartOnBackdropRef = useRef(false)
+  const windowRef = useRef<HTMLDivElement>(null)
 
   const open = useCallback(() => {
     dialogRef.current?.showModal()
-    closeButtonRef.current?.focus()
+    windowRef.current?.focus()
   }, [])
 
   const close = useCallback(() => {
@@ -70,5 +73,5 @@ export function useModalDialog(): ModalDialogControls {
     didPressStartOnBackdropRef.current = false
   }, [])
 
-  return { close, closeButtonRef, dialogRef, handleDialogClick, handleDialogPointerDown, open }
+  return { close, dialogRef, handleDialogClick, handleDialogPointerDown, open, windowRef }
 }

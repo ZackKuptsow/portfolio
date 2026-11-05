@@ -49,13 +49,14 @@ describe('GetResume', () => {
     expect(screen.getByRole('dialog', { name: DIALOG_NAME }).hasAttribute('open')).toBe(true)
   })
 
-  // A browser picks the first focusable thing in the dialog on its own. Once the window is
-  // taller than the screen that is the scrolling window itself, so the dialog says where to start.
-  it('starts keyboard focus on the close button', async () => {
+  // A browser picks the first focusable thing in the dialog on its own, which depends on whether the
+  // window has to scroll. And a ring on the close button, as the terminal opens it, is the wrong
+  // thing to shout. Whether a ring shows, and what Tab reaches, is for `getResume.spec.ts`.
+  it('starts keyboard focus on the window, and not on the close button', async () => {
     const user = userEvent.setup()
     const dialog = await renderAndOpenDialog(user)
 
-    expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: CLOSE_NAME }))
+    expect(document.activeElement).toBe(dialog.querySelector('.terminal-window'))
   })
 
   it('closes from the close button', async () => {

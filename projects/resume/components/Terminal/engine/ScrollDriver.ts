@@ -6,7 +6,7 @@ import {
   SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS,
 } from '../constants'
 import { ScrollGesture } from './scrollGesture'
-import { findStepAt } from './scrollMap'
+import { countStepsOutsideSection, findStepAt } from './scrollMap'
 
 import type { MappedStep } from './scrollMap'
 
@@ -36,6 +36,9 @@ type ScrollDriverOptions = {
  *
  * A wheel, a touch or a scrolling key is a gesture, and a gesture does one thing: it starts a
  * command, finishes one, or stops at the end of the output. See `ScrollGesture`.
+ *
+ * Going up, the edge is the top of the section, because a section's cards stay printed: only going
+ * past the top of it, or past the last line of what is printed, is a command.
  */
 export class ScrollDriver {
   private readonly gesture = new ScrollGesture()
@@ -159,10 +162,10 @@ export class ScrollDriver {
       return
     }
     onPullForgotten()
-    const { end, start } = readMappedSteps()[readCurrentStep()]
-    const insideStep = Math.min(end, Math.max(start, scroller.scrollTop))
-    if (insideStep !== scroller.scrollTop) {
-      this.setScroll(insideStep)
+    const { end, sectionStart } = readMappedSteps()[readCurrentStep()]
+    const insideOutput = Math.min(end, Math.max(sectionStart, scroller.scrollTop))
+    if (insideOutput !== scroller.scrollTop) {
+      this.setScroll(insideOutput)
       onDraw()
     }
   }
@@ -199,14 +202,14 @@ export class ScrollDriver {
     }
     const steps = this.options.readMappedSteps()
     const current = this.options.readCurrentStep()
+    const mapped = steps[current]
     const reached = findStepAt(steps, scrollTop)
-    if (!isGesture && Math.abs(reached - current) > 1) {
+    if (!isGesture && countStepsOutsideSection(steps, current, reached) > 1) {
       this.jumpWhenSettled(reached, scrollTop)
       return
     }
-    const mapped = steps[current]
     const isGoingDown = this.direction === 'down'
-    const edge = isGoingDown ? mapped.end : mapped.start
+    const edge = isGoingDown ? mapped.end : mapped.sectionStart
     if (isGesture && this.hasRunInto(edge, isGoingDown, scrollTop)) {
       this.gesture.spend()
       this.setScroll(edge)
@@ -221,10 +224,11 @@ export class ScrollDriver {
       onMoveDown()
       return
     }
+    // Above the top of the first section is only a phone's bounce, with nowhere to go.
     if (
       !isGoingDown &&
-      current > 0 &&
-      scrollTop <= mapped.start - SCROLL_PAST_END_TO_TRIGGER_PIXELS
+      mapped.sectionStart > 0 &&
+      scrollTop <= mapped.sectionStart - SCROLL_PAST_END_TO_TRIGGER_PIXELS
     ) {
       onMoveUp()
       return
@@ -233,8 +237,8 @@ export class ScrollDriver {
   }
 
   /**
-   * A gesture that began inside the output and has reached its edge stops there, so its last lines
-   * cannot be skipped. One begun at the edge is the reader going on.
+   * A gesture that began inside the output and has reached its edge stops there, so its first and
+   * last lines cannot be skipped. One begun at the edge is the reader going on.
    */
   private hasRunInto(edge: number, isGoingDown: boolean, scrollTop: number): boolean {
     return isGoingDown

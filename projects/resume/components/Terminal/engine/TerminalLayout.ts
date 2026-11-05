@@ -4,11 +4,17 @@ import {
   PROMPT_CLEARANCE_PIXELS,
   TERMINAL_ON_CLASS,
 } from '../constants'
-import { keepPlaceInStep, mapStepsToScroll } from './scrollMap'
+import {
+  TRACK_ROOM_PAST_THE_END_PIXELS,
+  keepPlaceInStep,
+  mapStepsToScroll,
+  offsetAt,
+} from './scrollMap'
 import { clipToWholeRows, formatRowClip, measureTextRows } from './textRows'
 
 import type { SectionId, TerminalStep } from '../types'
 import type { MappedStep } from './scrollMap'
+import type { PrintRun } from './streamOutput'
 import type { TextRow } from './textRows'
 
 /** The elements the terminal draws with. React renders them, and only their styles change here. */
@@ -28,10 +34,22 @@ const TITLE_HEIGHT_VARIABLE = '--terminal-title-height'
 /** Below this the prompt shows the short path. The stylesheet changes it at the same width. */
 const PROMPT_SHORT_PATH_BELOW_PIXELS = 480
 
+/** A column that prints on its own carries this attribute. Skills has three. */
+const PRINT_COLUMN_SELECTOR = '[data-print-column]'
+const NOTHING_SHOWN_CLIP = 'inset(0 0 100% 0)'
+
 /** The longest line the prompt can hold, in characters, by which path it is showing. */
 export type LongestPromptLine = {
   withFullPath: number
   withShortPath: number
+}
+
+/** How a step's output prints, ready for `streamOutput`. */
+export type PrintPlan = {
+  /** Takes back anything the runs left on the page, whether or not they got to the end. */
+  finish: () => void
+  lineHeight: number
+  runs: readonly PrintRun[]
 }
 
 /**
@@ -171,7 +189,7 @@ export class TerminalLayout {
       scenes.map((scene) => [scene.dataset.scene as SectionId, measureTextRows(scene)]),
     )
     const lastStep = this.mappedSteps[this.mappedSteps.length - 1]
-    track.style.height = `${lastStep.end + scroller.clientHeight}px`
+    track.style.height = `${lastStep.end + TRACK_ROOM_PAST_THE_END_PIXELS + scroller.clientHeight}px`
   }
 
   /** The hero fills what the screen has, so its one screen needs no scrolling of its own. */
@@ -219,9 +237,7 @@ export class TerminalLayout {
 
   /** Moves the scene 1:1 with the scroll and shows only whole rows of it. */
   draw(stepIndex: number, scrollTop: number): void {
-    const mapped = this.mappedSteps[stepIndex]
-    const moved = Math.min(mapped.length, Math.max(0, scrollTop - mapped.start))
-    const offset = mapped.offsetStart + moved
+    const offset = offsetAt(this.mappedSteps[stepIndex], scrollTop)
     const scene = this.sceneOf(stepIndex)
     scene.style.transform = `translate3d(0, ${-offset}px, 0)`
     this.clipScene(scene, offset, offset + this.usableHeight)
@@ -234,27 +250,70 @@ export class TerminalLayout {
     }
   }
 
-  /** Where the printing of a step starts and ends on screen, in heights of its scene. */
-  planPrinting(
-    stepIndex: number,
-    startsAtBlock: boolean,
-  ): {
-    fromHeight: number
-    lineHeight: number
-    showTo: (height: number) => void
-    toHeight: number
-  } {
+  /**
+   * What prints on screen for a step, in order, in heights of its scene. A block with columns prints
+   * what is above them, then each column from its own top, so they read as column 1, then 2, then 3.
+   * Stacked on a phone, that comes out top down like everything else.
+   */
+  planPrinting(stepIndex: number, startsAtBlock: boolean): PrintPlan {
     const scene = this.sceneOf(stepIndex)
-    const sceneTop = scene.getBoundingClientRect().top
-    const screenTop = this.elements.stage.getBoundingClientRect().top - sceneTop
-    const sceneHeight = scene.getBoundingClientRect().height
-    const blockTop = this.blockOf(stepIndex).getBoundingClientRect().top - sceneTop
+    const block = this.blockOf(stepIndex)
+    const sceneBox = scene.getBoundingClientRect()
+    const screenTop = this.elements.stage.getBoundingClientRect().top - sceneBox.top
+    const screenBottom = Math.min(sceneBox.height, screenTop + this.usableHeight)
+    const blockTop = block.getBoundingClientRect().top - sceneBox.top
+    const fromHeight = startsAtBlock ? Math.max(screenTop, blockTop) : screenTop
     const output = scene.querySelector<HTMLElement>('.terminal-output') ?? scene
+    const lineHeight = parseFloat(getComputedStyle(output).lineHeight)
+    const showSceneTo = (height: number) => this.clipScene(scene, screenTop, height)
+
+    const columns = [...block.querySelectorAll<HTMLElement>(PRINT_COLUMN_SELECTOR)]
+    if (columns.length === 0) {
+      return {
+        finish: () => undefined,
+        lineHeight,
+        runs: [{ fromHeight, showTo: showSceneTo, toHeight: screenBottom }],
+      }
+    }
+
+    const heightOf = (box: DOMRect) => ({
+      bottom: box.bottom - sceneBox.top,
+      top: box.top - sceneBox.top,
+    })
+    const columnsTop = Math.min(
+      ...columns.map((column) => heightOf(column.getBoundingClientRect()).top),
+    )
+    const columnRuns = columns.flatMap((column): PrintRun[] => {
+      const { bottom, top } = heightOf(column.getBoundingClientRect())
+      if (top >= screenBottom || bottom <= screenTop) {
+        return []
+      }
+      const rows = measureTextRows(column)
+      column.style.clipPath = NOTHING_SHOWN_CLIP
+      return [
+        {
+          fromHeight: Math.max(top, screenTop),
+          showTo: (height) => {
+            showSceneTo(screenBottom)
+            column.style.clipPath = formatRowClip(clipToWholeRows(rows, 0, height - top))
+          },
+          toHeight: Math.min(bottom, screenBottom),
+        },
+      ]
+    })
     return {
-      fromHeight: startsAtBlock ? Math.max(screenTop, blockTop) : screenTop,
-      lineHeight: parseFloat(getComputedStyle(output).lineHeight),
-      showTo: (height) => this.clipScene(scene, screenTop, height),
-      toHeight: Math.min(sceneHeight, screenTop + this.usableHeight),
+      finish: () => this.clearColumnClips(),
+      lineHeight,
+      runs: [
+        { fromHeight, showTo: showSceneTo, toHeight: Math.min(columnsTop, screenBottom) },
+        ...columnRuns,
+      ],
+    }
+  }
+
+  private clearColumnClips(): void {
+    for (const column of this.elements.stage.querySelectorAll<HTMLElement>(PRINT_COLUMN_SELECTOR)) {
+      column.style.clipPath = ''
     }
   }
 
@@ -275,12 +334,12 @@ export class TerminalLayout {
     const mapped = this.mappedSteps[stepIndex]
     const sceneTop = this.sceneOf(stepIndex).getBoundingClientRect().top
     const box = element.getBoundingClientRect()
-    const shownFrom = mapped.offsetStart + Math.max(0, scrollTop - mapped.start)
+    const shownFrom = offsetAt(mapped, scrollTop)
     if (box.bottom - sceneTop > shownFrom + this.usableHeight) {
-      return mapped.start + box.bottom - sceneTop - this.usableHeight - mapped.offsetStart
+      return mapped.sectionStart + box.bottom - sceneTop - this.usableHeight
     }
     if (box.top - sceneTop < shownFrom) {
-      return mapped.start + Math.max(0, box.top - sceneTop - mapped.offsetStart)
+      return mapped.sectionStart + Math.max(0, box.top - sceneTop)
     }
     return null
   }
@@ -304,6 +363,7 @@ export class TerminalLayout {
     for (const block of stage.querySelectorAll('.is-cleared')) {
       block.classList.remove('is-cleared')
     }
+    this.clearColumnClips()
   }
 
   /** The other way: the page goes back to being one fixed screen. */

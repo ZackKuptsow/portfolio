@@ -174,7 +174,7 @@ export function EducationScene() {
   )
 }
 
-/** Skills print as one cluster: one command, every column printing together. */
+/** Skills print as one cluster: one command, then each column in turn. */
 export function SkillsScene() {
   const headingId = 'terminal-heading-skills'
   return (
@@ -187,7 +187,7 @@ export function SkillsScene() {
         />
         <div className="terminal-columns">
           {skillGroups.map((skillGroup) => (
-            <div key={skillGroup.title}>
+            <div key={skillGroup.title} data-print-column>
               <h3 className="terminal-entry-title terminal-glow-hover">{skillGroup.title}</h3>
               <ul className="terminal-list">
                 {skillGroup.list.map((skill) => (

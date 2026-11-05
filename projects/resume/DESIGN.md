@@ -63,14 +63,22 @@ with later notes folded in below.
   window and the tour, which open over the terminal.
 - Reading scroll is 1:1. Scrolling past the end of a section triggers a command, which then types at
   its own time-based pace, not at the speed of the scroll.
-- The screen clears between sections, and output streams top-down in whole rows, on every pass and
-  in both directions.
+- The screen clears between sections, and a section's output streams top-down in whole rows, whichever
+  way the reader arrives.
 - Cards print one at a time within Work Experience, Education and Projects, with no clearing inside
-  a section. Skills is one cluster with one command, every column printing together line by line.
+  a section. Skills is one cluster with one command: what is above the columns, then column 1, then
+  2, then 3, each line by line ("It should type out column 1 and then 2 then 3"). Stacked on a phone,
+  that is simply top down.
+- What is printed stays printed. Inside a section, scrolling back up is a plain 1:1 scroll, with no
+  command and nothing reprinted, and the cards below stay where they are ("if the entry is already
+  present it shouldn't have to redraw the whole page"), because no terminal reprints its scrollback.
+  Coming back down is the same, until past the last line printed, where the next card's `cat` types.
+  Only going past the top of a section types a command, because `clear` really did wipe the one above.
 - No command lines appear in the output. The prompt shows them.
 - One swipe does one thing, momentum included: it starts a command, finishes one, or stops at the
-  last line of the output. What is left of it does nothing, until the input goes quiet. So a flick
-  moves one step at most, however hard, and no section is ever skipped by scrolling.
+  edge of the output, its last line going down and the top of the section going up. What is left of
+  it does nothing, until the input goes quiet. So a flick moves one step at most, however hard, and
+  no section is ever skipped by scrolling.
 - A new swipe while a command runs, or clicking, fast-forwards it.
 - A swipe that stops short of a command is forgotten a moment later, so swipes a while apart never
   add up to one.
@@ -78,7 +86,9 @@ with later notes folded in below.
 
 ### Commands
 
-Upward commands read as the reverse trip. `tac` was rejected ("That doesn't make sense").
+Upward commands read as the reverse trip. `tac` was rejected ("That doesn't make sense"). Going up
+types only on arriving in a section from the one below, and lands on its last card, with its earlier
+cards there to scroll back through.
 
 These are the commands of a straight read, and a command must be true of the fake filesystem by
 any route, so `components/Terminal/buildCommand.ts` works each one out from the folder the prompt
@@ -86,15 +96,15 @@ is in. Going up, the table's `cd ..` is true only for the first hop out of a fol
 prompt is in the portfolio, so the next hop is `cat education/<file>.txt`. The session starts in
 `~/portfolio`, which makes the first command true as typed.
 
-| Section         | Scrolling down types                                                  | Scrolling up types                                                                 | Menu types                                       |
-| --------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Hero            | `whoami`                                                              | `clear && cd ~ && whoami`                                                          | `clear && cd ~ && whoami`                        |
-| About           | `clear && cat developer.profile`                                      | `cd .. && cat developer.profile`                                                   | `clear && cat ~/portfolio/developer.profile`     |
-| Work Experience | `clear && cd ./work_experience && ls`, then `cat <file>.txt` per card | `cd .. && cat work_experience/<file>.txt` across sections, `cat <file>.txt` within | `clear && cd ~/portfolio/work_experience && ls`  |
-| Education       | `clear && cd ../education && ls`, then `cat <file>.txt` per card      | `cd .. && cat education/<file>.txt` across sections, `cat <file>.txt` within       | `clear && cd ~/portfolio/education && ls`        |
-| Skills          | `clear && cd ../skills && ls -la`                                     | `cd .. && ls -la skills/`                                                          | `clear && cd ~/portfolio/skills && ls -la`       |
-| Resume          | `wget kups.me/get_resume.sh && sh get_resume.sh`                      | skipped: going up never opens the window                                           | `wget kups.me/get_resume.sh && sh get_resume.sh` |
-| Projects        | `clear && cd ../projects && ls`, then `cat <file>.txt` per card       | `cat <file>.txt` within                                                            | `clear && cd ~/portfolio/projects && ls`         |
+| Section         | Scrolling down types                                                  | Scrolling up types                                 | Menu types                                       |
+| --------------- | --------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| Hero            | `whoami`                                                              | `clear && cd ~ && whoami`                          | `clear && cd ~ && whoami`                        |
+| About           | `clear && cat developer.profile`                                      | `cd .. && cat developer.profile`                   | `clear && cat ~/portfolio/developer.profile`     |
+| Work Experience | `clear && cd ./work_experience && ls`, then `cat <file>.txt` per card | `cd .. && cat work_experience/<last file>.txt`     | `clear && cd ~/portfolio/work_experience && ls`  |
+| Education       | `clear && cd ../education && ls`, then `cat <file>.txt` per card      | `cd .. && cat education/<last file>.txt`           | `clear && cd ~/portfolio/education && ls`        |
+| Skills          | `clear && cd ../skills && ls -la`                                     | `cd .. && ls -la skills/`                          | `clear && cd ~/portfolio/skills && ls -la`       |
+| Resume          | `wget kups.me/get_resume.sh && sh get_resume.sh`                      | skipped: going up never opens the window           | `wget kups.me/get_resume.sh && sh get_resume.sh` |
+| Projects        | `clear && cd ../projects && ls`, then `cat <file>.txt` per card       | nothing: there is no section below it to come from | `clear && cd ~/portfolio/projects && ls`         |
 
 ### The resume
 
@@ -121,8 +131,9 @@ project, as `components/ProjectDemo/` does today.
   section closes the drawer and types that section's command.
 - The menu holds the sections, plain view and the theme switch, then whatever the footer could not
   fit.
-- The footer stays pinned under the prompt at all times: LinkedIn, GitHub, Email and Projects, then
-  the built-with line and the copyright where they fit.
+- The footer stays pinned under the prompt at all times: LinkedIn, GitHub and Email, then the
+  built-with line and the copyright where they fit. Projects is not in it ("we should probably remove
+  projects here"): it is a section, with its place in the menu.
 - Hero: free-floating `~/root/portfolio`, the glowing handle, the `./tech.polyglot` tagline and the
   pulsing line. The visible name line is gone, as he found it redundant, and the `<h1>` stays in the
   page, visually hidden. About keeps `Last updated: 2026` and the `echo` line.
@@ -133,14 +144,16 @@ project, as `components/ProjectDemo/` does today.
 
 Reduced motion, no JavaScript and plain view all get every section in one reading column, nothing
 cleared, no prompt. Print does too. `./get_resume.sh` shows there as a button, because there is no
-prompt to type it into.
+prompt to type it into. The hero fills the first screen under the title bar, and About starts below
+the fold ("let's make sure in plain view the hero page still fits the screen properly").
 
 ### Timing
 
 The prototype's values read trackpad momentum as the reader scrolling on. On trying the build (Zack,
 2026-11-04): "The scroll sensitivity and thresholds needs A LOT more grace. It's spazzing out. The
 animations need to be slowed down a lot as well." These are the values after that, all in
-`components/Terminal/constants.ts`, and they are his to set by feel.
+`components/Terminal/constants.ts`, and they are his to set by feel. On trying them (2026-11-05): "The
+speed is absolutely perfect." So leave them alone unless he says otherwise.
 
 | What                                                     | Value                                              |
 | -------------------------------------------------------- | -------------------------------------------------- |
@@ -387,8 +400,10 @@ Each with its states. The browser's own controls, with a visible focus: 2 points
   and glow. Pressed: as hover. Focus: ring. Its quieter twin is outlined and fills on hover (from
   components/GetResume/constants.ts).
 - **Resume window:** a native `<dialog>`, with download, open, email and QR code. Escape, the close
-  button and the backdrop close it, and closing loads Projects. The QR code hides below `sm`, because a
-  phone cannot scan its own screen (from components/GetResume/GetResume.tsx).
+  button and the backdrop close it, and closing loads Projects. It opens with the keyboard on the window
+  itself, which draws no ring, and nothing on it lit up ("the esc is focused on open"): Tab reaches the
+  close button first, with its ring. The QR code hides below `sm`, because a phone cannot scan its own
+  screen (from components/GetResume/GetResume.tsx).
 - **Email field:** on `muted`. Default: `border` edge with `muted-foreground` placeholder. Submitting:
   read-only, with animated dots and the send button at half strength. Invalid: `error-text` edge and
   message, focus back on the field. Success: the form goes and a `foreground` message takes focus. Rate
@@ -445,6 +460,9 @@ does not ask for one.
 
 - Do map scroll to steps, not to an element reaching a line. A section's last line must stay reachable,
   and the first version left the last section hidden.
+- Don't read which card the reader has reached from the scroll position alone. Cards share the track
+  inside a section, and cards that fit on screen together end in one place: reading past the end of one
+  as past the end of the next skipped a degree, and the screen went on to Skills.
 - Do clip lines whole at every scroll position, and check every position with a real scrollbar showing.
   Playwright hides scrollbars by default, which hid this: with one showing, 363 of 557 phone positions
   cut a line through the middle. Remove `--hide-scrollbars` and assert the scrollbar's width.

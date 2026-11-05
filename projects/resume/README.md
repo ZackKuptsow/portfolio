@@ -70,14 +70,22 @@ section with no cards. `engine/scrollMap.ts` puts each on a virtual track, and a
 exactly the output that does not fit on screen, so its last line can always be reached.
 `engine/textRows.ts` clips whole rows at every position. A command runs on its own clock
 (`typeCommand`, `streamOutput`, `playDownload`, all through `commandClock`), so a new swipe or a
-click fast-forwards it.
+click fast-forwards it. `streamOutput` prints a list of runs in turn, which is how Skills prints
+what is above its columns, then column 1, then 2, then 3 (`data-print-column`).
+
+**What is printed stays printed.** Inside a section the scroll is the output's own position, 1:1, so
+going back up through its cards is a plain scroll, like a terminal's scrollback: no command, nothing
+reprinted, and the cards below stay. Coming back down is the same until past the last line printed.
+So cards share the track, and a scroll position cannot say which of them the reader has reached:
+cards that fit on screen together all end in one place. The engine's current step says that, and the
+scroll says only which section it has left for (`countStepsOutsideSection`).
 
 **One swipe does one thing.** macOS goes on sending wheel events for seconds after the fingers lift,
 so distance alone reads momentum as the reader scrolling on: one flick used to run five commands
 into the download. `engine/scrollGesture.ts` tells one swipe from the next by the input going quiet,
 and `engine/ScrollDriver.ts` spends a swipe once it has started a command, finished one, or reached
-the last line of the output. What is left of it is held in place. A dragged scrollbar is no gesture,
-and still jumps.
+the edge of the output: its last line going down, and the top of the section going up. What is left
+of it is held in place. A dragged scrollbar is no gesture, and still jumps.
 
 **Commands are worked out, not listed.** `buildCommand.ts` tracks the fake folder the prompt is in,
 so a command is true by any route. A straight read down gives the table in `DESIGN.md` word for
@@ -104,10 +112,10 @@ hides them by default and that once hid 363 cut lines out of 557 positions.
 ## The projects page
 
 `/projects.html` (`app/projects/page.tsx`) is the same terminal, opened at Projects, from
-`data/projects.ts`. The footer links it, and on a page with a terminal the link types the command
-instead of leaving. As with the household assistant's pages, the `.html` is part of the address.
+`data/projects.ts`. As with the household assistant's pages, the `.html` is part of the address.
 Unlike them, it names itself as canonical and is in the sitemap: the point of the page is to be
-found.
+found. Nothing on the home page links to it, because the home page holds Projects itself, so the
+sitemap and links from elsewhere are how it is found.
 
 Its server HTML holds only the Projects section, with its own `h1` and title. The other sections
 arrive with the script, so the resume text has one home for search engines, the home page, and a
@@ -258,12 +266,16 @@ resume is in the home page's HTML and every project in the projects page's.
 `yarn test:browser` (in `test-browser/`) opens the site in Chrome with Playwright, for what
 jsdom cannot see:
 
-- Every line can be read whole at every scroll position (`wholeRows*.spec.ts`), checked every 5
-  points: on a laptop, on a phone, on a phone at twice the text size, and on a phone with a real
-  scrollbar showing. These take a few minutes, on purpose.
-- A straight read down types the commands in `DESIGN.md` word for word, and they stay true going
-  back up. The screen clears between sections, End and Home jump, and up from the first screen
-  types `exit`.
+- Every line can be read whole at every scroll position (`wholeRows*.spec.ts`), back through what is
+  printed included, checked every 5 points: on a laptop, on a phone, on a phone at twice the text
+  size, and on a phone with a real scrollbar showing. These take a few minutes, on purpose.
+- A straight read down types the commands in `DESIGN.md` word for word, lands on every card in turn,
+  also on a screen tall enough to fit whole sections, and the commands stay true going back up. The
+  screen clears between sections, End and Home jump, and up from the first screen types `exit`.
+- Going back through what is printed is a plain scroll, with no command and every card still there,
+  and only going past the top of a section types one (`scrollback.spec.ts`).
+- Skills prints its columns one at a time, in whole lines, and a click or plain view part way through
+  leaves none half printed (`skillsColumns.spec.ts`).
 - One swipe does one thing: played as a trackpad sends it, momentum and all, the hardest flick types
   one command in full and moves one step, a gentle swipe types nothing, and a flick stops on the last
   line of long output (`swipes.spec.ts`).
@@ -273,14 +285,15 @@ jsdom cannot see:
 - Rotating a phone, or the address bar changing size, keeps the reader on the same step at the
   same point.
 - The plain flow: reduced motion, no script, a script that never arrives, plain view and print all
-  show every section. Find in page reaching a hidden section gets it.
+  show every section. Find in page reaching a hidden section gets it. The hero fills the first screen
+  and no more, without moving the name at the first paint of the terminal (`plainFlow.spec.ts`).
 - The first paint shows the hero, not every section stacked up.
 - The theme opens dark whatever the system prefers, a stored choice wins, and the pages without a
   terminal keep the corner switch.
 - Nothing runs off the side at 15 widths from 320px to 1280px, in the terminal, in the plain flow
   and in the get-resume window. The email placeholder fits the field on a phone.
-- The keyboard lands on the close button of the get-resume window, also when the window has to
-  scroll, and on the output when the page opens.
+- The keyboard lands on the get-resume window itself with no ring showing, also when the window has
+  to scroll, Tab reaches the close button first, and it lands on the output when the page opens.
 - The QR code is shown at 640px wide and hidden at 639px.
 - No script error, on load, down through the sections or when a window opens.
 - On the projects page, the terminal opens at Projects with one main heading, and the Save State

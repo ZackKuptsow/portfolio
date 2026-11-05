@@ -94,15 +94,19 @@ html:not(.dark) .terminal-root {
 
 /* The side padding is a screen edge, in points, so a large text size keeps the room for its words. */
 .terminal-output {
+  --terminal-output-padding-block: 1.5rem;
+
   width: 100%;
   max-width: 54rem;
   margin: 0 auto;
-  padding: 1.5rem 16px;
+  padding: var(--terminal-output-padding-block) 16px;
 }
 
 @media (min-width: 640px) {
   .terminal-output {
-    padding: 2rem 32px;
+    --terminal-output-padding-block: 2rem;
+
+    padding-inline: 32px;
   }
 }
 
@@ -110,13 +114,17 @@ html:not(.dark) .terminal-root {
   margin-top: 2rem;
 }
 
-/* The hero */
+/*
+ * The hero. In the plain flow it fills the first screen under the title bar, and About starts
+ * below the fold. `svh`, because `dvh` would move everything below it as a phone's address bar
+ * slides away. The terminal has its own height for it, in terminal-screen.css.
+ */
 .terminal-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: var(--terminal-hero-height, 72dvh);
+  min-height: calc(100svh - 45px - 2 * var(--terminal-output-padding-block));
   text-align: center;
 }
 

@@ -366,6 +366,12 @@ html.dark .command-prompt {
   overflow-y: auto;
 }
 
+/* Focus starts on the window (see useModalDialog), and a ring around all of it would only shout. */
+.terminal-dialog .terminal-window:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-card);
+}
+
 /* Without this the dark window scrolls with the browser's light scrollbar, the brightest thing in it */
 html.dark .terminal-dialog .terminal-window {
   color-scheme: dark;

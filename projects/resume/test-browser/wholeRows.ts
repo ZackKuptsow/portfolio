@@ -95,7 +95,9 @@ function walkStep(page: Page, positionStep: number): Promise<Walk> {
       }
       return { bottomEdge: Number(match[2]), topEdge: Number(match[1]) }
     }
-    const start = Number(root.dataset.stepStart)
+    // A section's last card walks all the way back through the cards above it, as a reader can.
+    const isLastCard = !scene.querySelector('[data-block].is-cleared')
+    const start = Number(isLastCard ? root.dataset.sectionStart : root.dataset.stepStart)
     const end = Number(root.dataset.stepEnd)
     const walk: Walk = {
       cutRows: [],

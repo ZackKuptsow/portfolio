@@ -124,14 +124,90 @@ describe('the timed parts of a command', () => {
       const heights: number[] = []
       streamOutput({
         clock,
-        fromHeight: 100,
         lineHeight: LINE_HEIGHT,
         onDone,
-        showTo: (height) => heights.push(height),
-        toHeight: 100 + lines * LINE_HEIGHT,
+        runs: [
+          {
+            fromHeight: 100,
+            showTo: (height) => heights.push(height),
+            toHeight: 100 + lines * LINE_HEIGHT,
+          },
+        ],
       })
       return heights
     }
+
+    /** Three runs side by side, as Skills' columns are: each starts where the last started. */
+    function streamColumns(clock: CommandClock, onDone: () => void, linesEach: number) {
+      const shownByRun: number[][] = [[], [], []]
+      const orderShown: number[] = []
+      streamOutput({
+        clock,
+        lineHeight: LINE_HEIGHT,
+        onDone,
+        runs: shownByRun.map((shown, run) => ({
+          fromHeight: 100,
+          showTo: (height: number) => {
+            shown.push(height)
+            orderShown.push(run)
+          },
+          toHeight: 100 + linesEach * LINE_HEIGHT,
+        })),
+      })
+      return { orderShown, shownByRun }
+    }
+
+    it('prints one run to its end before the next starts', () => {
+      const onDone = vi.fn()
+      const { orderShown, shownByRun } = streamColumns(new CommandClock(), onDone, 6)
+
+      vi.advanceTimersByTime(OUTPUT_TOTAL_MILLISECONDS * 2)
+
+      expect(onDone).toHaveBeenCalledOnce()
+      expect(orderShown).toEqual([...orderShown].sort((first, second) => first - second))
+      expect(new Set(orderShown)).toEqual(new Set([0, 1, 2]))
+      for (const shown of shownByRun) {
+        expect(shown.at(-1)).toBe(100 + 6 * LINE_HEIGHT)
+      }
+    })
+
+    it('holds several runs together to the same time limit as one', () => {
+      const onDone = vi.fn()
+      streamColumns(new CommandClock(), onDone, 100)
+
+      vi.advanceTimersByTime(OUTPUT_TOTAL_MILLISECONDS - 2 * OUTPUT_TICK_MILLISECONDS)
+      expect(onDone).not.toHaveBeenCalled()
+      // Each run ends on a tick of its own.
+      vi.advanceTimersByTime(6 * OUTPUT_TICK_MILLISECONDS)
+
+      expect(onDone).toHaveBeenCalledOnce()
+    })
+
+    it('skips a run with nothing on screen, and spends no time on it', () => {
+      const onDone = vi.fn()
+      const emptyRun = vi.fn()
+      streamOutput({
+        clock: new CommandClock(),
+        lineHeight: LINE_HEIGHT,
+        onDone,
+        runs: [{ fromHeight: 300, showTo: emptyRun, toHeight: 300 }],
+      })
+
+      vi.advanceTimersByTime(OUTPUT_TICK_MILLISECONDS)
+
+      expect(emptyRun).not.toHaveBeenCalled()
+      expect(onDone).toHaveBeenCalledOnce()
+    })
+
+    it('finishes every run at once when fast-forwarded', () => {
+      const clock = new CommandClock()
+      const onDone = vi.fn()
+      streamColumns(clock, onDone, 6)
+
+      clock.fastForward()
+
+      expect(onDone).toHaveBeenCalledOnce()
+    })
 
     it('prints top down, and long output is done in the time the brief allows', () => {
       const onDone = vi.fn()

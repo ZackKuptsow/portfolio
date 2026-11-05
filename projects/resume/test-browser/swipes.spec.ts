@@ -1,11 +1,17 @@
 import {
   GESTURE_QUIET_MILLISECONDS,
+  SCROLL_NOISE_PIXELS,
   TYPING_TOTAL_MILLISECONDS,
 } from '@/components/Terminal/constants'
 
 import { expect, test } from './browserTest'
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from './constants'
 import {
+  GENTLE_SWIPE,
+  HARD_FLICK,
+  LONGEST_FLICK,
+  ORDINARY_FLICK,
+  QUICK_FLICK,
   chooseFromMenu,
   pointAtOutput,
   readCommands,
@@ -16,15 +22,7 @@ import {
   waitUntilIdle,
 } from './terminal'
 
-import type { Swipe } from './terminal'
 import type { Page } from '@playwright/test'
-
-// About 225, 680, 970 and 3,800 points in all, momentum included, over 0.7, 0.7, 1.5 and 3 seconds.
-const GENTLE_SWIPE: Swipe = { decay: 0.93, peak: 14 }
-const QUICK_FLICK: Swipe = { decay: 0.9, peak: 50 }
-const ORDINARY_FLICK: Swipe = { decay: 0.955, peak: 40 }
-const HARD_FLICK: Swipe = { decay: 0.975, peak: 90 }
-const LONGEST_FLICK: Swipe = { decay: 0.985, peak: 120 }
 
 /** Long enough for anything a swipe set off to have started. */
 const SETTLE_MILLISECONDS = 500
@@ -234,7 +232,7 @@ test.describe('long output', () => {
 
     const atTheEnd = await readTerminal(page)
     expect(atTheEnd.step).toBe(before.step)
-    expect(atTheEnd.scrollTop).toBeCloseTo(atTheEnd.stepEnd, 0)
+    expect(Math.abs(atTheEnd.scrollTop - atTheEnd.stepEnd)).toBeLessThanOrEqual(SCROLL_NOISE_PIXELS)
     expect(await readCommands(page)).toHaveLength(commandsBefore)
 
     await swipe(page, ORDINARY_FLICK, 'down')
@@ -257,7 +255,7 @@ test.describe('long output', () => {
 
     const atTheEnd = await readTerminal(page)
     expect(atTheEnd.step).toBe(before.step)
-    expect(atTheEnd.scrollTop).toBeCloseTo(atTheEnd.stepEnd, 0)
+    expect(Math.abs(atTheEnd.scrollTop - atTheEnd.stepEnd)).toBeLessThanOrEqual(SCROLL_NOISE_PIXELS)
     expect(await readCommands(page)).toHaveLength(commandsBefore)
     await page.keyboard.up('ArrowDown')
   })

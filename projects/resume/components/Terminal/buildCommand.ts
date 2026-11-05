@@ -18,8 +18,6 @@ export type TerminalCommand = {
 }
 
 type CommandRequest = {
-  /** The section the reader is coming from, which decides `cat` within a section or across. */
-  cameFromSectionId: SectionId
   cwd: string
   route: CommandRoute
   section: TerminalSection
@@ -88,12 +86,8 @@ function buildDownCommand({ cwd, section, step }: CommandRequest): TerminalComma
   return { command: `cat ${fileFrom(cwd, directory, step.fileName as string)}`, cwd }
 }
 
-function buildUpCommand({
-  cameFromSectionId,
-  cwd,
-  section,
-  step,
-}: CommandRequest): TerminalCommand {
+/** Going up only ever crosses into a section: inside one, what is printed is still on screen. */
+function buildUpCommand({ cwd, section, step }: CommandRequest): TerminalCommand {
   if (section.id === 'hero') {
     return { command: `clear && cd ${HOME_PATH} && whoami`, cwd: HOME_PATH }
   }
@@ -107,12 +101,8 @@ function buildUpCommand({
   if (section.id === 'skills') {
     return { command: `${changeToPortfolio(cwd)}ls -la ${directory}/`, cwd: INITIAL_PATH }
   }
-  const fileName = step.fileName as string
-  if (cameFromSectionId === section.id) {
-    return { command: `cat ${fileFrom(cwd, directory, fileName)}`, cwd }
-  }
   return {
-    command: `${changeToPortfolio(cwd)}cat ${directory}/${fileName}${FILE_EXTENSION}`,
+    command: `${changeToPortfolio(cwd)}cat ${directory}/${step.fileName as string}${FILE_EXTENSION}`,
     cwd: INITIAL_PATH,
   }
 }
@@ -168,11 +158,9 @@ export function listPromptLines(
   const sectionById = new Map(sections.map((section) => [section.id, section]))
   const lines: string[] = []
   let cwd = INITIAL_PATH
-  let cameFromSectionId = steps[0].sectionId
 
   const type = (step: TerminalStep, route: CommandRoute) => {
     const result = buildCommand({
-      cameFromSectionId,
       cwd,
       route,
       section: sectionById.get(step.sectionId) as TerminalSection,
@@ -180,14 +168,14 @@ export function listPromptLines(
     })
     lines.push(`${formatPath(cwd)}${PROMPT_SEPARATOR}${result.command}`)
     cwd = result.cwd
-    cameFromSectionId = step.sectionId
   }
 
   for (const step of steps.slice(1)) {
     type(step, 'down')
   }
-  // Going up passes over the resume, and the first step down is where the read started.
-  for (const step of [...steps].reverse().slice(1)) {
+  // Going up lands on the last card of each section above, and passes over the resume.
+  const lastStepsOfSections = steps.filter((_, index) => steps[index + 1]?.clearsBefore ?? true)
+  for (const step of [...lastStepsOfSections].reverse().slice(1)) {
     if (step.sectionId !== 'resume') {
       type(step, 'up')
     }

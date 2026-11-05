@@ -28,13 +28,14 @@ describe('Terminal, as the plain flow', () => {
     expect(emailLink.hasAttribute('target')).toBe(false)
   })
 
-  it('links to the projects page on this site, in this tab, which works without a script', () => {
+  // Zack, on the first build: "we should probably remove projects here." Projects is a section of
+  // the terminal, with its place in the menu, and the rest of the footer leads off the site.
+  it('keeps the footer to the ways of reaching him', () => {
     render(<Terminal startSectionId="hero" />)
 
-    const projectsLink = screen.getByRole('link', { name: 'Projects' })
+    const footerLinks = within(screen.getByRole('contentinfo')).getAllByRole('link')
 
-    expect(projectsLink.getAttribute('href')).toBe('/projects.html')
-    expect(projectsLink.hasAttribute('target')).toBe(false)
+    expect(footerLinks.map((link) => link.textContent)).toEqual(['→LinkedIn', '→GitHub', '→Email'])
   })
 
   it('names what the site is built with and whose it is, this year', () => {

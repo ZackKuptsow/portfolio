@@ -22,7 +22,6 @@ import { TERMINAL_ON_CLASS } from './constants'
 import { useTerminalEngine } from './hooks'
 
 import type { SectionId } from './types'
-import type { MouseEvent } from 'react'
 
 type TerminalProps = {
   /** Where the terminal opens. `/projects.html` opens at Projects, and every other page at the hero. */
@@ -141,21 +140,9 @@ export function Terminal({ startSectionId }: TerminalProps) {
     (sectionId: SectionId) => {
       setIsDrawerOpen(false)
       scrollerRef.current?.focus({ preventScroll: true })
-      navigate(sectionId, true)
+      navigate(sectionId)
     },
     [navigate],
-  )
-
-  const handleProjectsClick = useCallback(
-    (event: MouseEvent<HTMLAnchorElement>) => {
-      // The plain flow has no prompt to type into, so the link does its ordinary job there.
-      if (isPlain) {
-        return
-      }
-      event.preventDefault()
-      navigate('projects', false)
-    },
-    [isPlain, navigate],
   )
 
   return (
@@ -200,7 +187,7 @@ export function Terminal({ startSectionId }: TerminalProps) {
       </main>
       <div className="terminal-dock">
         <Prompt path={location.cwd} promptRef={promptRef} typedRef={typedRef} />
-        <TerminalFooter footerRef={footerRef} onProjectsClick={handleProjectsClick} />
+        <TerminalFooter footerRef={footerRef} />
       </div>
       <GetResume controls={resumeControls} onClose={handleResumeWindowClosed} />
     </div>

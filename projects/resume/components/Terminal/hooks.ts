@@ -103,8 +103,9 @@ export function useTerminalEngine({
     startEngine()
   }, [isPlain, startEngine])
 
-  const navigate = useCallback((sectionId: SectionId, afterDrawerCloses: boolean) => {
-    engineRef.current?.navigate(sectionId, { afterDrawerCloses })
+  /** The menu is the one way in from the page, so this waits for the drawer it closes. */
+  const navigate = useCallback((sectionId: SectionId) => {
+    engineRef.current?.navigate(sectionId, { afterDrawerCloses: true })
   }, [])
 
   const handleResumeWindowClosed = useCallback(() => {

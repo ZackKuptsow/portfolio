@@ -15,6 +15,8 @@ const LANDING_LIMIT_MILLISECONDS = 15_000
 export type TerminalState = {
   isBusy: boolean
   scrollTop: number
+  /** Where the section on screen starts on the track. Above the step is what is already printed. */
+  sectionStart: number
   step: number
   stepEnd: number
   stepStart: number
@@ -37,6 +39,7 @@ export function readTerminal(page: Page): Promise<TerminalState> {
       return {
         isBusy: root.dataset.busy === 'true',
         scrollTop: scroller.scrollTop,
+        sectionStart: Number(root.dataset.sectionStart),
         step: Number(root.dataset.currentStep),
         stepEnd: Number(root.dataset.stepEnd),
         stepStart: Number(root.dataset.stepStart),
@@ -103,6 +106,13 @@ export type Swipe = {
   /** The fastest it goes, in pixels a frame. */
   peak: number
 }
+
+// About 225, 680, 970 and 3,800 points in all, momentum included, over 0.7, 0.7, 1.5 and 3 seconds.
+export const GENTLE_SWIPE: Swipe = { decay: 0.93, peak: 14 }
+export const QUICK_FLICK: Swipe = { decay: 0.9, peak: 50 }
+export const ORDINARY_FLICK: Swipe = { decay: 0.955, peak: 40 }
+export const HARD_FLICK: Swipe = { decay: 0.975, peak: 90 }
+export const LONGEST_FLICK: Swipe = { decay: 0.985, peak: 120 }
 
 const FRAME_MILLISECONDS = 16
 const FINGERS_SPEEDING_UP = [0.15, 0.3, 0.5, 0.7, 0.85, 1]

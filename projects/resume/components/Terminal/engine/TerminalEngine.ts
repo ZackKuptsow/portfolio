@@ -96,7 +96,7 @@ export class TerminalEngine {
       onFastForward: () => this.clock.fastForward(),
       onJump: (reached, scrollTop) => this.jumpTo(reached, scrollTop),
       onMoveDown: () => this.moveDownOneStep(),
-      onMoveUp: () => this.moveUpOneStep(),
+      onMoveUp: () => this.moveUpOneSection(),
       onPullForgotten: () => {
         this.exitPull = 0
       },
@@ -224,7 +224,6 @@ export class TerminalEngine {
 
   private commandFor(stepIndex: number, route: CommandRoute): TerminalCommand {
     return buildCommand({
-      cameFromSectionId: this.steps[this.currentStepIndex].sectionId,
       cwd: this.cwd,
       route,
       section: this.sectionOf(stepIndex),
@@ -245,6 +244,7 @@ export class TerminalEngine {
     const { dataset } = this.elements.root
     const mapped = this.layout.mappedSteps[this.currentStepIndex]
     dataset.currentStep = String(this.currentStepIndex)
+    dataset.sectionStart = String(mapped.sectionStart)
     dataset.stepStart = String(mapped.start)
     dataset.stepEnd = String(mapped.end)
   }
@@ -291,9 +291,13 @@ export class TerminalEngine {
     this.runCommand(command, cwd, (done) => this.landFromScroll(next, 'down', done))
   }
 
-  /** Going up never opens the resume window, so the trip passes over it. */
-  private moveUpOneStep(): void {
-    const oneBack = this.currentStepIndex - 1
+  /**
+   * A section's own cards are still printed, so the only command going up is past the top of it,
+   * to the last card of the section above. Going up never opens the resume window, so the trip
+   * passes over it.
+   */
+  private moveUpOneSection(): void {
+    const oneBack = this.firstStepOf(this.steps[this.currentStepIndex].sectionId) - 1
     const previous = this.steps[oneBack].sectionId === 'resume' ? oneBack - 1 : oneBack
     const { command, cwd } = this.commandFor(previous, 'up')
     this.runCommand(command, cwd, (done) => this.landFromScroll(previous, 'up', done))
@@ -352,15 +356,18 @@ export class TerminalEngine {
   }
 
   /**
-   * A dragged scrollbar can carry the scroll past this step while the command types. Land where
+   * A dragged scrollbar can carry the scroll past this section while the command types. Land where
    * the scroll is, and leave it alone: setting it would cancel a smooth scroll that is still
-   * running. A swipe always stays on the next step, so no section is skipped, even if a browser
-   * ignored being held in place. The resume is never skipped, only shortened.
+   * running. Cards of one section share the track, so the scroll cannot be past one of them. A
+   * swipe always stays on the next step, so no section is skipped, even if a browser ignored being
+   * held in place. The resume is never skipped, only shortened.
    */
   private landFromScroll(target: number, way: ScrollDirection, done: () => void): void {
     const liveScrollTop = this.elements.scroller.scrollTop
     const liveTarget = findStepAt(this.layout.mappedSteps, liveScrollTop)
-    const isPastTarget = way === 'down' ? liveTarget > target : liveTarget < target
+    const isInAnotherSection = this.steps[liveTarget].sectionId !== this.steps[target].sectionId
+    const isPastTarget =
+      isInAnotherSection && (way === 'down' ? liveTarget > target : liveTarget < target)
     const isResume = this.steps[target].sectionId === 'resume'
     if (isPastTarget && !isResume && !this.scroll.isGestureGoing()) {
       this.land(liveTarget, way, done, liveScrollTop)
@@ -419,10 +426,15 @@ export class TerminalEngine {
    */
   private printOutput(target: number, way: ScrollDirection, onDone: () => void): void {
     const startsAtBlock = way === 'down' && !this.steps[target].clearsBefore
+    const { finish, lineHeight, runs } = this.layout.planPrinting(target, startsAtBlock)
     streamOutput({
       clock: this.clock,
-      onDone,
-      ...this.layout.planPrinting(target, startsAtBlock),
+      lineHeight,
+      onDone: () => {
+        finish()
+        onDone()
+      },
+      runs,
     })
   }
 
@@ -477,21 +489,13 @@ export class TerminalEngine {
 
   /** A control reached by keyboard must be on screen, not behind the prompt or above the clip. */
   private revealFocused = (target: HTMLElement): void => {
-    const block = target.closest<HTMLElement>('[data-block]')
-    if (this.isPlain || this.isBusy || !block) {
+    // A block not printed yet is hidden, and cannot take focus, so this one is on the current track.
+    if (this.isPlain || this.isBusy || !target.closest('[data-block]')) {
       return
-    }
-    const stepIndex = this.steps.findIndex((step) => step.blockId === block.dataset.block)
-    if (stepIndex !== this.currentStepIndex) {
-      this.currentStepIndex = stepIndex
-      this.layout.showStep(stepIndex)
-      this.scroll.setScroll(this.layout.mappedSteps[stepIndex].start)
-      this.draw()
-      this.announceLocation()
     }
     const revealedAt = this.layout.scrollToReveal(
       target,
-      stepIndex,
+      this.currentStepIndex,
       this.elements.scroller.scrollTop,
     )
     if (revealedAt !== null) {

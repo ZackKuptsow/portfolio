@@ -27,7 +27,21 @@ const STEPS = mapStepsToScroll(
 )
 const [, LONG_STEP, LAST_STEP] = STEPS
 
-function buildDriver({ currentStep = 0, scrollTop = 0 } = {}) {
+/** Two sections above, then one of three cards too long to fit on screen together. */
+const STEPS_WITH_CARDS = mapStepsToScroll(
+  [
+    { bottom: USABLE_HEIGHT, clearsBefore: true, top: 0 },
+    { bottom: USABLE_HEIGHT, clearsBefore: true, top: 0 },
+    { bottom: USABLE_HEIGHT + 400, clearsBefore: true, top: 0 },
+    { bottom: USABLE_HEIGHT + 800, clearsBefore: false, top: USABLE_HEIGHT + 400 },
+    { bottom: USABLE_HEIGHT + 1200, clearsBefore: false, top: USABLE_HEIGHT + 800 },
+  ],
+  USABLE_HEIGHT,
+)
+const [, , FIRST_CARD, , LAST_CARD] = STEPS_WITH_CARDS
+const LAST_CARD_INDEX = STEPS_WITH_CARDS.length - 1
+
+function buildDriver({ currentStep = 0, scrollTop = 0, steps = STEPS } = {}) {
   const scroller = { scrollTop } as unknown as HTMLElement
   const state = { currentStep, isBusy: false }
   const options = {
@@ -40,7 +54,7 @@ function buildDriver({ currentStep = 0, scrollTop = 0 } = {}) {
     onMoveUp: vi.fn(),
     onPullForgotten: vi.fn(),
     readCurrentStep: () => state.currentStep,
-    readMappedSteps: () => STEPS,
+    readMappedSteps: () => steps,
     scroller,
   }
   const driver = new ScrollDriver(options)
@@ -243,6 +257,103 @@ describe('ScrollDriver', () => {
 
       expect(terminal.scroller.scrollTop).toBe(LONG_STEP.start + 240)
       expect(terminal.onDraw).toHaveBeenCalled()
+    })
+  })
+
+  describe('going back through the cards of a section', () => {
+    function buildAtLastCard() {
+      const terminal = buildDriver({
+        currentStep: LAST_CARD_INDEX,
+        scrollTop: LAST_CARD.start,
+        steps: STEPS_WITH_CARDS,
+      })
+      terminal.driver.direction = 'up'
+      return terminal
+    }
+
+    it('reads 1:1 past the top of the card, and types nothing', () => {
+      const terminal = buildAtLastCard()
+
+      terminal.flickFor(-(TRIGGER + FLICK_PIXELS_A_FRAME))
+
+      expect(terminal.scroller.scrollTop).toBe(LAST_CARD.start - (TRIGGER + FLICK_PIXELS_A_FRAME))
+      expect(terminal.onMoveUp).not.toHaveBeenCalled()
+      expect(terminal.onDraw).toHaveBeenCalled()
+    })
+
+    it('stops a swipe at the top of the section, and types nothing', () => {
+      const terminal = buildAtLastCard()
+
+      terminal.flickFor(-5_000)
+
+      expect(terminal.scroller.scrollTop).toBe(FIRST_CARD.sectionStart)
+      expect(terminal.onMoveUp).not.toHaveBeenCalled()
+    })
+
+    it('leaves the section only on a new swipe, begun at the top of it', () => {
+      const terminal = buildAtLastCard()
+      terminal.flickFor(-5_000)
+      terminal.goQuiet()
+
+      terminal.flickFor(-(TRIGGER - FLICK_PIXELS_A_FRAME))
+      expect(terminal.onMoveUp).not.toHaveBeenCalled()
+      terminal.flickFor(-FLICK_PIXELS_A_FRAME)
+
+      expect(terminal.onMoveUp).toHaveBeenCalledOnce()
+    })
+
+    it('comes back down to the last line of what is printed, and stops there', () => {
+      const terminal = buildAtLastCard()
+      terminal.flickFor(-240)
+      terminal.goQuiet()
+      terminal.onMoveDown.mockClear()
+      terminal.driver.direction = 'down'
+
+      terminal.flickFor(5_000)
+
+      expect(terminal.scroller.scrollTop).toBe(LAST_CARD.end)
+      expect(terminal.onMoveDown).not.toHaveBeenCalled()
+    })
+
+    it('forgets a pull past the top of the section, and leaves the reader inside it', () => {
+      const terminal = buildAtLastCard()
+      terminal.flickFor(-5_000)
+      terminal.goQuiet()
+      terminal.flickFor(-FLICK_PIXELS_A_FRAME)
+
+      vi.advanceTimersByTime(PULL_FORGOTTEN_AFTER_MILLISECONDS)
+
+      expect(terminal.scroller.scrollTop).toBe(FIRST_CARD.sectionStart)
+    })
+
+    it('does not put a reader part way back through the output back at the card', () => {
+      const terminal = buildAtLastCard()
+      terminal.flickFor(-240)
+
+      vi.advanceTimersByTime(PULL_FORGOTTEN_AFTER_MILLISECONDS)
+
+      expect(terminal.scroller.scrollTop).toBe(LAST_CARD.start - 240)
+    })
+
+    it('does not jump for a scroll that is no gesture and stays in the section', () => {
+      const terminal = buildAtLastCard()
+
+      terminal.scroller.scrollTop = FIRST_CARD.sectionStart
+      terminal.frame()
+      vi.advanceTimersByTime(JUMP_SETTLE_MILLISECONDS)
+
+      expect(terminal.onJump).not.toHaveBeenCalled()
+      expect(terminal.onDraw).toHaveBeenCalled()
+    })
+
+    it('still jumps for one that lands further off than the next section', () => {
+      const terminal = buildAtLastCard()
+
+      terminal.scroller.scrollTop = 0
+      terminal.frame()
+      vi.advanceTimersByTime(JUMP_SETTLE_MILLISECONDS)
+
+      expect(terminal.onJump).toHaveBeenCalledExactlyOnceWith(0, 0)
     })
   })
 
