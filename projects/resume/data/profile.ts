@@ -54,7 +54,7 @@ export const workExperience: readonly WorkExperienceEntry[] = [
       'Reduced Cloud Run spend by 76% and removed daily latency spikes through metrics-driven right-sizing and a scheduled pre-warm/scale-to-zero pattern.',
       'Redesigned the customer dashboard in seven flag-gated phases with no disruption to live users.',
     ],
-    subtitle: 'Founding Lead Engineer · March 2026 - September 2026 · Remote',
+    subtitle: 'Founding Lead Engineer · March 2026 - October 2026 · Remote',
     title: 'Low Rate Co.',
   },
   {
