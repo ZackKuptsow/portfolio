@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import {
   buildCommand,
   initialCwd,
+  listPromptLines,
   measureLongestPromptLine,
+  shortenPromptPath,
 } from '@/components/Terminal/buildCommand'
 import type { CommandRoute } from '@/components/Terminal/buildCommand'
 import { buildSections, buildSteps } from '@/components/Terminal/buildSections'
@@ -186,11 +188,41 @@ describe('initialCwd', () => {
 })
 
 describe('measureLongestPromptLine', () => {
-  it('counts at least the longest file name the prompt can cat, with its folder and symbol', () => {
-    const longestFile = 'a_household_assistant_by_text_and_the_mac_that_answers_it.txt'
+  const LONGEST_FILE = 'a_household_assistant_by_text_and_the_mac_that_answers_it.txt'
 
-    expect(measureLongestPromptLine(sections, steps)).toBeGreaterThanOrEqual(
-      `~/portfolio/work_experience $ cat ${longestFile}`.length,
+  it('counts the longest file with the folder it is really read from, and not a longer one', () => {
+    expect(measureLongestPromptLine(sections, steps, (path) => path)).toBe(
+      `~/portfolio/projects $ cat ${LONGEST_FILE}`.length,
     )
+  })
+
+  it('counts less on a phone, whose prompt shows the short path', () => {
+    expect(measureLongestPromptLine(sections, steps, shortenPromptPath)).toBe(
+      `~/projects $ cat ${LONGEST_FILE}`.length,
+    )
+  })
+})
+
+describe('listPromptLines', () => {
+  const lines = listPromptLines(sections, steps, (path) => path)
+
+  it('holds a read down, a read back up and the menu', () => {
+    expect(lines).toContain('~/portfolio $ clear && cat developer.profile')
+    expect(lines).toContain('~/portfolio/skills $ wget kups.me/get_resume.sh && sh get_resume.sh')
+    expect(lines).toContain('~/portfolio/projects $ cd .. && ls -la skills/')
+    expect(lines).toContain('~/portfolio $ cat work_experience/qlik.txt')
+    expect(lines.filter((line) => line.includes('clear && cd ~/portfolio/'))).toHaveLength(4)
+  })
+
+  it('never goes back up through the resume, which only opens going down', () => {
+    expect(lines.filter((line) => line.includes('wget'))).toHaveLength(2)
+  })
+})
+
+describe('shortenPromptPath', () => {
+  it('keeps the last folder, and leaves home as it is', () => {
+    expect(shortenPromptPath('~/portfolio/work_experience')).toBe('~/work_experience')
+    expect(shortenPromptPath('~/portfolio')).toBe('~/portfolio')
+    expect(shortenPromptPath('~')).toBe('~')
   })
 })

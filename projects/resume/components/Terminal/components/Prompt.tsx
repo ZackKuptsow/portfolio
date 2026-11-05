@@ -1,11 +1,6 @@
+import { shortenPromptPath } from '../buildCommand'
+
 import type { RefObject } from 'react'
-
-const HOME_PATH = '~'
-
-/** The last folder of a path, for a phone: `~/portfolio/skills` becomes `~/skills`. */
-function shortenPath(path: string): string {
-  return path === HOME_PATH ? path : `${HOME_PATH}/${path.split('/').pop()}`
-}
 
 type PromptProps = {
   path: string
@@ -23,7 +18,7 @@ export function Prompt({ path, promptRef, typedRef }: PromptProps) {
     <div ref={promptRef} aria-hidden="true" className="terminal-prompt">
       <span className="terminal-prompt-path terminal-prompt-path-full">{path}</span>
       <span className="terminal-prompt-path terminal-prompt-path-short">
-        {shortenPath(path)}
+        {shortenPromptPath(path)}
       </span>{' '}
       <span className="command-prompt">$</span> <span ref={typedRef} className="terminal-typed" />
       <span className="terminal-cursor" />

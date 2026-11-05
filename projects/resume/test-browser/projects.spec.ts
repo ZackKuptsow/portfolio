@@ -35,6 +35,8 @@ async function openTour(page: Page): Promise<Locator> {
   await scrollToTheEndOfTheStep(page)
   const trigger = page.getByRole('button', { name: TRIGGER_NAME })
   const dialog = page.getByRole('dialog', { name: SAVE_STATE_TOUR.title })
+  // As laid out, which a flex box would run together: `watch the tour(1:31)`.
+  expect(await trigger.innerText()).toBe(`→ ${TRIGGER_NAME}`)
   await trigger.click()
   await expect(dialog).toBeVisible()
   return dialog

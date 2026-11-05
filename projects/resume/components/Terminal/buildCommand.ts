@@ -150,39 +150,60 @@ export function initialCwd(section: TerminalSection): string {
   return section.directory ? directoryPath(section.directory) : INITIAL_PATH
 }
 
+/** The last folder of a path, as the prompt shows it on a phone: `~/portfolio/skills` is `~/skills`. */
+export function shortenPromptPath(path: string): string {
+  return path === HOME_PATH ? path : `${HOME_PATH}/${path.split('/').pop()}`
+}
+
 /**
- * The longest line the prompt can hold, in characters, so the room it needs when a command
- * wraps can be kept clear of the text ahead of time.
+ * What the prompt holds on a read of the site, down through it, back up, and from the menu. A
+ * line is its folder and command together, because a long folder never comes with the longest
+ * command: a read of Projects only ever types its long file names from inside `projects`.
  */
+export function listPromptLines(
+  sections: readonly TerminalSection[],
+  steps: readonly TerminalStep[],
+  formatPath: (path: string) => string,
+): readonly string[] {
+  const sectionById = new Map(sections.map((section) => [section.id, section]))
+  const lines: string[] = []
+  let cwd = INITIAL_PATH
+  let cameFromSectionId = steps[0].sectionId
+
+  const type = (step: TerminalStep, route: CommandRoute) => {
+    const result = buildCommand({
+      cameFromSectionId,
+      cwd,
+      route,
+      section: sectionById.get(step.sectionId) as TerminalSection,
+      step,
+    })
+    lines.push(`${formatPath(cwd)}${PROMPT_SEPARATOR}${result.command}`)
+    cwd = result.cwd
+    cameFromSectionId = step.sectionId
+  }
+
+  for (const step of steps.slice(1)) {
+    type(step, 'down')
+  }
+  // Going up passes over the resume, and the first step down is where the read started.
+  for (const step of [...steps].reverse().slice(1)) {
+    if (step.sectionId !== 'resume') {
+      type(step, 'up')
+    }
+  }
+  for (const section of sections) {
+    const firstStep = steps.find((step) => step.sectionId === section.id) as TerminalStep
+    type(firstStep, 'menu')
+  }
+  return lines
+}
+
+/** The length of the longest of those lines, for keeping room for it clear of the text. */
 export function measureLongestPromptLine(
   sections: readonly TerminalSection[],
   steps: readonly TerminalStep[],
+  formatPath: (path: string) => string,
 ): number {
-  const routes: readonly CommandRoute[] = ['down', 'menu', 'up']
-  const folders = [
-    HOME_PATH,
-    INITIAL_PATH,
-    ...sections.flatMap((section) => (section.directory ? [directoryPath(section.directory)] : [])),
-  ]
-  const longestFolder = Math.max(...folders.map((folder) => folder.length))
-  const sectionById = new Map(sections.map((section) => [section.id, section]))
-  const longestCommand = Math.max(
-    ...steps.flatMap((step) =>
-      routes.flatMap((route) =>
-        folders.flatMap((cwd) =>
-          [step.sectionId, 'hero' as const].map(
-            (cameFromSectionId) =>
-              buildCommand({
-                cameFromSectionId,
-                cwd,
-                route,
-                section: sectionById.get(step.sectionId) as TerminalSection,
-                step,
-              }).command.length,
-          ),
-        ),
-      ),
-    ),
-  )
-  return longestFolder + PROMPT_SEPARATOR.length + longestCommand
+  return Math.max(...listPromptLines(sections, steps, formatPath).map((line) => line.length))
 }

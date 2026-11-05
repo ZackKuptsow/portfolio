@@ -16,7 +16,7 @@
 .terminal-control::before {
   content: '';
   position: absolute;
-  inset: 0.375rem 0;
+  inset: 6px 0;
   border: 1px solid hsl(var(--control-edge));
   border-radius: var(--radius);
 }

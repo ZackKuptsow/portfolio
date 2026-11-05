@@ -30,6 +30,8 @@ const DIALOG_OPEN_LIMIT_MILLISECONDS = 15_000
 // The length of the `terminal-type` animation, in terminal.css.
 const ECHO_TYPING_MILLISECONDS = 3_500
 const ECHO_TYPING_MARGIN_MILLISECONDS = 300
+// One row of the prompt: a 20 point line, 16 of padding and an edge.
+const PROMPT_ONE_ROW_PIXELS = 37
 
 /** The commands between the top of the page and Skills: About, 4 jobs, 2 degrees, then Skills. */
 const COMMANDS_TO_SKILLS = 8
@@ -447,6 +449,48 @@ test.describe('on a phone', () => {
     })
 
     expect(room).toBeGreaterThanOrEqual(0)
+  })
+
+  // Zack reported this twice on the prototype: a long command wraps the prompt over the text. The
+  // room is kept clear ahead of time, so this reads the prompt at its tallest, as it types.
+  test('the prompt never covers a line of output, even typing the longest command', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+    await chooseFromMenu(page, 'projects/')
+    await waitUntilIdle(page)
+    await page.evaluate(() => {
+      const typed = document.querySelector('.terminal-typed')
+      const prompt = document.querySelector<HTMLElement>('.terminal-prompt')
+      const reading = { overlap: 0, tallest: 0 }
+      new MutationObserver(() => {
+        const scene = document.querySelector<HTMLElement>('.terminal-scene.is-active')
+        const bottomEdge = /calc\(100% - (-?[\d.]+)px\)/.exec(scene?.style.clipPath ?? '')?.[1]
+        if (!prompt || !scene || bottomEdge === undefined) {
+          return
+        }
+        const promptBox = prompt.getBoundingClientRect()
+        const lastShownRow = scene.getBoundingClientRect().top + Number(bottomEdge)
+        reading.overlap = Math.max(reading.overlap, lastShownRow - promptBox.top)
+        reading.tallest = Math.max(reading.tallest, promptBox.height)
+      }).observe(typed as Node, { characterData: true, childList: true, subtree: true })
+      ;(window as unknown as { promptReading: typeof reading }).promptReading = reading
+    })
+
+    // Two cards on from the first is `cat a_household_assistant_by_text_and_...txt`.
+    await wheelUntilNextCommand(page, 'down')
+    await wheelUntilNextCommand(page, 'down')
+
+    const { overlap, tallest } = await page.evaluate(
+      () =>
+        (window as unknown as { promptReading: { overlap: number; tallest: number } })
+          .promptReading,
+    )
+    expect(overlap).toBeLessThanOrEqual(0)
+    // Without a command long enough to wrap, this would pass and prove nothing.
+    expect(tallest).toBeGreaterThan(PROMPT_ONE_ROW_PIXELS)
   })
 
   // The worst phone bug the prototype had: `render()` sent the reader back to the hero whenever

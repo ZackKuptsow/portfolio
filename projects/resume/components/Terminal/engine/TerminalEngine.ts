@@ -1,4 +1,9 @@
-import { buildCommand, initialCwd, measureLongestPromptLine } from '../buildCommand'
+import {
+  buildCommand,
+  initialCwd,
+  measureLongestPromptLine,
+  shortenPromptPath,
+} from '../buildCommand'
 import { buildSections, buildSteps } from '../buildSections'
 import {
   DRAWER_CLOSE_MILLISECONDS,
@@ -75,11 +80,10 @@ export class TerminalEngine {
     this.elements = options.elements
     this.sections = buildSections()
     this.steps = buildSteps(this.sections)
-    this.layout = new TerminalLayout(
-      options.elements,
-      this.steps,
-      measureLongestPromptLine(this.sections, this.steps),
-    )
+    this.layout = new TerminalLayout(options.elements, this.steps, {
+      withFullPath: measureLongestPromptLine(this.sections, this.steps, (path) => path),
+      withShortPath: measureLongestPromptLine(this.sections, this.steps, shortenPromptPath),
+    })
     this.currentStepIndex = this.firstStepOf(options.startSectionId)
     this.cwd = initialCwd(this.sectionOf(this.currentStepIndex))
     this.scroll = new ScrollDriver({

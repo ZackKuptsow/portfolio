@@ -25,6 +25,14 @@ export type TerminalElements = {
 const HERO_HEIGHT_VARIABLE = '--terminal-hero-height'
 const FOOTER_HEIGHT_VARIABLE = '--terminal-footer-height'
 const TITLE_HEIGHT_VARIABLE = '--terminal-title-height'
+/** Below this the prompt shows the short path. The stylesheet changes it at the same width. */
+const PROMPT_SHORT_PATH_BELOW_PIXELS = 480
+
+/** The longest line the prompt can hold, in characters, by which path it is showing. */
+export type LongestPromptLine = {
+  withFullPath: number
+  withShortPath: number
+}
 
 /**
  * What the terminal looks like at a given step and scroll position: the measurements, which
@@ -32,7 +40,7 @@ const TITLE_HEIGHT_VARIABLE = '--terminal-title-height'
  */
 export class TerminalLayout {
   private readonly elements: TerminalElements
-  private readonly longestPromptLine: number
+  private readonly longestPromptLine: LongestPromptLine
   private readonly steps: readonly TerminalStep[]
 
   private rowsByScene = new Map<SectionId, readonly TextRow[]>()
@@ -46,7 +54,7 @@ export class TerminalLayout {
   constructor(
     elements: TerminalElements,
     steps: readonly TerminalStep[],
-    longestPromptLine: number,
+    longestPromptLine: LongestPromptLine,
   ) {
     this.elements = elements
     this.steps = steps
@@ -118,7 +126,11 @@ export class TerminalLayout {
       parseFloat(styles.borderTopWidth)
     const innerWidth =
       root.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight)
-    const rows = Math.ceil(this.longestPromptLine / this.measureColumns(prompt, innerWidth))
+    const longestLine =
+      root.clientWidth < PROMPT_SHORT_PATH_BELOW_PIXELS
+        ? this.longestPromptLine.withShortPath
+        : this.longestPromptLine.withFullPath
+    const rows = Math.ceil(longestLine / this.measureColumns(prompt, innerWidth))
     return rows * parseFloat(styles.lineHeight) + framing
   }
 
