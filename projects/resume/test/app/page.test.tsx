@@ -7,8 +7,8 @@ import { projects } from '@/data/projects'
 
 // No em or en dash in anything a visitor reads. See "Content" in the README.
 const EM_OR_EN_DASH = /[–—]/
-// The hero 1, the `echo` line 1, and four for the resume button and its dialog.
-const PROMPT_SYMBOL_COUNT = 6
+// The hero 1, the `echo` line 1, the prompt 1, and four for the resume button and its dialog.
+const PROMPT_SYMBOL_COUNT = 7
 // One phrase that only its own region renders. A region that stopped rendering
 // would otherwise go unnoticed by every check that scans the whole page.
 const REGION_SENTINELS = {

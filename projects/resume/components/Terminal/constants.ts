@@ -16,8 +16,17 @@ export const SECTION_HEADING = {
   work: 'Work Experience',
 } as const
 
-/** The folder the title bar names before any command has run. */
+/**
+ * The folder the session starts in. It is the portfolio and not `~`, so the first command in
+ * DESIGN.md's table, `cat developer.profile`, is true as typed.
+ */
 export const INITIAL_PATH = '~/portfolio'
+
+/** Typed for the resume by every route. `get_resume.sh` is decoration: that address is a 404. */
+export const RESUME_COMMAND = 'wget kups.me/get_resume.sh && sh get_resume.sh'
+
+/** Typed when the reader scrolls up past the first screen, which reprints the hero. */
+export const EXIT_COMMAND = 'exit'
 
 /** The address the hero prints, a line of today's site. */
 export const HERO_PATH = '~/root/portfolio'
@@ -29,8 +38,95 @@ export const TITLE_BAR_USER = 'zack@kups:'
 export const BUILT_WITH_LINE =
   'Built with Next.js, deployed via AWS CDK, automated through GitHub Actions'
 
-/**
- * A comment line per section or card, keyed by section id or file name. Each is a line a
- * visitor reads, so it goes in only once Zack has approved it, and it must be true when it does.
- */
-export const OUTPUT_COMMENT: Partial<Record<SectionId | string, string>> = {}
+/** Added to `<html>` before the first paint when the terminal should run. See `prePaintScript`. */
+export const TERMINAL_ON_CLASS = 'terminal-on'
+
+/** Added to `<html>` when a script is running, which is when the controls can do something. */
+export const SCRIPT_RUNNING_CLASS = 'script-running'
+
+/** Set on the terminal's root once the engine has taken over the page. */
+export const ENGINE_READY_ATTRIBUTE = 'data-engine-ready'
+
+/** The section entries of the menu, in reading order. */
+export const MENU_SECTIONS: readonly { label: string; sectionId: SectionId }[] = [
+  { label: '~/whoami', sectionId: 'hero' },
+  { label: 'developer.profile', sectionId: 'about' },
+  { label: 'work_experience/', sectionId: 'work' },
+  { label: 'education/', sectionId: 'education' },
+  { label: 'skills/', sectionId: 'skills' },
+  { label: 'get_resume.sh', sectionId: 'resume' },
+  { label: 'projects/', sectionId: 'projects' },
+]
+
+/** The menu's other entries. */
+export const MENU_LABEL = {
+  darkMode: 'dark mode',
+  lightMode: 'light mode',
+  plainView: 'plain view',
+  terminalView: 'terminal view',
+} as const
+
+/** The drawer's heading, after a decorative prompt symbol. */
+export const MENU_HEADING_COMMAND = 'ls ~/portfolio'
+
+/** The lines of the fake download, around its progress bar. */
+export const DOWNLOAD_COPY = {
+  fileName: 'get_resume.sh',
+  fileSize: '1.3K',
+  linesBeforeProgress: [
+    'Resolving kups.me... done.',
+    'Connecting to kups.me:443... connected.',
+    'HTTP request sent, awaiting response... 200 OK',
+    "Saving to: 'get_resume.sh'",
+  ],
+  opening: 'Opening the resume...',
+  saved: "'get_resume.sh' saved",
+  scriptAddress: 'https://kups.me/get_resume.sh',
+} as const
+
+/** Scroll distances, in CSS pixels. DESIGN.md's Timing table holds what Zack approved by feel. */
+export const SCROLL_PAST_END_TO_TRIGGER_PIXELS = 90
+export const SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS = 260
+export const SCROLL_UP_AT_TOP_TO_EXIT_PIXELS = 120
+export const SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS = 90
+/** Below this a change of scroll position is noise, not a direction. */
+export const SCROLL_NOISE_PIXELS = 2
+/** Tall enough to lay every scene out while measuring it. */
+export const MEASURING_TRACK_PIXELS = 100000
+/** Kept clear between the last line of output and the prompt. */
+export const PROMPT_CLEARANCE_PIXELS = 20
+
+/** Times, in milliseconds, from the same table. */
+export const END_HOLD_MILLISECONDS = 320
+export const RECENT_INPUT_MILLISECONDS = 220
+export const JUMP_SETTLE_MILLISECONDS = 80
+export const RESIZE_SETTLE_MILLISECONDS = 150
+export const DRAWER_CLOSE_MILLISECONDS = 190
+export const TYPING_TOTAL_MILLISECONDS = 800
+export const TYPING_FASTEST_CHARACTER_MILLISECONDS = 20
+export const TYPING_SLOWEST_CHARACTER_MILLISECONDS = 62
+export const ENTER_PAUSE_MILLISECONDS = 120
+export const OUTPUT_TOTAL_MILLISECONDS = 420
+export const OUTPUT_TICK_MILLISECONDS = 18
+export const DOWNLOAD_LINE_PAUSES_MILLISECONDS = [180, 360, 340, 300, 140] as const
+export const DOWNLOAD_PROGRESS_TICK_MILLISECONDS = 90
+export const DOWNLOAD_PROGRESS_STALL_MILLISECONDS = 240
+export const DOWNLOAD_AFTER_SAVED_MILLISECONDS = 240
+export const DOWNLOAD_BEFORE_WINDOW_MILLISECONDS = 550
+
+/** A character's typing time is its share of the total, times a factor from this range. */
+export const TYPING_JITTER_LOWEST = 0.55
+export const TYPING_JITTER_RANGE = 0.9
+
+/** A real download hesitates, so the middle of the bar runs slower. */
+export const DOWNLOAD_STALL_FROM_PERCENT = 55
+export const DOWNLOAD_STALL_TO_PERCENT = 75
+export const DOWNLOAD_SMALLEST_STEP_PERCENT = 6
+export const DOWNLOAD_STEP_RANGE_PERCENT = 14
+export const DOWNLOAD_BAR_WIDE_CHARACTERS = 38
+export const DOWNLOAD_BAR_NARROW_CHARACTERS = 20
+export const DOWNLOAD_BAR_SMALLEST_CHARACTERS = 8
+/** With fewer columns than this the bar drops the file name in front of it. */
+export const DOWNLOAD_WIDE_FROM_COLUMNS = 62
+/** `' 62%[' + '] 1.3K'`, the bar's own text around its characters. */
+export const DOWNLOAD_BAR_FRAME_CHARACTERS = 13

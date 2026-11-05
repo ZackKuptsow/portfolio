@@ -7,7 +7,6 @@ import { projects } from '@/data/projects'
 import { HERO_PATH, SECTION_HEADING } from '../constants'
 import { EntryBlock } from './EntryBlock'
 import { FileListing } from './FileListing'
-import { OutputComment } from './OutputComment'
 import { SectionHeading } from './SectionHeading'
 
 import type { SectionId } from '../types'
@@ -113,7 +112,6 @@ export function AboutScene() {
             </span>
           </span>
         </p>
-        <OutputComment commentKey="about" />
       </div>
     </Scene>
   )
@@ -129,14 +127,12 @@ export function WorkScene() {
         <EntryBlock
           key={job.title}
           blockId={`work-${index}`}
-          commentKey={fileNames[index]}
           description={job.description}
           header={
             index === 0 && (
               <>
                 <SectionHeading id={headingId} title={SECTION_HEADING.work} />
                 <FileListing fileNames={fileNames} suffix={FILE_SUFFIX} />
-                <OutputComment commentKey="work" />
               </>
             )
           }
@@ -161,14 +157,12 @@ export function EducationScene() {
         <EntryBlock
           key={degree.fileNamePrefix}
           blockId={`education-${index}`}
-          commentKey={fileNames[index]}
           description={degree.description}
           header={
             index === 0 && (
               <>
                 <SectionHeading id={headingId} title={SECTION_HEADING.education} />
                 <FileListing fileNames={fileNames} suffix={FILE_SUFFIX} />
-                <OutputComment commentKey="education" />
               </>
             )
           }
@@ -191,7 +185,6 @@ export function SkillsScene() {
           fileNames={skillGroups.map((skillGroup) => toTerminalFileName(skillGroup.title))}
           suffix={FOLDER_SUFFIX}
         />
-        <OutputComment commentKey="skills" />
         <div className="terminal-columns">
           {skillGroups.map((skillGroup) => (
             <div key={skillGroup.title}>
@@ -249,7 +242,6 @@ export function ProjectsScene({ isPageHeading }: ProjectsSceneProps) {
           key={project.title}
           action={project.video && <ProjectDemo video={project.video} />}
           blockId={`projects-${index}`}
-          commentKey={fileNames[index]}
           description={project.description}
           header={
             index === 0 && (

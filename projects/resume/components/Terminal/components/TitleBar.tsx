@@ -1,11 +1,35 @@
-import { TITLE_BAR_USER } from '../constants'
+import { useId } from 'react'
+
+import { MENU_LABEL, TITLE_BAR_USER } from '../constants'
+import { Drawer } from './Drawer'
+
+import type { SectionId } from '../types'
 
 type TitleBarProps = {
+  currentSectionId: SectionId
+  isDrawerOpen: boolean
+  isPlain: boolean
+  onSelectSection: (sectionId: SectionId) => void
+  onToggleDrawer: () => void
+  onTogglePlainView: () => void
   path: string
 }
 
-/** Three dots and the path, as a terminal's window bar. All of it is decoration. */
-export function TitleBar({ path }: TitleBarProps) {
+/**
+ * Three dots and the path, as a terminal's window bar, then plain view and the menu. The dots and
+ * the path are decoration. The controls need a script, so without one they do not show.
+ */
+export function TitleBar({
+  currentSectionId,
+  isDrawerOpen,
+  isPlain,
+  onSelectSection,
+  onToggleDrawer,
+  onTogglePlainView,
+  path,
+}: TitleBarProps) {
+  const drawerId = useId()
+
   return (
     <header className="terminal-title-bar">
       <div aria-hidden="true" className="terminal-dots">
@@ -17,6 +41,31 @@ export function TitleBar({ path }: TitleBarProps) {
         <span className="terminal-title-user">{TITLE_BAR_USER} </span>
         {path}
       </div>
+      <button
+        type="button"
+        className="terminal-control terminal-plain-toggle terminal-needs-script"
+        onClick={onTogglePlainView}
+      >
+        {isPlain ? MENU_LABEL.terminalView : MENU_LABEL.plainView}
+      </button>
+      <button
+        type="button"
+        aria-controls={drawerId}
+        aria-expanded={isDrawerOpen}
+        aria-label="Menu"
+        className="terminal-control terminal-menu-button terminal-needs-script"
+        onClick={onToggleDrawer}
+      >
+        <span aria-hidden="true">☰</span>
+      </button>
+      <Drawer
+        currentSectionId={currentSectionId}
+        id={drawerId}
+        isOpen={isDrawerOpen}
+        isPlain={isPlain}
+        onSelectSection={onSelectSection}
+        onTogglePlainView={onTogglePlainView}
+      />
     </header>
   )
 }

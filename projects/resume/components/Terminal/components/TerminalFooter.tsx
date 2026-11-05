@@ -3,7 +3,7 @@ import { PROJECTS_PAGE_PATH } from '@/data/projects'
 
 import { BUILT_WITH_LINE } from '../constants'
 
-import type { MouseEvent, ReactNode } from 'react'
+import type { MouseEvent, ReactNode, RefObject } from 'react'
 
 type FooterLinkProps = {
   children: ReactNode
@@ -31,14 +31,15 @@ function FooterLink({ children, href, onClick, opensNewTab = false }: FooterLink
 }
 
 type TerminalFooterProps = {
+  footerRef: RefObject<HTMLElement | null>
   /** Without a script the link simply opens the projects page. With one it may do better. */
   onProjectsClick?: (event: MouseEvent<HTMLAnchorElement>) => void
 }
 
 /** Pinned under the prompt: the links, then the built-with line and copyright where they fit. */
-export function TerminalFooter({ onProjectsClick }: TerminalFooterProps) {
+export function TerminalFooter({ footerRef, onProjectsClick }: TerminalFooterProps) {
   return (
-    <footer className="terminal-footer">
+    <footer ref={footerRef} className="terminal-footer">
       <div className="terminal-footer-links">
         <FooterLink href={PROFILE_LINKS.linkedIn} opensNewTab>
           LinkedIn

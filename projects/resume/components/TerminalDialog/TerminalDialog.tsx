@@ -42,7 +42,7 @@ export function TerminalDialog({
       onPointerDown={handleDialogPointerDown}
     >
       <div className="terminal-window shadow-card">
-        <div className="terminal-header terminal-header-style gap-3 pl-16">
+        <div className="terminal-header terminal-header-style gap-3">
           <span className="flex-1 truncate text-center font-mono text-xs text-primary sm:text-sm">
             {headerPath}
           </span>
@@ -51,8 +51,7 @@ export function TerminalDialog({
             type="button"
             aria-label={CLOSE_BUTTON_LABEL}
             onClick={close}
-            className="shrink-0 cursor-pointer whitespace-nowrap rounded border border-border px-2 font-mono
-                       text-xs text-muted-foreground transition-colors hover:border-primary! hover:text-primary"
+            className="terminal-control font-mono text-xs"
           >
             {CLOSE_BUTTON_TEXT}
           </button>

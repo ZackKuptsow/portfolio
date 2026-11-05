@@ -1,15 +1,11 @@
 import type { ProjectLink } from '@/data/projects'
 
-import { OutputComment } from './OutputComment'
-
 import type { ReactNode } from 'react'
 
 type EntryBlockProps = {
   /** A control that does something here, such as opening a recording. Ends the link row. */
   action?: ReactNode
   blockId: string
-  /** Where the comment line is filed: the entry's file name. */
-  commentKey: string
   description?: string
   /** The section's heading and listing, which print with its first card. */
   header?: ReactNode
@@ -29,7 +25,6 @@ type EntryBlockProps = {
 export function EntryBlock({
   action,
   blockId,
-  commentKey,
   description,
   header,
   highlights = [],
@@ -80,7 +75,6 @@ export function EntryBlock({
       <p aria-hidden="true" className="terminal-eof">
         [EOF]
       </p>
-      <OutputComment commentKey={commentKey} />
     </div>
   )
 }

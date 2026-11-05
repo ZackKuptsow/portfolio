@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { RESUME_PDF_PATH } from '@/components/GetResume/constants'
 import { PROJECTS_PAGE_PATH, projects } from '@/data/projects'
 
-import { listBuiltPaths, parseHomePage } from './builtSite'
+import { listBuiltPaths, parseBuiltPage, parseHomePage } from './builtSite'
 
+const NOT_FOUND_PAGE_FILE = '404.html'
 const NOT_FOUND_PAGE_PATH = '/404.html'
 // An address on this site: one slash, then a path. `//host/path` is another site.
 const SITE_PATH = /^\/(?!\/)/
@@ -28,6 +29,13 @@ describe('the files of the built site', () => {
 
   it('holds the page CloudFront answers a missing path with', () => {
     expect(builtPaths).toContain(NOT_FOUND_PAGE_PATH)
+  })
+
+  it('names the 404 page as one, and keeps it out of search results', () => {
+    const page = parseBuiltPage(NOT_FOUND_PAGE_FILE)
+
+    expect(page.title).toBe('404: This page could not be found.')
+    expect(page.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex')
   })
 
   it('holds the projects page at the path the footer links', () => {

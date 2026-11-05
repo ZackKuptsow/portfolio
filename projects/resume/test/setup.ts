@@ -7,6 +7,11 @@ afterEach(() => {
   cleanup()
 })
 
+// jsdom has no layout, so it has nothing to scroll and leaves this undefined.
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = () => undefined
+}
+
 // jsdom 30 ships HTMLDialogElement as an empty class, with no showModal() or close().
 // This stub only toggles `open` and fires `close`. Inertness, Escape and focus return
 // are browser behavior, and they are checked by hand in Task 6.

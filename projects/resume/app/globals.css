@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import '../components/Terminal/terminal.css';
+@import '../components/Terminal/terminal-controls.css';
+@import '../components/Terminal/terminal-screen.css';
 
 /*
  * Font tokens. The actual font files are self-hosted by next/font, which sets
@@ -121,10 +123,13 @@ html.dark {
   --input: 0 0% 12%;
   --ring: 120 100% 50%;
 
-  /* Body is foreground at 80% over background, and the arrow primary at 60%, each as a solid. */
+  /*
+   * Body is foreground at 80% over background, and the arrow primary at 60%, each as a solid.
+   * The edge of a control is the arrow's colour: --border measures 1.94 on the card, below 3.0.
+   */
   --text-body: 120 39.4% 69.6%;
   --arrow: 120 91.6% 32.7%;
-  --control-edge: 120 100% 15%;
+  --control-edge: 120 91.6% 32.7%;
 
   --gradient-subtle: linear-gradient(180deg, hsl(0 0% 7%), hsl(0 0% 3%));
   --shadow-glow: 0 0 30px hsl(120 100% 50% / 0.4);
@@ -177,10 +182,10 @@ html.dark :where(a, button, input, [tabindex]):focus-visible {
   }
 }
 
-/* Terminal-style text glow effect */
+/* Terminal-style text glow effect. Paper gives off no light, so in light it is a soft halo. */
 .text-terminal {
   color: hsl(var(--primary));
-  text-shadow: 0 0 10px hsl(var(--primary));
+  text-shadow: 0 0 18px hsl(var(--primary) / 0.4);
 }
 
 html.dark .text-terminal {
@@ -203,7 +208,7 @@ html.dark .text-terminal {
 
 .terminal-glow-hover:hover,
 .group:hover .terminal-glow-hover {
-  text-shadow: 0 0 10px hsl(var(--primary));
+  text-shadow: 0 0 12px hsl(var(--primary) / 0.7);
 }
 
 html.dark .terminal-glow-hover:hover,
@@ -266,6 +271,19 @@ html.dark .group:hover .terminal-glow-hover {
   z-index: 3;
 }
 
+/* The window's bar is as tall as the 44 point close button in it, and its text clears the dots. */
+.terminal-dialog .terminal-window::before {
+  height: 44px;
+}
+
+.terminal-dialog .terminal-window::after {
+  top: 14px;
+}
+
+.terminal-dialog .terminal-header-style {
+  padding: 0 0.25rem 0 4rem; /* designer: off-scale the width of the window's three dots */
+}
+
 /* Custom gradient background matching theme colors */
 .custom-gradient {
   background-image: linear-gradient(
@@ -299,7 +317,7 @@ html.dark .glow-cursor {
 /* Command prompt $ glow effect */
 .command-prompt {
   color: hsl(var(--primary));
-  text-shadow: 0 0 8px hsl(var(--primary) / 0.6);
+  text-shadow: 0 0 8px hsl(var(--primary) / 0.4);
   transition: text-shadow 200ms;
 }
 

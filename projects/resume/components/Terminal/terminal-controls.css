@@ -1,0 +1,219 @@
+/* The controls. Each is a 44 by 44 target around a smaller drawing. */
+.terminal-control {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.terminal-control::before {
+  content: '';
+  position: absolute;
+  inset: 0.375rem 0;
+  border: 1px solid hsl(var(--control-edge));
+  border-radius: var(--radius);
+}
+
+.terminal-control:hover {
+  color: hsl(var(--primary));
+}
+
+.terminal-control:hover::before {
+  border-color: hsl(var(--primary));
+}
+
+.terminal-menu-button {
+  color: hsl(var(--primary));
+  font-size: 0.8125rem;
+}
+
+/* Without a script these do nothing, so they do not show. */
+.terminal-needs-script {
+  display: none;
+}
+
+html.script-running .terminal-needs-script {
+  display: inline-flex;
+}
+
+/* Plain view moves into the menu on phones. */
+@media (max-width: 479px) {
+  html.script-running .terminal-plain-toggle {
+    display: none;
+  }
+}
+
+/* Reduced motion is plain flow for good, so there is no terminal to switch to. */
+@media (prefers-reduced-motion: reduce) {
+  html.script-running .terminal-plain-toggle,
+  .terminal-plain-toggle-item {
+    display: none;
+  }
+}
+
+/* The menu. It lies over the terminal, so opening it moves nothing behind it. */
+.terminal-title-bar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+
+.terminal-drawer {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  width: 15rem;
+  max-width: 80vw;
+  height: calc(100dvh - var(--terminal-title-height, 46px) - var(--terminal-footer-height, 0px));
+  padding: 0.75rem;
+  overflow-y: auto;
+  border-left: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  transform: translateX(102%);
+  transition:
+    transform 0.19s ease,
+    display 0.19s allow-discrete;
+}
+
+.terminal-drawer.is-open {
+  display: flex;
+  transform: translateX(0);
+}
+
+@starting-style {
+  .terminal-drawer.is-open {
+    transform: translateX(102%);
+  }
+}
+
+.terminal-drawer-heading {
+  margin-bottom: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.terminal-drawer-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  text-align: left;
+}
+
+.terminal-drawer-item:hover {
+  background: hsl(var(--primary) / 0.08);
+  color: hsl(var(--primary));
+}
+
+.terminal-drawer-item[aria-current] {
+  color: hsl(var(--primary));
+  text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+}
+
+.terminal-drawer-settings {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.terminal-drawer-settings .terminal-drawer-item {
+  color: hsl(var(--muted-foreground));
+}
+
+.terminal-drawer-about {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.6875rem;
+  line-height: 0.9375rem;
+}
+
+/* The menu holds whatever the footer could not fit. */
+@media (min-width: 900px) {
+  .terminal-drawer-built-with {
+    display: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .terminal-drawer-copyright {
+    display: none;
+  }
+}
+
+/* The prompt shows only in the terminal. */
+.terminal-prompt {
+  display: none;
+}
+
+.terminal-prompt-path {
+  color: hsl(var(--primary));
+}
+
+html.dark .terminal-prompt-path {
+  opacity: 0.7;
+}
+
+.terminal-prompt-path-short {
+  display: none;
+}
+
+@media (max-width: 479px) {
+  .terminal-prompt-path-full {
+    display: none;
+  }
+
+  .terminal-prompt-path-short {
+    display: inline;
+  }
+}
+
+.terminal-typed {
+  color: hsl(var(--foreground));
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 2px;
+  background: hsl(var(--primary));
+  vertical-align: text-bottom;
+  animation: terminal-blink 1s steps(1) infinite;
+}
+
+@keyframes terminal-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.terminal-root[data-busy] .terminal-cursor {
+  animation: none;
+}
+
+.terminal-download {
+  display: none;
+}
+
+.terminal-scene {
+  scroll-margin-top: 46px;
+}

@@ -1,0 +1,154 @@
+/*
+ * The terminal. `terminal-on` is set before the first paint, so a visitor never sees every
+ * section stacked up. Everything in this block is for screens: print keeps the plain flow.
+ */
+@media screen {
+  html.terminal-on .terminal-root {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* The scrollbar stays hidden: the screen does not move, so it would only measure the track. */
+  html.terminal-on .terminal-scroller {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  html.terminal-on .terminal-scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The scroller takes the keyboard for the whole screen, so a ring would frame the whole page. */
+  html.terminal-on .terminal-scroller:focus-visible {
+    box-shadow: none;
+    outline: none;
+  }
+
+  html.terminal-on .terminal-back-link,
+  html.terminal-on .terminal-resume-trigger {
+    display: none;
+  }
+
+  html.terminal-on .terminal-track {
+    position: relative;
+    height: 100%;
+  }
+
+  /* `clip`, not `hidden`: a hidden box can still be scrolled by focus or find in page. */
+  html.terminal-on .terminal-stage {
+    position: sticky;
+    top: 0;
+    height: 100%;
+    overflow: clip;
+  }
+
+  html.terminal-on .terminal-scene {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    will-change: transform;
+  }
+
+  /* Until the script has taken over, only the section the page opens at shows. */
+  html.terminal-on .terminal-root:not([data-engine-ready]) .terminal-scene {
+    visibility: hidden;
+  }
+
+  html.terminal-on
+    .terminal-root[data-start-section='hero']:not([data-engine-ready])
+    [data-scene='hero'],
+  html.terminal-on
+    .terminal-root[data-start-section='projects']:not([data-engine-ready])
+    [data-scene='projects'] {
+    visibility: visible;
+  }
+
+  html.terminal-on .terminal-block.is-cleared {
+    visibility: hidden;
+  }
+
+  /* The `echo` line types when a reader arrives, not once while they are somewhere else. */
+  html.terminal-on .terminal-scene:not(.is-active) .terminal-typing {
+    animation: none;
+  }
+
+  /* One filled block holds the prompt and the footer, and it lies over the bottom of the output. */
+  html.terminal-on .terminal-dock {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    background: hsl(var(--card));
+  }
+
+  html.terminal-on .terminal-footer {
+    background: none;
+  }
+
+  html.terminal-on .terminal-prompt {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    word-break: break-all;
+  }
+
+  html.terminal-on .terminal-download {
+    display: block;
+  }
+
+  .terminal-download-bar {
+    margin: 0.5rem 0;
+    overflow: hidden;
+    color: hsl(var(--primary));
+    white-space: pre;
+  }
+}
+
+/* Paper gets the plain flow, whatever the screen was showing, and nothing that needs a screen. */
+@media print {
+  .terminal-root {
+    display: block;
+    border: none;
+  }
+
+  .terminal-title-bar,
+  .terminal-back-link,
+  .terminal-prompt,
+  .terminal-download,
+  .terminal-resume-trigger {
+    display: none !important;
+  }
+
+  .terminal-track,
+  .terminal-stage {
+    height: auto !important;
+  }
+
+  .terminal-scene {
+    display: block !important;
+    clip-path: none !important;
+    content-visibility: visible !important;
+    transform: none !important;
+  }
+
+  .terminal-block.is-cleared {
+    visibility: visible !important;
+  }
+
+  .terminal-hero {
+    min-height: 0;
+  }
+}
