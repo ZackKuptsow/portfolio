@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+@import '../components/Terminal/terminal.css';
+@import '../components/Terminal/terminal-controls.css';
+@import '../components/Terminal/terminal-screen.css';
 
 /*
  * Font tokens. The actual font files are self-hosted by next/font, which sets
@@ -78,6 +81,11 @@
   --input: 0 0% 85%;
   --ring: 0 0% 20%;
 
+  /* The terminal's output, its list arrows, and the edge of a control. */
+  --text-body: 0 0% 15%;
+  --arrow: 0 0% 52.2%;
+  --control-edge: 0 0% 52.2%;
+
   --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 92%));
   --shadow-glow: 0 0 20px hsl(0 0% 20% / 0.2);
   --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
@@ -114,6 +122,14 @@ html.dark {
   --border: 120 100% 15%;
   --input: 0 0% 12%;
   --ring: 120 100% 50%;
+
+  /*
+   * Body is foreground at 80% over background, and the arrow primary at 60%, each as a solid.
+   * The edge of a control is the arrow's colour: --border measures 1.94 on the card, below 3.0.
+   */
+  --text-body: 120 39.4% 69.6%;
+  --arrow: 120 91.6% 32.7%;
+  --control-edge: 120 91.6% 32.7%;
 
   --gradient-subtle: linear-gradient(180deg, hsl(0 0% 7%), hsl(0 0% 3%));
   --shadow-glow: 0 0 30px hsl(120 100% 50% / 0.4);
@@ -166,10 +182,10 @@ html.dark :where(a, button, input, [tabindex]):focus-visible {
   }
 }
 
-/* Terminal-style text glow effect */
+/* Terminal-style text glow effect. Paper gives off no light, so in light it is a soft halo. */
 .text-terminal {
   color: hsl(var(--primary));
-  text-shadow: 0 0 10px hsl(var(--primary));
+  text-shadow: 0 0 18px hsl(var(--primary) / 0.4);
 }
 
 html.dark .text-terminal {
@@ -192,7 +208,7 @@ html.dark .text-terminal {
 
 .terminal-glow-hover:hover,
 .group:hover .terminal-glow-hover {
-  text-shadow: 0 0 10px hsl(var(--primary));
+  text-shadow: 0 0 12px hsl(var(--primary) / 0.7);
 }
 
 html.dark .terminal-glow-hover:hover,
@@ -255,41 +271,17 @@ html.dark .group:hover .terminal-glow-hover {
   z-index: 3;
 }
 
-.code-block {
-  background: hsl(var(--muted));
-  border: 1px solid hsl(var(--border));
-  border-radius: calc(var(--radius) - 2px);
-  font-family: var(--font-mono);
-  position: relative;
+/* The window's bar is as tall as the 44 point close button in it, and its text clears the dots. */
+.terminal-dialog .terminal-window::before {
+  height: 44px;
 }
 
-.typing-animation {
-  overflow: hidden;
-  border-right: 2px solid hsl(var(--primary));
-  white-space: nowrap;
-  padding-right: 4px;
-  animation:
-    typing 3.5s steps(40, end),
-    blink-caret 0.75s step-end infinite;
+.terminal-dialog .terminal-window::after {
+  top: 14px;
 }
 
-@keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-@keyframes blink-caret {
-  from,
-  to {
-    border-color: transparent;
-  }
-  50% {
-    border-color: hsl(var(--primary));
-  }
+.terminal-dialog .terminal-header-style {
+  padding: 0 0.25rem 0 4rem; /* designer: off-scale the width of the window's three dots */
 }
 
 /* Custom gradient background matching theme colors */
@@ -313,26 +305,6 @@ html.dark .custom-gradient {
   );
 }
 
-.stat-counter {
-  font-variant-numeric: tabular-nums;
-  font-weight: bold;
-}
-
-.skill-tag {
-  background: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-  border: 1px solid hsl(var(--border));
-  transition: var(--transition-smooth);
-}
-
-.skill-tag:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-  border-color: hsl(var(--primary));
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-1px);
-}
-
 /* Glow cursor blend modes */
 .glow-cursor {
   mix-blend-mode: multiply;
@@ -342,45 +314,10 @@ html.dark .glow-cursor {
   mix-blend-mode: screen;
 }
 
-/* Card cursor-relative glow */
-.terminal-card {
-  border-radius: var(--radius);
-}
-
-.terminal-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 300ms;
-  pointer-events: none;
-  background: radial-gradient(
-    200px circle at var(--mouse-x) var(--mouse-y),
-    hsl(var(--primary) / 0.1),
-    transparent 50%
-  );
-}
-
-.terminal-card:hover::before {
-  opacity: 1;
-}
-
-html.dark .terminal-card::before {
-  background: radial-gradient(
-    200px circle at var(--mouse-x) var(--mouse-y),
-    hsl(var(--primary) / 0.15),
-    transparent 50%
-  );
-}
-
-.terminal-skill-card {
-  border-radius: var(--radius);
-}
-
 /* Command prompt $ glow effect */
 .command-prompt {
   color: hsl(var(--primary));
-  text-shadow: 0 0 8px hsl(var(--primary) / 0.6);
+  text-shadow: 0 0 8px hsl(var(--primary) / 0.4);
   transition: text-shadow 200ms;
 }
 
@@ -396,131 +333,11 @@ html.dark .command-prompt {
   color: inherit;
 }
 
-/* Terminal utility classes */
-.terminal-command-prompt {
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  line-height: 1.5rem;
-}
-
-.terminal-command-prompt .command-prompt {
-  margin-right: 0.5rem;
-}
-
-.terminal-content-padding {
-  padding: 2rem 1rem 2rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-@media (min-width: 640px) {
-  .terminal-content-padding {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
 .terminal-header-style {
   padding: 0.5rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-}
-
-.terminal-profile-grid {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 3rem;
-}
-
-@media (min-width: 1024px) {
-  .terminal-profile-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.terminal-profile-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.terminal-profile-label {
-  color: hsl(var(--primary));
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  line-height: 1.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.terminal-profile-value {
-  color: hsl(var(--foreground));
-  line-height: 1.625;
-}
-
-.terminal-tech-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.terminal-philosophy-box {
-  margin-top: 2rem;
-  padding: 1rem;
-  background: hsl(var(--muted) / 0.2);
-  border-radius: var(--radius);
-  border-left: 4px solid hsl(var(--primary));
-}
-
-@media (min-width: 640px) {
-  .terminal-philosophy-box {
-    padding: 1.5rem;
-  }
-}
-
-.terminal-status-line {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid hsl(var(--border));
-}
-
-@media (min-width: 640px) {
-  .terminal-status-line {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-  }
-}
-
-/* About Me cursor-relative glow */
-.terminal-about-me::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 300ms;
-  pointer-events: none;
-  background: radial-gradient(
-    250px circle at var(--mouse-x) var(--mouse-y),
-    hsl(var(--primary) / 0.12),
-    transparent 50%
-  );
-  z-index: 0;
-}
-
-.terminal-about-me:hover::before {
-  opacity: 1;
-}
-
-html.dark .terminal-about-me::before {
-  background: radial-gradient(
-    250px circle at var(--mouse-x) var(--mouse-y),
-    hsl(var(--primary) / 0.18),
-    transparent 50%
-  );
 }
 
 /*
@@ -547,6 +364,12 @@ html.dark .terminal-about-me::before {
 .terminal-dialog .terminal-window {
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
+}
+
+/* Focus starts on the window (see useModalDialog), and a ring around all of it would only shout. */
+.terminal-dialog .terminal-window:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-card);
 }
 
 /* Without this the dark window scrolls with the browser's light scrollbar, the brightest thing in it */

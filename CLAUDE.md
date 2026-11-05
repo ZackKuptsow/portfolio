@@ -48,17 +48,22 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 - Next.js 15 application using React 19
 - Tailwind CSS for styling with custom CSS variables for theming
 - Component-based architecture in `components/` directory
-- Custom glow cursor effect and theme toggle functionality
+- `/` and `/projects.html` are one stationary terminal that scrolling drives (`components/Terminal/`, spec in `projects/resume/DESIGN.md`, how it works in "The terminal" in the resume README). The server HTML is the plain flow: every section in one reading column, which is what no script, reduced motion, plain view and print get. The engine moves, clips and hides that markup and writes no text of its own, so every word stays in the HTML
+- One swipe does one thing in the terminal, momentum included: it starts a command, finishes one, or stops at the edge of the output, and what is left of it does nothing until the input goes quiet (`engine/scrollGesture.ts`). Every scroll check has to allow for this, or a steady wheel never gets past the end of a section. Zack sets the scroll distances and animation times by feel, and they are all in `components/Terminal/constants.ts`. On 2026-11-05 he called the speed "absolutely perfect", so leave those times alone unless he says otherwise
+- What is printed stays printed: inside a section, going up is a plain 1:1 scroll with no command and nothing reprinted, and only going past the top of a section types one. So cards share the scroll track, and a scroll position cannot say which card has been reached: cards that fit on screen together end in one place (`engine/scrollMap.ts`)
+- `app/prePaintScript.ts` sets the theme and turns the terminal on before the first paint. Dark for everyone unless a stored choice says otherwise. Its failsafe hands the page back to the plain flow if the script has not taken over in 6 seconds
+- The terminal's theme switch is in its menu. The SMS pages and the 404 have no menu, so they keep the corner `ThemeToggle`
+- Custom glow cursor effect
 - Static export deployed to S3 via CloudFront
-- Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF as a download, as a link that opens it in the browser, and by email through the send_resume API
+- Get-resume modal (`components/GetResume/`): a native `<dialog>` offering the PDF as a download, as a link that opens it in the browser, and by email through the send_resume API. It is mounted at the terminal's root, because `showModal` inside a hidden section shows nothing, and closing it by any route loads Projects
 - The modal's QR code opens the PDF on a phone. Its drawing is the committed `qrCodeArtwork.json`, which a test redraws when run with `-u` (see "QR code" in the resume README). The section is hidden below the `sm` breakpoint (`max-sm:hidden`), because a phone cannot scan its own screen, and only a browser can check that rule
 - Fonts are committed in `app/fonts/` with their licenses and loaded with `next/font/local`, so a build needs no network, and ESLint forbids `next/font/google`. Each variable file needs its weight given as a range, or bold is smeared. `→` and `←` are in neither file, so the generated `… Fallback` rule sets their width (see "Fonts" in the resume README)
 - Content lives in `data/`: `identity.ts` (name forms, role, location, email, profile links, site URL) and `profile.ts` (jobs, degrees, skills, about copy). Job highlights, skills and the bio are copied from the public resume, so change the resume first. The page shows a selection, and the Qlik entry and degree descriptions exist only on the page
 - No em dash or en dash in anything a visitor reads. `test/data/copy.test.ts` and `test/app/page.test.tsx` enforce it
 - Search engines: `app/siteMetadata.ts`, `components/StructuredData/` (schema.org `ProfilePage`), `app/robots.ts`, `app/sitemap.ts`, and the committed `app/opengraph-image.png` (source in `share-image/`)
-- Every prompt symbol (`.command-prompt`) sits inside an `aria-hidden` element, and `test/app/page.test.tsx` checks all of them. Arrows and `[EOF]` are hidden too
+- Every prompt symbol (`.command-prompt`) sits inside an `aria-hidden` element, and `test/app/page.test.tsx` checks all of them. Arrows, `[EOF]` and the typed commands are hidden too
 - Three pages serve the household assistant's Twilio SMS campaign: `/sms.html` (opt-in proof), `/privacy.html` and `/terms.html`, built from `data/householdAssistantSms.ts`. The campaign links these exact addresses, with `.html`, so renaming one breaks the registration. They are noindex and outside the sitemap. The three Twilio replies in that file are configured in Twilio word for word (see "The household assistant's pages" in the resume README)
-- Sections render visible on the server, and the running script hides only one that starts below the fold (`components/ScrollFadeIn/`). The observer's threshold must stay 0: a fraction of a section many screens tall never fits on a phone, and the section would stay hidden
+- No comment lines or jokes in the output. Zack, shown six drafts: "I will add them if I want them"
 
 ### Infrastructure Stack
 - AWS S3 bucket for static site hosting
@@ -79,7 +84,7 @@ yarn cdk                 # CDK CLI commands (deploy needs CDK_DEFAULT_ACCOUNT/RE
 ## Testing
 
 - Resume project: Uses Vitest with jsdom and Testing Library; suites in `test/` mirror `app/`, `components/` and `data/`
-- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: sections revealed on a phone, matching section headers, sideways scroll, focus in the modal, and the QR code's breakpoint. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
+- Resume project, after `yarn build`: `test-built-site/` (Vitest) reads the files in `out/`, and `test-browser/` (Playwright, in the installed Chrome, no browser download) checks what jsdom cannot see: every line readable whole at every scroll position, a real scrollbar included, the commands, the resume route, rotation, the plain flow, sideways scroll, focus in the modal, and the QR code's breakpoint. `getResumeWindow.ts` goes through plain view, because the terminal has no button. Every request to another host is aborted, so no browser check can send an email. See "Checks that need a build" in the resume README
 - Send Resume project: Uses Vitest with coverage reporting via @vitest/coverage-v8
 - Test files located in `test/` directories, mirroring the source layout (`functions/` in send_resume; `app/`, `components/` and `data/` in resume)
 - Run individual tests: `yarn test test/intake/rate_limit.test.ts`

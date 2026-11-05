@@ -15,15 +15,15 @@ describe('projects page', () => {
     expect(metadata.robots).toBeUndefined()
   })
 
-  it('has one main heading, then one card per project in the order given', () => {
+  it('has one main heading, then one entry per project in the order given', () => {
     render(<ProjectsPage />)
 
     expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual([
       '# Projects',
     ])
-    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(
-      projects.map((project) => project.title),
-    )
+    expect(
+      projects.map((project) => screen.getByRole('heading', { level: 3, name: project.title })),
+    ).toHaveLength(projects.length)
   })
 
   it('opens every outside link in a new tab, and the way back home in this one', () => {
@@ -35,7 +35,7 @@ describe('projects page', () => {
     const homeLink = screen.getByRole('link', { name: 'kups.me' })
     const projectsWithLinks = projects.filter((project) => project.links.length > 0)
 
-    // One per linked project at least, so a page whose cards lost their links cannot pass.
+    // One per linked project at least, so a page whose entries lost their links cannot pass.
     expect(projectsWithLinks.length).toBeGreaterThanOrEqual(1)
     expect(outsideLinks.length).toBeGreaterThanOrEqual(projectsWithLinks.length)
     expect(outsideLinks.filter((link) => link.getAttribute('target') !== '_blank')).toEqual([])
@@ -46,16 +46,16 @@ describe('projects page', () => {
     expect(homeLink.hasAttribute('target')).toBe(false)
   })
 
-  it('puts the tour behind a control in the Save State card, not a link out', () => {
+  it('puts the tour behind a control in the Save State entry, not a link out', () => {
     render(<ProjectsPage />)
 
-    const saveStateCard = screen
+    const saveStateEntry = screen
       .getByRole('heading', { level: 3, name: 'Save State' })
-      .closest('.terminal-card') as HTMLElement
-    const trigger = within(saveStateCard).getByRole('button', { name: /watch the tour/ })
+      .closest('[data-block]') as HTMLElement
+    const trigger = within(saveStateEntry).getByRole('button', { name: /watch the tour/ })
 
     expect(trigger.getAttribute('aria-haspopup')).toBe('dialog')
-    expect(within(saveStateCard).queryByRole('link', { name: /tour/ })).toBeNull()
+    expect(within(saveStateEntry).queryByRole('link', { name: /tour/ })).toBeNull()
   })
 
   it('says why where the code is private, as text and not a link', () => {

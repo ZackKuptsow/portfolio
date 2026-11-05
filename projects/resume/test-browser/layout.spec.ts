@@ -1,5 +1,6 @@
 import { expect, test } from './browserTest'
 import { openGetResumeWindow } from './getResumeWindow'
+import { readWidestSceneOverflow, waitForTerminal } from './terminal'
 
 import type { Locator } from '@playwright/test'
 
@@ -16,17 +17,23 @@ function readSidewaysOverflow(element: Locator): Promise<number> {
 }
 
 for (const width of VIEWPORT_WIDTHS) {
-  test(`nothing scrolls sideways at ${width}px wide`, async ({ page }) => {
+  test(`nothing runs off the side at ${width}px wide, in the terminal or the plain flow`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ height: VIEWPORT_HEIGHT, width })
     await page.goto('/')
-    await page.evaluate(async () => {
-      await document.fonts.ready
-    })
+    await waitForTerminal(page)
 
+    // The terminal cannot scroll sideways, so text too wide for it would just be cut off.
     expect(await readSidewaysOverflow(page.locator('html'))).toBe(0)
+    expect(await readSidewaysOverflow(page.locator('.terminal-scroller'))).toBe(0)
+    expect(await readSidewaysOverflow(page.locator('.terminal-title-bar'))).toBe(0)
+    expect(await readSidewaysOverflow(page.locator('.terminal-footer'))).toBe(0)
+    expect(await readWidestSceneOverflow(page)).toBe(0)
 
     const { scrollArea } = await openGetResumeWindow(page)
     await expect(scrollArea).toBeVisible()
+    expect(await readSidewaysOverflow(page.locator('html'))).toBe(0)
     expect(await readSidewaysOverflow(scrollArea)).toBe(0)
   })
 }

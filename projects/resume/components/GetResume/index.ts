@@ -1,1 +1,1 @@
-export { GetResume } from './GetResume'
+export { GetResume, GetResumeTrigger } from './GetResume'

@@ -2,8 +2,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { GetResume } from '@/components/GetResume'
+import { GetResume as GetResumeWindow, GetResumeTrigger } from '@/components/GetResume'
 import artwork from '@/components/GetResume/components/QrCodeOption/qrCodeArtwork.json'
+import { useModalDialog } from '@/components/useModalDialog'
 
 import type { UserEvent } from '@testing-library/user-event'
 
@@ -16,6 +17,17 @@ const QR_CODE_SIZE = '185'
 const SUCCESS_MESSAGE =
   'Got it. Look for an email from resume@kups.me titled "Zack Kuptsow Resume". It can take a minute, and it may land in spam.'
 const TRIGGER_NAME = './get_resume.sh'
+
+/** The window and its plain-flow button, wired as the page wires them. */
+function GetResume({ onClose }: { onClose?: () => void }) {
+  const controls = useModalDialog()
+  return (
+    <>
+      <GetResumeTrigger onOpen={controls.open} />
+      <GetResumeWindow controls={controls} onClose={onClose} />
+    </>
+  )
+}
 
 async function renderAndOpenDialog(user: UserEvent): Promise<HTMLElement> {
   render(<GetResume />)
@@ -37,13 +49,14 @@ describe('GetResume', () => {
     expect(screen.getByRole('dialog', { name: DIALOG_NAME }).hasAttribute('open')).toBe(true)
   })
 
-  // A browser picks the first focusable thing in the dialog on its own. Once the window is
-  // taller than the screen that is the scrolling window itself, so the dialog says where to start.
-  it('starts keyboard focus on the close button', async () => {
+  // A browser picks the first focusable thing in the dialog on its own, which depends on whether the
+  // window has to scroll. And a ring on the close button, as the terminal opens it, is the wrong
+  // thing to shout. Whether a ring shows, and what Tab reaches, is for `getResume.spec.ts`.
+  it('starts keyboard focus on the window, and not on the close button', async () => {
     const user = userEvent.setup()
     const dialog = await renderAndOpenDialog(user)
 
-    expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: CLOSE_NAME }))
+    expect(document.activeElement).toBe(dialog.querySelector('.terminal-window'))
   })
 
   it('closes from the close button', async () => {
@@ -53,6 +66,22 @@ describe('GetResume', () => {
     await user.click(within(dialog).getByRole('button', { name: CLOSE_NAME }))
 
     expect(dialog.hasAttribute('open')).toBe(false)
+  })
+
+  it('reports the close by every route, since closing loads Projects', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    render(<GetResume onClose={onClose} />)
+    const trigger = screen.getByRole('button', { name: TRIGGER_NAME })
+
+    await user.click(trigger)
+    await user.click(screen.getByRole('button', { name: CLOSE_NAME }))
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: DIALOG_NAME })
+    fireEvent.pointerDown(dialog)
+    fireEvent.click(dialog, { detail: 1 })
+
+    expect(onClose).toHaveBeenCalledTimes(2)
   })
 
   it('closes on a click that starts and ends on the backdrop', async () => {

@@ -1,16 +1,20 @@
 import { CLOSE_BUTTON_LABEL } from '@/components/TerminalDialog/constants'
-import { PROJECTS_PAGE_PATH, SAVE_STATE_TOUR } from '@/data/projects'
+import { PROJECTS_PAGE_PATH, SAVE_STATE_TOUR, projects } from '@/data/projects'
 
 import { expect, test } from './browserTest'
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from './constants'
+import {
+  pointAtOutput,
+  readTerminal,
+  scrollToTheEndOfTheStep,
+  waitForTerminal,
+  wheelUntilNextCommand,
+} from './terminal'
 
 import type { Locator, Page } from '@playwright/test'
 
-// The window opens in the same instant as a click that lands, so this only has to outlast
-// one repaint.
-const OPENED_CHECK_MILLISECONDS = 1_000
-const OPENING_LIMIT_MILLISECONDS = 10_000
 const TRIGGER_NAME = `${SAVE_STATE_TOUR.triggerLabel} (${SAVE_STATE_TOUR.durationLabel})`
+const SAVE_STATE_INDEX = projects.findIndex((project) => project.video === SAVE_STATE_TOUR)
 
 /** How many pixels of an element's content lie past its right edge. */
 function readSidewaysOverflow(element: Locator): Promise<number> {
@@ -18,17 +22,23 @@ function readSidewaysOverflow(element: Locator): Promise<number> {
 }
 
 /**
- * Opens the tour the way a visitor does, with a click on its control. The page can be read
- * before its script has given the control something to do, and a click in that gap does
- * nothing, so the click is repeated until the window is open.
+ * Opens the tour the way a visitor does: the page opens at the first project, so scroll on to
+ * the project with the recording, and press its control.
  */
 async function openTour(page: Page): Promise<Locator> {
+  await waitForTerminal(page)
+  await pointAtOutput(page)
+  for (let printed = 0; printed < SAVE_STATE_INDEX; printed += 1) {
+    await wheelUntilNextCommand(page, 'down')
+  }
+  // On a phone the control is further down than a screen, so read on to it.
+  await scrollToTheEndOfTheStep(page)
   const trigger = page.getByRole('button', { name: TRIGGER_NAME })
   const dialog = page.getByRole('dialog', { name: SAVE_STATE_TOUR.title })
-  await expect(async () => {
-    await trigger.click()
-    await expect(dialog).toBeVisible({ timeout: OPENED_CHECK_MILLISECONDS })
-  }).toPass({ timeout: OPENING_LIMIT_MILLISECONDS })
+  // As laid out, which a flex box would run together: `watch the tour(1:31)`.
+  expect(await trigger.innerText()).toBe(`→ ${TRIGGER_NAME}`)
+  await trigger.click()
+  await expect(dialog).toBeVisible()
   return dialog
 }
 
@@ -63,16 +73,12 @@ test('the close button closes the tour and the page does not scroll sideways on 
 }) => {
   await page.setViewportSize(PHONE_VIEWPORT)
   await page.goto(PROJECTS_PAGE_PATH)
-  await page.evaluate(async () => {
-    await document.fonts.ready
-  })
-
-  expect(await readSidewaysOverflow(page.locator('html'))).toBe(0)
 
   const dialog = await openTour(page)
   await dialog.getByRole('button', { name: CLOSE_BUTTON_LABEL }).click()
 
   await expect(dialog).toBeHidden()
+  expect(await readSidewaysOverflow(page.locator('html'))).toBe(0)
 })
 
 test('no script error on load or when the tour opens', async ({ page }) => {
@@ -83,4 +89,35 @@ test('no script error on load or when the tour opens', async ({ page }) => {
   await openTour(page)
 
   expect(errors).toEqual([])
+})
+
+test.describe(`the terminal at ${PROJECTS_PAGE_PATH}`, () => {
+  test.use({ viewport: LAPTOP_VIEWPORT })
+
+  test('opens already at Projects, with one main heading once every section is on the page', async ({
+    page,
+  }) => {
+    await page.goto(PROJECTS_PAGE_PATH)
+    await waitForTerminal(page)
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('# Projects')
+    await expect(page.locator('h1')).toHaveCount(1)
+    await expect(page.locator('.terminal-title')).toContainText('~/portfolio/projects')
+    await expect(page.getByRole('heading', { name: projects[0].title })).toBeInViewport()
+    await expect(page.locator('[data-scene="hero"]')).toBeHidden()
+    expect((await readTerminal(page)).step).toBeGreaterThan(0)
+  })
+
+  test('goes up into Skills like the home page, since it is the same terminal', async ({
+    page,
+  }) => {
+    await page.goto(PROJECTS_PAGE_PATH)
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+
+    await wheelUntilNextCommand(page, 'up')
+
+    await expect(page.getByRole('heading', { exact: true, name: 'Skills' })).toBeInViewport()
+    await expect(page.locator('dialog[open]')).toHaveCount(0)
+  })
 })

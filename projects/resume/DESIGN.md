@@ -6,11 +6,10 @@ its exact name and keeps its column headers as written: a renamed header or a mi
 a check with exit 2, never a pass. Edit the values and the prose freely; keep the headings and the
 headers.
 
-**Status: a direction, not a description.** The colours, fonts and SMS pages below are what the
-site has today. The terminal direction was reached with Zack over nine rounds of live prototypes
-on 2026-11-04 and has not been built, so most of the home page does not match it yet. "Page N"
-below means the decision page of that round. The prototypes are throwaway, so this brief carries
-everything they decided.
+**Status: built.** This describes the site. The terminal direction was reached with Zack over nine
+rounds of live prototypes on 2026-11-04 and built the same day (`components/Terminal/`, and see
+"The terminal" in the README for how). "Page N" below means the decision page of that round. The
+prototypes are throwaway, so this brief carries everything they decided.
 
 ## Brand and style
 
@@ -42,8 +41,8 @@ Brand: short form, 2026-11-04
 - **Voice:** "playful, should speak kinda like I am a hacker communicating with you over terminal
   (there are secret agent-ish hacker apps that do this storyline well)." Rules, as he stated them:
   "You should never talk about comp, why I left jobs." "Each new copy line (even outside this)
-  should be run by me." Comment lines are "true stories about building site and my experience but
-  also include some jokes."
+  should be run by me." No comment lines: shown six drafts, "Let's not do funny comments. I will add
+  them if I want them."
 - **Recognisable by:** The terminal look, "the site's identity" (issue #7), and `./tech.polyglot`:
   "I couldn't think of anything else that makes it seem like I experiment with all tech (i.e. smart
   home, local llm, hermes, text assistant, productivity and tooling)."
@@ -64,35 +63,56 @@ with later notes folded in below.
   window and the tour, which open over the terminal.
 - Reading scroll is 1:1. Scrolling past the end of a section triggers a command, which then types at
   its own time-based pace, not at the speed of the scroll.
-- The screen clears between sections, and output streams top-down in whole rows, on every pass and
-  in both directions.
+- The screen clears between sections, and a section's output streams top-down in whole rows, whichever
+  way the reader arrives.
 - Cards print one at a time within Work Experience, Education and Projects, with no clearing inside
-  a section. Skills is one cluster with one command, every column printing together line by line.
+  a section. Skills is one cluster with one command: what is above the columns, then column 1, then
+  2, then 3, each line by line ("It should type out column 1 and then 2 then 3"). Stacked on a phone,
+  that is simply top down.
+- What is printed stays printed. Inside a section, scrolling back up is a plain 1:1 scroll, with no
+  command and nothing reprinted, and the cards below stay where they are ("if the entry is already
+  present it shouldn't have to redraw the whole page"), because no terminal reprints its scrollback.
+  Coming back down is the same, until past the last line printed, where the next card's `cat` types.
+  Only going past the top of a section types a command, because `clear` really did wipe the one above.
 - No command lines appear in the output. The prompt shows them.
-- Scrolling on while a command runs, or clicking, fast-forwards it.
+- One swipe does one thing, momentum included: it starts a command, finishes one, or stops at the
+  edge of the output, its last line going down and the top of the section going up. What is left of
+  it does nothing, until the input goes quiet. So a flick moves one step at most, however hard, and
+  no section is ever skipped by scrolling.
+- A new swipe while a command runs, or clicking, fast-forwards it.
+- A swipe that stops short of a command is forgotten a moment later, so swipes a while apart never
+  add up to one.
 - Scrolling up from the first screen types `exit` and reprints the hero. There is no logout screen.
 
 ### Commands
 
-Upward commands read as the reverse trip. `tac` was rejected ("That doesn't make sense").
+Upward commands read as the reverse trip. `tac` was rejected ("That doesn't make sense"). Going up
+types only on arriving in a section from the one below, and lands on its last card, with its earlier
+cards there to scroll back through.
 
-| Section         | Scrolling down types                                                  | Scrolling up types                                                                 | Menu types                                       |
-| --------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Hero            | `whoami`                                                              | `clear && cd ~ && whoami`                                                          | `clear && cd ~ && whoami`                        |
-| About           | `clear && cat developer.profile`                                      | `cd .. && cat developer.profile`                                                   | `clear && cat ~/portfolio/developer.profile`     |
-| Work Experience | `clear && cd ./work_experience && ls`, then `cat <file>.txt` per card | `cd .. && cat work_experience/<file>.txt` across sections, `cat <file>.txt` within | `clear && cd ~/portfolio/work_experience && ls`  |
-| Education       | `clear && cd ../education && ls`, then `cat <file>.txt` per card      | `cd .. && cat education/<file>.txt` across sections, `cat <file>.txt` within       | `clear && cd ~/portfolio/education && ls`        |
-| Skills          | `clear && cd ../skills && ls -la`                                     | `cd .. && ls -la skills/`                                                          | `clear && cd ~/portfolio/skills && ls -la`       |
-| Resume          | `wget kups.me/get_resume.sh && sh get_resume.sh`                      | skipped: going up never opens the window                                           | `wget kups.me/get_resume.sh && sh get_resume.sh` |
-| Projects        | `clear && cd ../projects && ls`, then `cat <file>.txt` per card       | `cat <file>.txt` within                                                            | `clear && cd ~/portfolio/projects && ls`         |
+These are the commands of a straight read, and a command must be true of the fake filesystem by
+any route, so `components/Terminal/buildCommand.ts` works each one out from the folder the prompt
+is in. Going up, the table's `cd ..` is true only for the first hop out of a folder: after it the
+prompt is in the portfolio, so the next hop is `cat education/<file>.txt`. The session starts in
+`~/portfolio`, which makes the first command true as typed.
+
+| Section         | Scrolling down types                                                  | Scrolling up types                                 | Menu types                                       |
+| --------------- | --------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| Hero            | `whoami`                                                              | `clear && cd ~ && whoami`                          | `clear && cd ~ && whoami`                        |
+| About           | `clear && cat developer.profile`                                      | `cd .. && cat developer.profile`                   | `clear && cat ~/portfolio/developer.profile`     |
+| Work Experience | `clear && cd ./work_experience && ls`, then `cat <file>.txt` per card | `cd .. && cat work_experience/<last file>.txt`     | `clear && cd ~/portfolio/work_experience && ls`  |
+| Education       | `clear && cd ../education && ls`, then `cat <file>.txt` per card      | `cd .. && cat education/<last file>.txt`           | `clear && cd ~/portfolio/education && ls`        |
+| Skills          | `clear && cd ../skills && ls -la`                                     | `cd .. && ls -la skills/`                          | `clear && cd ~/portfolio/skills && ls -la`       |
+| Resume          | `wget kups.me/get_resume.sh && sh get_resume.sh`                      | skipped: going up never opens the window           | `wget kups.me/get_resume.sh && sh get_resume.sh` |
+| Projects        | `clear && cd ../projects && ls`, then `cat <file>.txt` per card       | nothing: there is no section below it to come from | `clear && cd ~/portfolio/projects && ls`         |
 
 ### The resume
 
 Reaching the end of Skills types the `wget` command, clears the screen, runs a fake download with a
-progress bar that hesitates in the middle, and opens the resume window, about 4 seconds from the
-scroll point (slowed at his word on page 8, confirmed on page 9). Scrolling or clicking skips it to
-under 0.1 seconds. Closing the window, by any route, types the Projects command and loads Projects
-under it.
+progress bar that hesitates in the middle, and opens the resume window, about 6.5 seconds from the
+scroll point (slowed at his word on page 8, and again on trying the build). A new swipe or a click
+skips it to under 0.1 seconds. Closing the window, by any route, types the Projects command and
+loads Projects under it.
 
 `get_resume.sh` is decoration, and `kups.me/get_resume.sh` stays a 404 (his choice, page 8).
 
@@ -111,8 +131,9 @@ project, as `components/ProjectDemo/` does today.
   section closes the drawer and types that section's command.
 - The menu holds the sections, plain view and the theme switch, then whatever the footer could not
   fit.
-- The footer stays pinned under the prompt at all times: LinkedIn, GitHub, Email and Projects, then
-  the built-with line and the copyright where they fit.
+- The footer stays pinned under the prompt at all times: LinkedIn, GitHub and Email, then the
+  built-with line and the copyright where they fit. Projects is not in it ("we should probably remove
+  projects here"): it is a section, with its place in the menu.
 - Hero: free-floating `~/root/portfolio`, the glowing handle, the `./tech.polyglot` tagline and the
   pulsing line. The visible name line is gone, as he found it redundant, and the `<h1>` stays in the
   page, visually hidden. About keeps `Last updated: 2026` and the `echo` line.
@@ -123,42 +144,43 @@ project, as `components/ProjectDemo/` does today.
 
 Reduced motion, no JavaScript and plain view all get every section in one reading column, nothing
 cleared, no prompt. Print does too. `./get_resume.sh` shows there as a button, because there is no
-prompt to type it into.
+prompt to type it into. The hero fills the first screen under the title bar, and About starts below
+the fold ("let's make sure in plain view the hero page still fits the screen properly").
 
 ### Timing
 
-The values the prototype ended on, which he approved by feel.
+The prototype's values read trackpad momentum as the reader scrolling on. On trying the build (Zack,
+2026-11-04): "The scroll sensitivity and thresholds needs A LOT more grace. It's spazzing out. The
+animations need to be slowed down a lot as well." These are the values after that, all in
+`components/Terminal/constants.ts`, and they are his to set by feel. On trying them (2026-11-05): "The
+speed is absolutely perfect." So leave them alone unless he says otherwise.
 
-| What                                                     | Value                                            |
-| -------------------------------------------------------- | ------------------------------------------------ |
-| Scroll past the end of a section that triggers a command | 90 points                                        |
-| Scroll while a command runs that fast-forwards it        | 260 points                                       |
-| Scroll up on the first screen that types `exit`          | 120 points, 90 by touch                          |
-| A flick holds at the end of a section                    | 320 ms                                           |
-| Typing a command                                         | 800 ms in all, 20 to 62 ms a character, jittered |
-| Pause after Enter                                        | 120 ms                                           |
-| Printing a section's output                              | 420 ms in all                                    |
-| Download: pauses before each of its five lines           | 180, 360, 340, 300, 140 ms                       |
-| Download: progress tick                                  | 90 ms, 240 ms between 55% and 75%                |
-| Download: after saved, then before the window            | 240 ms, then 550 ms                              |
-| Drawer closes                                            | 190 ms                                           |
+| What                                                     | Value                                              |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| Scroll past the end of a section that triggers a command | 300 points                                         |
+| A new swipe while a command runs that fast-forwards it   | 500 points, 160 by touch                           |
+| Scroll up on the first screen that types `exit`          | 400 points, 240 by touch                           |
+| Input this far apart is two swipes                       | 200 ms                                             |
+| A swipe short of a command is forgotten after            | 700 ms                                             |
+| Typing a command                                         | 1800 ms in all, 40 to 120 ms a character, jittered |
+| Pause after Enter                                        | 320 ms                                             |
+| Printing a section's output                              | 70 ms a line, 1500 ms at most                      |
+| Download: pauses before each of its five lines           | 270, 540, 510, 450, 210 ms                         |
+| Download: progress tick                                  | 130 ms, 360 ms between 55% and 75%                 |
+| Download: after saved, then before the window            | 360 ms, then 800 ms                                |
+| Drawer closes                                            | 190 ms                                             |
 
-### Draft copy, not approved
+### New copy
 
-New wording from the prototypes. None of it ships until Zack has approved the line, and a comment
-line must be true when it does.
+Each line approved by Zack on 2026-11-04.
 
-- Comments: `# the fonts live in the repo now. google fonts used to take down one build in twelve.`,
-  `# 400,000+ lines touched, zero downtime. feature flags are a love language.`,
-  `# two degrees, one school, so the files need prefixes.`,
-  `# this header sat beside its heading for 14 months. one css selector. fixed today.`,
-  `# hundreds of escalated production issues. the django shell and i are close.`,
-  `# threshold 0. at 0.1 this section is eleven screens tall on a phone and never appears. ask me how i know.`
 - Download: `--<date> <time>--  https://kups.me/get_resume.sh`, `Resolving kups.me... done.`,
   `Connecting to kups.me:443... connected.`, `HTTP request sent, awaiting response... 200 OK`,
-  `Saving to: 'get_resume.sh'`, `'get_resume.sh' saved`, `Opening the resume...`
-- Menu: `light mode`, `dark mode`, `plain view`, `terminal view`, and the section entries `~/whoami`,
-  `developer.profile`, `work_experience/`, `education/`, `skills/`, `get_resume.sh`, `projects/`
+  `Saving to: 'get_resume.sh'`, `get_resume.sh  62%[====>   ] 1.3K`, `'get_resume.sh' saved`,
+  `Opening the resume...`
+- Menu: `$ ls ~/portfolio`, `light mode`, `dark mode`, `plain view`, `terminal view`, and the section
+  entries `~/whoami`, `developer.profile`, `work_experience/`, `education/`, `skills/`,
+  `get_resume.sh`, `projects/`
 
 ## Colours
 
@@ -196,9 +218,9 @@ the project's own CSS variables, so a later build can use them as they are. `tex
 | primary-foreground     | #ffffff | #000000 | Text on primary where a component asks for it (from app/globals.css)                                                                                     |
 | arrow                  | #858585 | #07a007 | List arrows, drawn as primary at 60% over background (from components/Card.tsx:130)                                                                      |
 | muted                  | #ebebeb | #141414 | The email field (from app/globals.css)                                                                                                                   |
-| muted-foreground       | #666666 | #a3c2a3 | Subtitles, listings, comments, footer links, placeholder (from app/globals.css)                                                                          |
+| muted-foreground       | #666666 | #a3c2a3 | Subtitles, listings, footer links, placeholder (from app/globals.css)                                                                                    |
 | border                 | #cccccc | #004d00 | Dividers and decoration, which carry no meaning (from app/globals.css)                                                                                   |
-| control-edge           | #858585 | #004d00 | The edge of a control. Light as drawn on page 9, dark from the border token in app/globals.css                                                           |
+| control-edge           | #858585 | #07a007 | The edge of a control. Light as drawn on page 9. Dark is the arrow's colour, his pick: #004d00 measured 1.94                                             |
 | error-text             | #b81e1e | #ef4444 | Email errors (from app/globals.css)                                                                                                                      |
 | ring                   | #333333 | #00ff00 | Keyboard focus (from app/globals.css)                                                                                                                    |
 | destructive            | #ef4444 | #ef4444 | Kept from the theme, used by nothing the direction draws (from app/globals.css)                                                                          |
@@ -230,7 +252,7 @@ scheme, as `contrast.py` computes it. Read from `components/Card.tsx`, `componen
 | background       | primary    | text     | 12.63       | 13.65      |
 | error-text       | card       | text     | 6.2         | 5.26       |
 | arrow            | background | boundary | 3.69        | 5.39       |
-| control-edge     | card       | boundary | 3.54        | 1.94       |
+| control-edge     | card       | boundary | 3.54        | 5.69       |
 | ring             | background | boundary | 12.63       | 13.65      |
 
 ## Typography
@@ -261,7 +283,6 @@ phone, and 17 and 15 at the terminal's widest. The build changes that comment wi
 | Listing and download | 13/21     | JetBrains Mono                 | muted-foreground | `low_rate_co.txt   draynow.txt`, the fake download        |
 | Prompt               | 13/20     | JetBrains Mono                 | foreground       | The path, `$` and the typed command                       |
 | Button               | 14/20     | JetBrains Mono 600             | background       | The terminal button                                       |
-| Comment              | 12/18     | JetBrains Mono italic          | muted-foreground | The true stories and jokes                                |
 | Footer and title bar | 12/18     | JetBrains Mono                 | muted-foreground | Footer links, the title bar's path                        |
 | Built-with line      | 11/15     | JetBrains Mono                 | muted-foreground | Footer and menu                                           |
 | SMS body             | 16/26     | IBM Plex Sans                  | foreground       | The three SMS pages, which a reviewer reads word for word |
@@ -373,14 +394,16 @@ Each with its states. The browser's own controls, with a visible focus: 2 points
 - **Footer:** arrows and links on `card`, pinned under the prompt. Hover: `primary`. Focus: ring.
 - **Drawer:** entries on `card`, from the right, 240 wide and at most 80% of the screen. Hover: a tint of
   `primary`. Current section: `primary` with glow. Focus: ring. Opening it moves nothing behind it.
-- **Output:** heading, listing, entry title, subtitle, list with arrows, `[EOF]` and comment, on
-  `background`. Headings glow on hover. Links: `primary`, underlined with glow on hover, focus ring.
+- **Output:** heading, listing, entry title, subtitle, list with arrows and `[EOF]`, on `background`.
+  Headings glow on hover. Links: `primary`, underlined with glow on hover, focus ring.
 - **Terminal button:** filled `primary` with `background` text. Hover: transparent with `primary` text
   and glow. Pressed: as hover. Focus: ring. Its quieter twin is outlined and fills on hover (from
   components/GetResume/constants.ts).
 - **Resume window:** a native `<dialog>`, with download, open, email and QR code. Escape, the close
-  button and the backdrop close it, and closing loads Projects. The QR code hides below `sm`, because a
-  phone cannot scan its own screen (from components/GetResume/GetResume.tsx).
+  button and the backdrop close it, and closing loads Projects. It opens with the keyboard on the window
+  itself, which draws no ring, and nothing on it lit up ("the esc is focused on open"): Tab reaches the
+  close button first, with its ring. The QR code hides below `sm`, because a phone cannot scan its own
+  screen (from components/GetResume/GetResume.tsx).
 - **Email field:** on `muted`. Default: `border` edge with `muted-foreground` placeholder. Submitting:
   read-only, with animated dots and the send button at half strength. Invalid: `error-text` edge and
   message, focus back on the field. Success: the form goes and a `foreground` message takes focus. Rate
@@ -417,12 +440,10 @@ does not ask for one.
 - Do keep the name in the `<h1>`, with the role and city, and both name forms visible somewhere in the
   page. It is how the site is found by name. The hero's line is hidden visually, never removed.
 - Do keep every prompt symbol, arrow and `[EOF]` inside an `aria-hidden` element, because
-  `test/app/page.test.tsx` checks them. Typed commands and comments are decoration for the same reason.
+  `test/app/page.test.tsx` checks them. Typed commands are decoration for the same reason.
 - Don't use an em dash or en dash in anything a visitor reads, because `test/data/copy.test.ts` enforces
   it.
 - Do keep sections a visitor never scrolled to in the printout: print gets the plain flow.
-- Do keep the fade-in observer's threshold at 0 wherever an observer reveals a section, because a
-  fraction of a section many screens tall never fits on a phone.
 
 **The direction:**
 
@@ -432,13 +453,16 @@ does not ask for one.
 - Don't add a logout screen. "I just want it to go back to the hero page."
 - Don't add colour to the light theme, because he chose it as it is, on page 9.
 - Don't make `kups.me/get_resume.sh` real, because he chose decoration on page 8.
-- Don't ship a new line of copy, comment or joke without his approval, or mention comp or why he left a
-  job.
+- Don't ship a new line of copy without his approval, or mention comp or why he left a job. Don't add
+  comment lines or jokes: "I will add them if I want them."
 
 **Traps the prototypes found, each measured in Chrome:**
 
 - Do map scroll to steps, not to an element reaching a line. A section's last line must stay reachable,
   and the first version left the last section hidden.
+- Don't read which card the reader has reached from the scroll position alone. Cards share the track
+  inside a section, and cards that fit on screen together end in one place: reading past the end of one
+  as past the end of the next skipped a degree, and the screen went on to Skills.
 - Do clip lines whole at every scroll position, and check every position with a real scrollbar showing.
   Playwright hides scrollbars by default, which hid this: with one showing, 363 of 557 phone positions
   cut a line through the middle. Remove `--hide-scrollbars` and assert the scrollbar's width.
@@ -447,12 +471,11 @@ does not ask for one.
 - Don't let the code's own scroll moves read as the reader scrolling on. It made the menu skip the
   download and its printing, and only a timing gave it away.
 - Do keep the text in the HTML for search, screen readers and find in page. A scene hidden with
-  `display: none` is invisible to all three, and Ctrl+F needs plain view unless `hidden="until-found"`
-  covers it.
-- Do make the commands true of the fake filesystem. The prototype's paths after `cd ..` are not exact.
+  `display: none` is invisible to all three. A hidden section carries `hidden="until-found"`, and find
+  in page reaching one changes the page to the plain flow.
+- Do make the commands true of the fake filesystem, by any route. `buildCommand.ts` tracks the folder.
 - Do test touch and pull-to-refresh on a real phone before this ships. No prototype has been on one.
 - Do fit the email placeholder at phone width: the prototype clipped it to `you@company.c`.
-- Do give the hamburger, plain view and footer links a target of 44 by 44. The prototype's bars are only
+- Do give the hamburger, plain view and footer links a target of 44 by 44. The prototype's bars were only
   30 and 32 high, and the rendered check holds every control to 44 on every width.
-- Do check the terminal at 200% text. No prototype has been, and the site as it is overflows there: 149
-  of its 151 text-overflow findings are at 200%.
+- Do check the terminal at 200% text. The prototypes never were.

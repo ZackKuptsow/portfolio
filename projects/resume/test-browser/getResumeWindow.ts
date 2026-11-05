@@ -4,12 +4,9 @@ import { QR_CODE_ALT_TEXT } from '@/components/GetResume/components/QrCodeOption
 import { TRIGGER_COMMAND } from '@/components/GetResume/constants'
 import { CLOSE_BUTTON_LABEL } from '@/components/TerminalDialog/constants'
 
-import type { Locator, Page } from '@playwright/test'
+import { enterPlainView } from './terminal'
 
-// The window opens in the same instant as a click that lands, so this only has to outlast
-// one repaint.
-const OPENED_CHECK_MILLISECONDS = 1_000
-const OPENING_LIMIT_MILLISECONDS = 10_000
+import type { Locator, Page } from '@playwright/test'
 
 /** The parts of the get-resume window that the checks look at. */
 export interface GetResumeWindow {
@@ -21,19 +18,15 @@ export interface GetResumeWindow {
 }
 
 /**
- * Opens the get-resume window the way a visitor does, with a click on its button.
- *
- * The page can be read before its script has given the button something to do, and a click
- * in that gap does nothing. So the click is repeated until the window is open. Once it is
- * open, nothing clicks again.
+ * Opens the get-resume window from its button, which is the way in on the plain flow. The
+ * terminal has no button: scrolling types the command, and `terminal.spec.ts` checks that route.
  */
 export async function openGetResumeWindow(page: Page): Promise<GetResumeWindow> {
+  await enterPlainView(page)
   const trigger = page.getByRole('button', { name: TRIGGER_COMMAND })
   const dialog = page.getByRole('dialog')
-  await expect(async () => {
-    await trigger.click()
-    await expect(dialog).toBeVisible({ timeout: OPENED_CHECK_MILLISECONDS })
-  }).toPass({ timeout: OPENING_LIMIT_MILLISECONDS })
+  await trigger.click()
+  await expect(dialog).toBeVisible()
 
   return {
     closeButton: dialog.getByRole('button', { name: CLOSE_BUTTON_LABEL }),

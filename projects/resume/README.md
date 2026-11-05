@@ -5,19 +5,19 @@ The portfolio site behind **[kups.me](https://kups.me)** — a Next.js 15 app ex
 ## Stack
 
 - **Next.js 15** (App Router) + **React 19**
-- **Tailwind CSS 4** with CSS-variable theming and a light/dark toggle
+- **Tailwind CSS 4** with CSS-variable theming, dark by default, and a light theme from the menu
 - **Static export** — the build emits `out/`, which the infrastructure project deploys
-- Small touches: a custom glow cursor and scroll fade-in animations
+- One stationary terminal that scrolling drives, on top of a plain page (see "The terminal")
 
 ## Structure
 
 ```
 app/              # App Router entry (layout, page, global styles), plus what search engines read
 app/fonts/        # The two font files the site serves, with their licenses and source
-components/       # UI components (Header, AboutMe, Card, ThemeToggle, GlowCursor, ...)
+components/       # UI components (Terminal, GetResume, ThemeToggle, GlowCursor, ...)
 data/identity.ts  # Who the site is about: name forms, role, location, email, profile links, site URL
 data/profile.ts   # Resume content: work experience, education, skills, about copy
-data/projects.ts  # The projects page: side projects and open source, each with its links and any demo
+data/projects.ts  # The projects: side projects and open source, each with its links and any demo
 data/householdAssistantSms.ts  # The household assistant's SMS pages: brand, keyword, the three Twilio replies
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
@@ -47,32 +47,96 @@ the data and the alt text, and `test/app/page.test.tsx` checks the rendered page
 `test/data/profile.typecheck.ts` holds values that must not compile, such as a job with nothing
 to show. `yarn typecheck` enforces it. `yarn test` does not, because Vitest does not check types.
 
+## The terminal
+
+`components/Terminal/` is the home page and the projects page: one stationary screen, and
+scrolling drives it. `DESIGN.md` holds what it should do, with Zack's reasons. This is how it does
+it.
+
+**The plain flow comes first.** React renders every section as plain output in one reading column,
+in the server's HTML. A visitor without a script, or with reduced motion, or printing, reads that,
+and so does a search engine. `engine/TerminalEngine.ts` is an upgrade on top: it moves, clips and
+hides what React rendered, and writes no text of its own, so every word stays in the HTML.
+`test-built-site/pageText.test.ts` reads the file with its scripts stripped and checks every job,
+degree, skill and project is there.
+
+**Two scripts decide.** `app/prePaintScript.ts` runs before the first paint. It sets the theme and
+adds `terminal-on` to `<html>`, so a visitor never sees every section stacked up. If the script
+bundle has not taken over within 6 seconds it takes the class off again, and the visitor gets the
+plain flow instead of one stranded screen. The engine starts only if the class is there.
+
+**Scroll maps to steps, not to elements.** `buildSections.ts` makes one step per card, or one for a
+section with no cards. `engine/scrollMap.ts` puts each on a virtual track, and a step's length is
+exactly the output that does not fit on screen, so its last line can always be reached.
+`engine/textRows.ts` clips whole rows at every position. A command runs on its own clock
+(`typeCommand`, `streamOutput`, `playDownload`, all through `commandClock`), so a new swipe or a
+click fast-forwards it. `streamOutput` prints a list of runs in turn, which is how Skills prints
+what is above its columns, then column 1, then 2, then 3 (`data-print-column`).
+
+**What is printed stays printed.** Inside a section the scroll is the output's own position, 1:1, so
+going back up through its cards is a plain scroll, like a terminal's scrollback: no command, nothing
+reprinted, and the cards below stay. Coming back down is the same until past the last line printed.
+So cards share the track, and a scroll position cannot say which of them the reader has reached:
+cards that fit on screen together all end in one place. The engine's current step says that, and the
+scroll says only which section it has left for (`countStepsOutsideSection`).
+
+**One swipe does one thing.** macOS goes on sending wheel events for seconds after the fingers lift,
+so distance alone reads momentum as the reader scrolling on: one flick used to run five commands
+into the download. `engine/scrollGesture.ts` tells one swipe from the next by the input going quiet,
+and `engine/ScrollDriver.ts` spends a swipe once it has started a command, finished one, or reached
+the edge of the output: its last line going down, and the top of the section going up. What is left
+of it is held in place. A dragged scrollbar is no gesture, and still jumps.
+
+**Commands are worked out, not listed.** `buildCommand.ts` tracks the fake folder the prompt is in,
+so a command is true by any route. A straight read down gives the table in `DESIGN.md` word for
+word. Going up, its `cd ..` is true only for the first hop out of a folder, so the next hop reads
+`cat education/x.txt`.
+
+**Measuring.** The layout measures after the fonts load, and again when the terminal's size, the
+scroller's width or the root font size change. A re-measure keeps the reader on the same step at
+the same point: a phone's address bar changes the size on every scroll. The prompt reserves room
+for the longest command it can wrap to, at every width and text size.
+
+**The resume.** `GetResume` is mounted at the root of the terminal, never in a section: `showModal`
+on a dialog inside a hidden section shows nothing. It stays mounted, so an email request survives
+closing it. Closing it, by any route, types the Projects command.
+
+**Find in page.** Hidden sections carry `hidden="until-found"`. When the browser finds a match in
+one, the page changes to the plain flow, which can show it. In a browser without that attribute,
+plain view is the way to search.
+
+**The scrollbar is hidden.** The screen does not move, so a scrollbar would only measure the virtual
+track. `test-browser/wholeRowsWithScrollbar.spec.ts` shows a real one anyway, because Playwright
+hides them by default and that once hid 363 cut lines out of 557 positions.
+
 ## The projects page
 
-`/projects.html` (`app/projects/page.tsx`) lists side projects and open source, one card each,
-from `data/projects.ts`. The footer of the home page links it. As with the household
-assistant's pages, the `.html` is part of the address. Unlike them, it names itself as canonical
-and is in the sitemap: the point of the page is to be found.
+`/projects.html` (`app/projects/page.tsx`) is the same terminal, opened at Projects, from
+`data/projects.ts`. As with the household assistant's pages, the `.html` is part of the address.
+Unlike them, it names itself as canonical and is in the sitemap: the point of the page is to be
+found. Nothing on the home page links to it, because the home page holds Projects itself, so the
+sitemap and links from elsewhere are how it is found.
+
+Its server HTML holds only the Projects section, with its own `h1` and title. The other sections
+arrive with the script, so the resume text has one home for search engines, the home page, and a
+visitor without a script gets the list and a link home.
 
 Every project gives a visitor somewhere to go: a link, a recording to open, or, where the code
 is private, the reason in a few words shown where the link would be (`privateBecause`, rendered
-as `private: <reason>` through the card's `note`). A project card with none of the three is
-only a claim, so `ProjectEntry` does not compile without one, and `test/data/projects.test.ts`
-checks that each link is `https://` or a file in `public/`, that each reason is a phrase and not
-a sentence, and that the mobile app's legacy name never appears. The private products are
-described at the level of their public pages and no further. A project may carry a recording
-(`video`). The card then ends its link row with a control that opens the recording in a
-`TerminalDialog`, the same window the get-resume button opens. Only the poster and the file's
-metadata load with the page; closing the window pauses the recording.
+as `private: <reason>`). A project with none of the three is only a claim, so `ProjectEntry` does
+not compile without one, and `test/data/projects.test.ts` checks that each link is `https://` or a
+file in `public/`, that each reason is a phrase and not a sentence, and that the mobile app's
+legacy name never appears. The private products are described at the level of their public pages
+and no further. A project may carry a recording (`video`). Its link row then ends with a control
+that opens the recording in a `TerminalDialog`, the same window as the resume. Only the poster and
+the file's metadata load with the page; closing the window pauses the recording.
 
-The Save State card shows a `live site` link only when `NEXT_PUBLIC_SAVE_STATE_LIVE_URL` is set
-at build time (see Environment). Leave it unset until the site is behind a login, so the card
-offers no way to a site anyone could write to. Its code link waits on the repository being
-public.
+The Save State entry shows a `live site` link only when `NEXT_PUBLIC_SAVE_STATE_LIVE_URL` is set
+at build time (see Environment). Leave it unset until the site is behind a login, so it offers no
+way to a site anyone could write to. Its code link waits on the repository being public.
 
-`test/data/projects.typecheck.ts` holds the values that must not compile: a project with no
-links, no recording and no reason, and a card that is a link while also holding links, a note or
-a control.
+`test/data/projects.typecheck.ts` holds the values that must not compile, such as a project with
+no links, no recording and no reason.
 
 ## The household assistant's pages
 
@@ -195,23 +259,48 @@ which older scanners can fail to read.
 the build first. CI runs both on every pull request and before every deploy.
 
 `yarn test:built-site` (in `test-built-site/`) reads the files: the tags a search engine and a
-link preview read in the built page, `robots.txt`, `sitemap.xml`, the PDF, the 404 page, and
-whether every script, stylesheet and font the page asks for was written.
+link preview read in the built page, `robots.txt`, `sitemap.xml`, the PDF, the 404 page, whether
+every script, stylesheet and font the page asks for was written, and whether every word of the
+resume is in the home page's HTML and every project in the projects page's.
 
 `yarn test:browser` (in `test-browser/`) opens the site in Chrome with Playwright, for what
 jsdom cannot see:
 
-- Every section appears when a visitor scrolls to it on a 360x640 phone.
-- The headers of Work Experience, Education and Skills have the same layout at 360, 767, 768 and
-  1366 wide, with the prompt above the heading.
-- Nothing scrolls sideways at 15 widths from 320px to 1280px, with the get-resume window closed
-  and open.
-- The keyboard lands on the close button of the get-resume window, also when the window has to
-  scroll.
+- Every line can be read whole at every scroll position (`wholeRows*.spec.ts`), back through what is
+  printed included, checked every 5 points: on a laptop, on a phone, on a phone at twice the text
+  size, and on a phone with a real scrollbar showing. These take a few minutes, on purpose.
+- A straight read down types the commands in `DESIGN.md` word for word, lands on every card in turn,
+  also on a screen tall enough to fit whole sections, and the commands stay true going back up. The
+  screen clears between sections, End and Home jump, and up from the first screen types `exit`.
+- Going back through what is printed is a plain scroll, with no command and every card still there,
+  and only going past the top of a section types one (`scrollback.spec.ts`).
+- Skills prints its columns one at a time, in whole lines, and a click or plain view part way through
+  leaves none half printed (`skillsColumns.spec.ts`).
+- One swipe does one thing: played as a trackpad sends it, momentum and all, the hardest flick types
+  one command in full and moves one step, a gentle swipe types nothing, and a flick stops on the last
+  line of long output (`swipes.spec.ts`).
+- The resume, from the terminal: the end of Skills opens the real window after about 6.5 seconds, a
+  click skips that, the menu does not skip it, closing by any route loads Projects, going up never
+  opens it, and an email request survives closing.
+- Rotating a phone, or the address bar changing size, keeps the reader on the same step at the
+  same point.
+- The plain flow: reduced motion, no script, a script that never arrives, plain view and print all
+  show every section. Find in page reaching a hidden section gets it. The hero fills the first screen
+  and no more, without moving the name at the first paint of the terminal (`plainFlow.spec.ts`).
+- The first paint shows the hero, not every section stacked up.
+- The theme opens dark whatever the system prefers, a stored choice wins, and the pages without a
+  terminal keep the corner switch.
+- Nothing runs off the side at 15 widths from 320px to 1280px, in the terminal, in the plain flow
+  and in the get-resume window. The email placeholder fits the field on a phone.
+- The keyboard lands on the get-resume window itself with no ring showing, also when the window has
+  to scroll, Tab reaches the close button first, and it lands on the output when the page opens.
 - The QR code is shown at 640px wide and hidden at 639px.
-- No script error on load or when the window opens.
-- On the projects page, the Save State tour opens in a window that fits a phone and a laptop
-  screen, Escape and the close button close it, and nothing scrolls sideways on a phone.
+- No script error, on load, down through the sections or when a window opens.
+- On the projects page, the terminal opens at Projects with one main heading, and the Save State
+  tour opens in a window that fits a phone and a laptop screen.
+
+`test-browser/getResumeWindow.ts` opens the window from the plain flow's button, because the
+terminal has none: the scroll route is checked on its own in `terminal.spec.ts`.
 
 Playwright is a dev dependency pinned to an exact version. It drives the Google Chrome that is
 already installed, on your machine and on the CI runner, so it downloads no browser. The site
@@ -260,9 +349,9 @@ The value is the `ResumeRequestApiUrl` output of `SendResumeStack`. CI reads it 
 `https://kups.me` and `http://localhost:3000`, so test the form on port 3000. `next dev`
 silently moves to 3001 when 3000 is busy, and every request from there fails CORS.
 
-One more value is optional. When it is set, the Save State card on the projects page gets a
-`live site` link to it; unset, the card shows the code link only. Set it only once the site is
-behind a login:
+One more value is optional. When it is set, the Save State entry among the projects gets a
+`live site` link to it; unset, it shows the code link only. Set it only once the site is behind a
+login:
 
 ```bash
 NEXT_PUBLIC_SAVE_STATE_LIVE_URL=https://dojo.kups.me
