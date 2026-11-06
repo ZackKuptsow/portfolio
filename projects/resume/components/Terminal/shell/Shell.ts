@@ -80,12 +80,24 @@ export class Shell {
     })
   }
 
-  /** True when the key was the shell's. Keys from a control inside the scroller are the control's. */
+  /**
+   * True when the key was the shell's. Keys from a control inside the scroller are the control's.
+   * While a command runs, the engine has already hurried it; the key is kept, as a terminal keeps
+   * typing it has not got to yet, except Enter, which nothing runs over a running command.
+   */
   handleKey(event: KeyboardEvent): boolean {
-    if (this.host.isBusy() || event.target !== this.scroller) {
+    if (event.target !== this.scroller) {
       return false
     }
+    if (this.host.isBusy() && event.key === 'Enter') {
+      return true
+    }
     return this.input.handleKey(event)
+  }
+
+  /** The tour's command has landed and wiped the prompt; what was typed over it shows again. */
+  onCommandFinished(): void {
+    this.input.redraw()
   }
 
   /** The tour typed a command: it joins the history, and whatever was half typed is gone. */

@@ -411,6 +411,7 @@ export class TerminalEngine {
   private finishCommand = (): void => {
     this.isBusy = false
     delete this.elements.root.dataset.busy
+    this.shell.onCommandFinished()
     if (this.needsRemeasure) {
       this.needsRemeasure = false
       this.remeasure()
@@ -548,17 +549,17 @@ export class TerminalEngine {
     if (this.isPlain) {
       return
     }
+    // A held key repeats by itself, which is no more the reader asking to hurry than momentum is.
+    if (this.isBusy && !event.repeat) {
+      this.scroll.spendGesture()
+      this.clock.fastForward()
+    }
     // The shell takes a key once a line has text, and a printable key that starts one.
     if (this.shell.handleKey(event)) {
       return
     }
     if (KEYS_THAT_SCROLL.has(event.key)) {
       this.scroll.noteScrollKey()
-    }
-    // A held key repeats by itself, which is no more the reader asking to hurry than momentum is.
-    if (this.isBusy && !event.repeat) {
-      this.scroll.spendGesture()
-      this.clock.fastForward()
     }
     if (KEYS_THAT_SCROLL_UP.has(event.key)) {
       this.countUpwardAtTop(SCROLL_UP_AT_TOP_TO_EXIT_PIXELS, SCROLL_UP_AT_TOP_TO_EXIT_PIXELS)

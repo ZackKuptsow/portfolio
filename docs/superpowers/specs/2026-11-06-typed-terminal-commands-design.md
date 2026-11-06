@@ -77,8 +77,10 @@ Zack, on the proposal: "that makes sense."
   the command line. The characters appear in the prompt's `typed` span with the block cursor,
   as the tour's typing does.
 - **Space with an empty line scrolls, as today. With text in the line it is a character.**
-- **While a command runs** (`isBusy`), the first key fast-forwards it, as today, and is not
-  typed. Claude's call: a real terminal would buffer it; here the visitor types again.
+- **While a command runs** (`isBusy`), a key fast-forwards it, as today, and is kept: it shows at
+  the prompt once the command has landed, as a terminal keeps typing it has not got to yet. Enter
+  while a command runs does nothing. Claude's call, changed on 2026-11-06 while building: the first
+  draft dropped the key, and a visitor typing `ls` during a command saw `s`.
 - **Keys reaching the scroller from a control inside it** (a link, the tour button) are the
   control's, not the shell's: `event.target !== scroller` means the shell ignores the key.
   Clicking the output or the prompt puts focus back on the scroller.

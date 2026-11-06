@@ -57,6 +57,11 @@ export class TypedInput {
     this.historyIndex = this.history.length
   }
 
+  /** Writes the line into the prompt again, after something else wrote over it. */
+  redraw(): void {
+    this.setLine(this.text)
+  }
+
   /** True when the key was the shell's. False leaves it to the engine. */
   handleKey(event: KeyboardEvent): boolean {
     if (event.ctrlKey && !event.metaKey && !event.altKey && CLEARING_CONTROL_KEYS.has(event.key)) {

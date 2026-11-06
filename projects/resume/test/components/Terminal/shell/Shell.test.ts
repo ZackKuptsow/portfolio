@@ -179,12 +179,21 @@ describe('Shell', () => {
     expect(document.querySelector(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toBeNull()
   })
 
-  it('types nothing while a command runs, and nothing from a focused control', () => {
+  it('keeps a key typed while a command runs, swallows Enter, and shows the line once it has landed', () => {
     host.isBusy = () => true
     press('l')
-    expect(typed.textContent).toBe('')
+    expect(typed.textContent).toBe('l')
+    press('Enter')
+    expect(host.runBusy).not.toHaveBeenCalled()
+    typed.textContent = ''
+    shell.onCommandFinished()
+    expect(typed.textContent).toBe('l')
+    press('Escape')
 
     host.isBusy = () => false
+  })
+
+  it('types nothing from a focused control inside the scroller', () => {
     const link = document.createElement('a')
     link.href = 'https://example.com/'
     scroller.append(link)

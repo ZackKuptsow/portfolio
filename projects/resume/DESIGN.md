@@ -116,7 +116,8 @@ almost an easter egg in and of itself."
   the line. With an empty line, Space scrolls, the arrows scroll and Tab moves focus, as before.
   With text in it, Space is a character, Tab completes, Up and Down recall, Enter runs, Escape
   clears. Scrolling past the end of a section drops a half-typed line and types the tour's command:
-  scrolling stays the main road.
+  scrolling stays the main road. A key pressed while the tour's command runs hurries it and is kept,
+  as a terminal keeps typing it has not got to yet.
 - It is for show. "We are prebuilding everything." Every command is an entry in a closed table over
   the same fake filesystem the tour uses, and every output exists before the visitor arrives:
   a copy of a card on the page, or fixed lines. Nothing typed is evaluated, sent anywhere, stored,
