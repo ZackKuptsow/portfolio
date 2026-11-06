@@ -323,6 +323,24 @@ A failed check leaves a trace in `test-results/`. Open it with
 A new check is unproven until it has been seen red: break what it protects, build, and watch it
 fail.
 
+## The GIF in the repository's README
+
+`demo/terminal.gif` is the picture at the top of the repository's README, and
+`demo/storyboard.yaml` is what it films, in the format of the `demo-video` skill in Zack's dotfiles.
+The clip stops before Projects, so a change to a project's copy does not make it stale. A change to
+the profile or to the first job does. To record it again, build, then from this folder:
+
+```bash
+python3 ~/dotfiles/hermes/skills/creative/demo-video/scripts/capture_web.py \
+  --storyboard demo/storyboard.yaml --output <directory> --export-directory out \
+  --repository <a repository whose Playwright has its browser cached>
+ffmpeg -i <directory>/terminal.webm -filter_complex "fps=12,scale=800:-1:flags=lanczos,split[first][second];[first]palettegen=max_colors=64:stats_mode=diff[palette];[second][palette]paletteuse=dither=none:diff_mode=rectangle" demo/terminal.gif
+```
+
+`--repository` is there because the script launches Playwright's own Chromium, and this project has
+none: its browser checks use the installed Chrome. Those commands were run as written on 2026-11-06,
+and they make a valid clip that is not quite the committed one. See `notes` in the storyboard.
+
 ## Commands
 
 From inside `projects/resume`:
