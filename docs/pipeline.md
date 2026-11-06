@@ -23,6 +23,8 @@ A red pull request can still be merged, because no branch rule is set on this re
 
 A draft runs nothing. Marking it ready for review starts the checks. Do not push and mark ready in the same second: GitHub then reports the newest commit as still a draft and skips it, and the pull request shows "skipped" where a result should be. `gh pr ready --undo` followed by `gh pr ready` starts the checks for the newest commit.
 
+The gates job checks the repository out 20 commits deep (`fetch-depth: 20`), not the default one: the build reads the last commits for the terminal's typed `git log` (`projects/resume/app/readGitLog.ts`), and a one-commit checkout would print one line. The build fails if git cannot be read, so a checkout change that breaks this shows up as a red gate, not an empty log.
+
 The deploy job ships the site the gates job built in the same run, and that copy is kept for one day. Within the day, "Re-run failed jobs" deploys it again. After that, use "Re-run all jobs", which builds again. Re-running an older run publishes that older commit, so re-run only the newest one.
 
 ### Before a push

@@ -28,6 +28,9 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
+                  # The build reads the last commits for the terminal's typed `git log`
+                  # (projects/resume/app/readGitLog.ts); one commit would print one line.
+                  fetch-depth: 20
                   persist-credentials: false
             # First, before anything is installed or built: that is when a payload would run.
             - name: Scan for a payload
