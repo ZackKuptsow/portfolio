@@ -24,9 +24,8 @@ export type EasterEgg =
       narrowLine: string
     }
   | {
-      /** `true` matches `sudo <anything>`; `false` matches the bare name only. */
-      acceptsAnyArguments: boolean
       exitStatus?: number
+      /** Runs by its name with any arguments after it: `sudo rm -rf /` and `sudo` alike. */
       kind: 'command'
       lines: readonly OutputLine[]
       name: string
