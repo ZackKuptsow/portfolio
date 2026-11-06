@@ -11,6 +11,7 @@ describe('TypedInput', () => {
   let typed: HTMLElement
   let host: TypedInputHost
   let input: TypedInput
+  let onCancelQuestion: ReturnType<typeof vi.fn>
   let onSubmit: ReturnType<typeof vi.fn>
 
   const type = (text: string) => {
@@ -22,9 +23,11 @@ describe('TypedInput', () => {
   beforeEach(() => {
     typed = document.createElement('span')
     onSubmit = vi.fn()
+    onCancelQuestion = vi.fn()
     host = {
       complete: () => [],
       maxLength: () => 80,
+      onCancelQuestion,
       onSubmit,
       typed,
     }
@@ -165,6 +168,57 @@ describe('TypedInput', () => {
       expect(event.defaultPrevented, key).toBe(true)
     }
     expect(input.line).toBe('ls')
+  })
+
+  describe('while a question waits', () => {
+    it('shows nothing of a secret answer, and submits it without keeping it', () => {
+      input.recordHistory('ls')
+      input.beginQuestion(true)
+
+      for (const key of ['h', 'i', ' ', 'x']) {
+        expect(input.handleKey(keyEvent(key))).toBe(true)
+      }
+      expect(typed.textContent).toBe('')
+      expect(input.handleKey(keyEvent('Backspace'))).toBe(true)
+      expect(input.handleKey(keyEvent('Enter'))).toBe(true)
+
+      expect(onSubmit).toHaveBeenCalledWith('hi ')
+      expect(input.line).toBe('')
+      input.endQuestion()
+      type('x')
+      input.handleKey(keyEvent('ArrowUp'))
+      expect(input.line).toBe('ls')
+    })
+
+    it('shows a plain answer, and Enter submits even an empty one', () => {
+      input.beginQuestion(false)
+
+      expect(input.handleKey(keyEvent('Enter'))).toBe(true)
+      expect(onSubmit).toHaveBeenLastCalledWith('')
+
+      input.handleKey(keyEvent('y'))
+      expect(typed.textContent).toBe('y')
+    })
+
+    it('hands Escape and Ctrl+C to the shell, to give up the question', () => {
+      input.beginQuestion(true)
+      input.handleKey(keyEvent('h'))
+
+      expect(input.handleKey(keyEvent('Escape'))).toBe(true)
+      expect(input.handleKey(keyEvent('c', { ctrlKey: true }))).toBe(true)
+
+      expect(onCancelQuestion).toHaveBeenCalledTimes(2)
+    })
+
+    it('never completes or recalls into an answer, and leaves scrolling keys to the engine', () => {
+      input.recordHistory('ls')
+      input.beginQuestion(true)
+      input.handleKey(keyEvent('h'))
+
+      expect(input.handleKey(keyEvent('Tab'))).toBe(false)
+      expect(input.handleKey(keyEvent('ArrowUp'))).toBe(false)
+      expect(input.line).toBe('h')
+    })
   })
 
   it('clears from outside, as a scroll past the end does', () => {

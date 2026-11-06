@@ -27,6 +27,8 @@ const BLANK = '.terminal-session-blank'
 const HERO_BLOCK = '[data-block="hero-0"]'
 const SECOND_WORK_BLOCK = '[data-block="work-1"]'
 const ART = '.terminal-session-art'
+const YOU_SUFFER_VIDEO = '9Z1IGjr2cT0'
+const PASSWORD_GUESS = 'hunter2-not-a-password'
 /** Too short for the Vault's rows, with the title bar, prompt and footer around them. */
 const SHORT_WINDOW = { height: 360, width: LAPTOP_VIEWPORT.width }
 /** Part of a line, so the link is on the track and still cannot be read. */
@@ -308,6 +310,7 @@ test.describe('what typing reaches outside the output', () => {
   for (const [line, address] of [
     ['open github', 'github.com/ZackKuptsow'],
     ['sudo rm -rf /', 'dQw4w9WgXcQ'],
+    ['fade', 'KvMY1uzSC1E'],
   ]) {
     test(`${line} opens its fixed address in a new tab`, async ({ context, page }) => {
       await page.goto('/')
@@ -320,6 +323,70 @@ test.describe('what typing reaches outside the output', () => {
       await expect(page.locator('.terminal-prompt')).toBeVisible()
     })
   }
+
+  test('special occasion warns first, opens nothing on a no, and plays on a yes', async ({
+    context,
+    page,
+  }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    const opened: string[] = []
+    context.on('request', (request) => {
+      if (request.url().includes(YOU_SUFFER_VIDEO)) {
+        opened.push(request.url())
+      }
+    })
+
+    await typeCommand(page, 'special occasion')
+    expect(await readSessionOutput(page)).toContain('Warning: this is loud. Play it? [y/N]')
+    await page.keyboard.press('Enter')
+    await waitUntilIdle(page)
+    await page.waitForTimeout(DRAW_SETTLE_MILLISECONDS)
+    expect(opened).toEqual([])
+
+    await typeCommand(page, 'special occasion')
+    const played = context.waitForEvent('request', (request) =>
+      request.url().includes(YOU_SUFFER_VIDEO),
+    )
+    await typeCommand(page, 'y')
+
+    await played
+    expect(await readSessionOutput(page)).toContain('ALERT: the price of Bitcoin has changed.')
+  })
+
+  test('the password never shows, anywhere, and any guess gets in', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await typeCommand(page, 'ls -a')
+    expect(await readSessionOutput(page)).toContain('.yougottagive')
+
+    await typeCommand(page, 'cat .yougottagive')
+    expect(await readSessionOutput(page)).toContain('Password:')
+    await page.keyboard.type(PASSWORD_GUESS)
+    expect(await readTypedLine(page)).toBe('')
+    await page.keyboard.press('Enter')
+    await waitUntilIdle(page)
+
+    const output = await readSessionOutput(page)
+    expect(output).toContain('Are you sure about that?')
+    await expect(
+      page.locator(`${SESSION_OUTPUT} a[href="https://getcalicocutpants.com/"]`),
+    ).toBeVisible()
+    await typeCommand(page, 'history')
+    const pageText = await page.evaluate(() => document.documentElement.outerHTML)
+    expect(pageText).not.toContain(PASSWORD_GUESS)
+  })
+
+  test('legen really pauses before its ending', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await page.keyboard.type('legen')
+    await page.keyboard.press('Enter')
+
+    await expect.poll(() => readSessionOutput(page)).toContain('wait for it...')
+    expect(await readSessionOutput(page)).not.toContain('dary!')
+    await expect.poll(() => readSessionOutput(page)).toContain('wait for it... dary!')
+  })
 
   test('theme light switches the theme, and the menu follows', async ({ page }) => {
     await page.goto('/')

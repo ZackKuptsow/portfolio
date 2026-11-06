@@ -113,6 +113,30 @@ describe('checkEasterEggs', () => {
     ).toEqual(['The egg "dash" holds an em or en dash'])
   })
 
+  it('reads every word a visitor can reach for a dash, the question and the pause included', () => {
+    expect(
+      checkEasterEggs([
+        { confirm: 'loud – sure?', kind: 'command', lines: [], name: 'one' },
+        {
+          kind: 'command',
+          lines: [],
+          name: 'two',
+          pausedEnding: { afterMilliseconds: 1, text: ' – dary' },
+        },
+        {
+          kind: 'file',
+          lines: [],
+          password: { label: 'Password:', reply: 'sure – really?' },
+          path: '/three',
+        },
+      ]),
+    ).toEqual([
+      'The egg "one" holds an em or en dash',
+      'The egg "two" holds an em or en dash',
+      'The egg "/three" holds an em or en dash',
+    ])
+  })
+
   it('names art that needs fewer columns than its widest line', () => {
     expect(checkEasterEggs([{ ...art, columns: 3 }])).toEqual([
       'The art "triforce" says 3 columns but a line is 6 wide',

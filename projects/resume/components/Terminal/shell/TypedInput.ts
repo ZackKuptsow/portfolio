@@ -4,6 +4,8 @@ export type TypedInputHost = {
   complete: (prefix: string) => readonly string[]
   /** Characters the prompt's reserved rows can hold, so typing never covers a line of output. */
   maxLength: () => number
+  /** Escape or Ctrl+C while a question waits. */
+  onCancelQuestion: () => void
   onSubmit: (line: string) => void
   /** The prompt's span the characters appear in, the one the tour types into. */
   typed: HTMLElement
@@ -37,6 +39,8 @@ export class TypedInput {
   private historyIndex = 0
   /** What was typed before browsing the history, which Down past the newest entry brings back. */
   private draft = ''
+  /** Set while the next line answers a question instead of running. */
+  private question: { isSecret: boolean } | null = null
   private text = ''
 
   constructor(host: TypedInputHost) {
@@ -57,6 +61,17 @@ export class TypedInput {
     this.historyIndex = this.history.length
   }
 
+  /** The next line answers a question. A secret answer does not show, from the first key on. */
+  beginQuestion(isSecret: boolean): void {
+    this.question = { isSecret }
+    this.clearLine()
+  }
+
+  endQuestion(): void {
+    this.question = null
+    this.clearLine()
+  }
+
   /** Writes the line into the prompt again, after something else wrote over it. */
   redraw(): void {
     this.setLine(this.text)
@@ -65,7 +80,11 @@ export class TypedInput {
   /** True when the key was the shell's. False leaves it to the engine. */
   handleKey(event: KeyboardEvent): boolean {
     if (event.ctrlKey && !event.metaKey && !event.altKey && CLEARING_CONTROL_KEYS.has(event.key)) {
-      this.clearLine()
+      if (this.question) {
+        this.host.onCancelQuestion()
+      } else {
+        this.clearLine()
+      }
       return true
     }
     // On Windows AltGr reports Ctrl and Alt together, and it is how most of Europe types `~`.
@@ -77,14 +96,38 @@ export class TypedInput {
     if (event.key.length === PRINTABLE_KEY_LENGTH) {
       return this.handlePrintable(event)
     }
+    if (this.question) {
+      return this.handleAnswerKey(event)
+    }
     if (this.text.length === 0) {
       return false
     }
     return this.handleEditingKey(event)
   }
 
+  /** An answer can be empty, and it never completes or recalls: that could show a secret. */
+  private handleAnswerKey(event: KeyboardEvent): boolean {
+    switch (event.key) {
+      case 'Enter': {
+        const line = this.text
+        this.setLine('')
+        this.host.onSubmit(line)
+        return true
+      }
+      case 'Backspace':
+        event.preventDefault()
+        this.setLine(this.text.slice(0, -1))
+        return true
+      case 'Escape':
+        this.host.onCancelQuestion()
+        return true
+      default:
+        return false
+    }
+  }
+
   private handlePrintable(event: KeyboardEvent): boolean {
-    if (event.key === WORD_SEPARATOR && this.text.length === 0) {
+    if (event.key === WORD_SEPARATOR && this.text.length === 0 && !this.question) {
       return false
     }
     event.preventDefault()
@@ -155,6 +198,6 @@ export class TypedInput {
 
   private setLine(text: string): void {
     this.text = text
-    this.host.typed.textContent = text
+    this.host.typed.textContent = this.question?.isSecret ? '' : text
   }
 }

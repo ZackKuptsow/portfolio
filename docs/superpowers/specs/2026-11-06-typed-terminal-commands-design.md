@@ -369,6 +369,19 @@ checkout depth change (decision 5), and `cat get_resume.sh` printing the two-lin
 rewritten from zsh's wording to bash's at his choice; the bash strings were shown to him in chat
 with the filed issues.
 
+## The first eggs (2026-11-06)
+
+Chosen on two decision pages, after this design was approved. The list is in
+`projects/resume/data/terminalEasterEggs.ts`. His requests added two abilities decision 5 did not
+have: a question the next typed line answers (a fake password, a `[y/N]` before something loud), and
+a real pause in a line (`legen`).
+
+Decision 2's "nothing persists" still holds: a secret answer never shows, is never echoed, and joins
+neither history. Decision 2's "nothing leaves the browser" holds for what is typed. A song or a link
+opens by a fixed address only, in a new tab, on the visitor's own command. Claude's call: no audio is
+hosted, because that would distribute someone's track, and no player is embedded, because a hidden one
+breaks YouTube's terms and a visible one is a window inside the terminal.
+
 ## Calls made after the builder check (2026-11-06)
 
 A reviewer read the document cold and asked seven questions. Four were answered from the

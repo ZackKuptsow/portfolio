@@ -143,8 +143,12 @@ an ESLint override in `.eslintrc.js` forbids `innerHTML`, `outerHTML`, `insertAd
 and `Function` under `components/Terminal/` (seen red on a planted line before it shipped). `open`
 opens only the site's own addresses, and no command comes from a link. The easter eggs are data in
 `data/terminalEasterEggs.ts`, checked by `shell/checkEasterEggs.ts` against the rules the shell
-relies on; the list ships empty, and the words are Zack's. `git log` prints the repository's last
-commits, read at build by `app/readGitLog.ts`, which is why the gates job checks out 20 commits.
+relies on; the words are Zack's or the works' own, and the data test holds each one word for word.
+An egg can ask a question the next typed line answers, which is never run (`ShellQuestion`). A secret
+answer never shows, is never echoed and joins neither history, because a visitor may type a real
+password into the fake one. Songs open in a new tab; the site hosts no audio. `git log` prints the
+repository's last commits, read at build by `app/readGitLog.ts`, which is why the gates job checks
+out 20 commits, with any em or en dash in a subject printed as a hyphen.
 Phones and other touch-only devices are out: issue #27.
 
 ## The projects page

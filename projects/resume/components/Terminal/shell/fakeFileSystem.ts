@@ -10,8 +10,13 @@ import type { TerminalSection } from '../types'
 export type FileContent =
   /** A card on the page, cloned from its block. */
   | { blockId: string; kind: 'card' }
-  /** Fixed lines, from the eggs or the approved copy. */
-  | { exitStatus: number; kind: 'lines'; lines: readonly OutputLine[] }
+  /** Fixed lines, from the eggs or the approved copy, maybe behind a question. */
+  | {
+      exitStatus: number
+      kind: 'lines'
+      lines: readonly OutputLine[]
+      password?: { label: string; reply: string }
+    }
   /** One skill, inside its group's folder. */
   | { kind: 'skill'; skill: string }
 
@@ -155,8 +160,12 @@ function cardFile(blockId: string): FileSystemNode {
   return { content: { blockId, kind: 'card' }, kind: 'file' }
 }
 
-function linesFile(lines: readonly OutputLine[], exitStatus: number): FileSystemNode {
-  return { content: { exitStatus, kind: 'lines', lines }, kind: 'file' }
+function linesFile(
+  lines: readonly OutputLine[],
+  exitStatus: number,
+  password?: { label: string; reply: string },
+): FileSystemNode {
+  return { content: { exitStatus, kind: 'lines', lines, password }, kind: 'file' }
 }
 
 /**
@@ -210,7 +219,7 @@ export function buildFileSystem(
     }
     ensureFolder(root, joinSegments(segments)).entries.set(
       fileName,
-      linesFile(egg.lines, egg.exitStatus ?? 0),
+      linesFile(egg.lines, egg.exitStatus ?? 0, egg.password),
     )
   }
 

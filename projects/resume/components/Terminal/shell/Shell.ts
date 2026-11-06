@@ -10,7 +10,7 @@ import { SessionOutput } from './SessionOutput'
 import { TypedInput } from './TypedInput'
 import { playDownload } from '../engine/playDownload'
 
-import type { CommandOutcome, ShellContext, ShellState } from './types'
+import type { CommandOutcome, ShellContext, ShellQuestion, ShellState } from './types'
 import type { CommandClock } from '../engine/commandClock'
 
 /** What the shell asks of the engine. The engine stays the owner of the screen and the clock. */
@@ -64,6 +64,12 @@ export class Shell {
   private readonly context: ShellOptions['context']
   private readonly commandNames: readonly string[]
   private state: ShellState
+  /** A question the next typed line answers, and what the line it came from has left to run. */
+  private waiting: {
+    labelLine: HTMLElement
+    question: ShellQuestion
+    queue: CommandOutcome[]
+  } | null = null
 
   constructor({ context, elements, host }: ShellOptions) {
     this.host = host
@@ -75,6 +81,7 @@ export class Shell {
     this.input = new TypedInput({
       complete: (prefix) => this.complete(prefix),
       maxLength: host.promptLineCapacity,
+      onCancelQuestion: () => this.cancelQuestion(),
       onSubmit: (line) => this.submit(line),
       typed: elements.typed,
     })
@@ -102,6 +109,7 @@ export class Shell {
 
   /** The tour typed a command: it joins the history, and whatever was half typed is gone. */
   recordTourCommand(command: string): void {
+    this.cancelQuestion()
     this.input.clearLine()
     this.input.recordHistory(command)
     this.state = { ...this.state, history: [...this.state.history, command] }
@@ -116,8 +124,16 @@ export class Shell {
   }
 
   remove(): void {
+    this.cancelQuestion()
     this.session.remove()
     this.input.clearLine()
+  }
+
+  private cancelQuestion(): void {
+    if (this.waiting) {
+      this.waiting = null
+      this.input.endQuestion()
+    }
   }
 
   private fullContext(): ShellContext {
@@ -131,6 +147,10 @@ export class Shell {
   }
 
   private submit(line: string): void {
+    if (this.waiting) {
+      this.answerQuestion(line)
+      return
+    }
     const cwd = this.host.cwd()
     const { outcomes, state } = runCommandLine(line, { ...this.state, cwd }, this.fullContext())
     this.state = state
@@ -143,6 +163,31 @@ export class Shell {
       const fromHeight = this.host.bottomInScene(container)
       this.session.append([renderEchoedLine(cwd, line)])
       this.playOutcomes([...outcomes], fromHeight, done)
+    })
+  }
+
+  /**
+   * The line typed answers the question, and is never run. A plain answer joins the question's line,
+   * as it would in a terminal. A secret goes no further than `answer`, which does not keep it: it is
+   * not echoed, and it joins neither history. Runs inside the key press, so a tab a yes opens is not
+   * blocked as a popup.
+   */
+  private answerQuestion(line: string): void {
+    const waiting = this.waiting
+    if (!waiting) {
+      return
+    }
+    this.waiting = null
+    this.input.endQuestion()
+    const { labelLine, question, queue } = waiting
+    if (!question.isSecret && line.length > 0) {
+      labelLine.append(document.createTextNode(` ${line}`))
+    }
+    const outcome = question.answer(line)
+    this.state = { ...this.state, lastExitStatus: outcome.exitStatus }
+    this.host.runBusy((done) => {
+      const container = this.session.ensureAfter(this.host.currentBlock())
+      this.playOutcomes([outcome, ...queue], this.host.bottomInScene(container), done)
     })
   }
 
@@ -162,6 +207,22 @@ export class Shell {
     const bottomOfOutput = () => {
       const container = this.session.element
       return container ? this.host.bottomInScene(container) : fromHeight
+    }
+    if (outcome.asks) {
+      this.askQuestion(outcome.asks, queue, fromHeight, done)
+      return
+    }
+    if (outcome.pausedEnding) {
+      const { afterMilliseconds, text } = outcome.pausedEnding
+      const lastLine = this.session.element?.lastElementChild
+      this.host.printAppended(fromHeight, () => {
+        this.host.clock.after(afterMilliseconds, () => {
+          lastLine?.append(document.createTextNode(text))
+          this.host.followOutput()
+          this.playOutcomes(queue, bottomOfOutput(), done)
+        })
+      })
+      return
     }
     switch (effect?.kind) {
       case 'clear':
@@ -191,6 +252,20 @@ export class Shell {
       default:
         next()
     }
+  }
+
+  /** Secret from here on, before the question prints, so no key typed meanwhile can show. */
+  private askQuestion(
+    question: ShellQuestion,
+    queue: CommandOutcome[],
+    fromHeight: number,
+    done: () => void,
+  ): void {
+    const [labelLine] = renderLines([[{ text: question.label }]])
+    this.session.append([labelLine])
+    this.waiting = { labelLine, question, queue }
+    this.input.beginQuestion(question.isSecret)
+    this.host.printAppended(fromHeight, done)
   }
 
   private appendOutcome(outcome: CommandOutcome): void {

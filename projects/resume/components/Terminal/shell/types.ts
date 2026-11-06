@@ -1,4 +1,4 @@
-import type { EasterEgg, OutputLine } from '@/data/terminalEasterEggs'
+import type { EasterEgg, OutputLine, PausedEnding } from '@/data/terminalEasterEggs'
 
 import type { FileSystemNode } from './fakeFileSystem'
 
@@ -12,10 +12,21 @@ export type ShellEffect =
   | { kind: 'plain-view' }
   | { isDark: boolean; kind: 'theme' }
 
+/** A question the shell waits on: the next line typed answers it, and is never run. */
+export type ShellQuestion = {
+  answer: (line: string) => CommandOutcome
+  /** True for a password: what is typed is not shown, not echoed, and not kept in the history. */
+  isSecret: boolean
+  /** Printed on a line of its own. The answer is typed at the prompt below. */
+  label: string
+}
+
 /** What one command printed and asked for. */
 export type CommandOutcome = {
   /** A drawing, printed in a <pre>. */
   art?: readonly string[]
+  /** What follows waits on an answer. */
+  asks?: ShellQuestion
   /** A card to clone from the page. */
   cardBlockId?: string
   /** The folder the prompt is in afterwards, when the command moved it. */
@@ -25,6 +36,8 @@ export type CommandOutcome = {
   lines: readonly OutputLine[]
   /** Names for the listing markup, as `ls` prints them. */
   listing?: readonly string[]
+  /** Text that joins the last line after a real pause. */
+  pausedEnding?: PausedEnding
 }
 
 /** What the shell remembers between lines. Nothing here leaves the page. */

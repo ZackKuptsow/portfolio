@@ -129,8 +129,17 @@ almost an easter egg in and of itself."
 - The shell speaks as bash (his choice over zsh). Typed lines print at the tour's pace, through the
   same clock, so nothing new is tuned.
 - Easter eggs are data (`data/terminalEasterEggs.ts`): a file, a command with a fixed response, a
-  drawing with a narrow-screen line, a link, an exit status. The words are his, chosen on a decision
-  page; the list ships empty. He accepts the risk of drawing the Triforce and the Vault symbol.
+  drawing with a narrow-screen line, a link, an exit status, a question the next line answers, and
+  a real pause in a line. The words are his or the works' own, chosen on two decision pages on
+  2026-11-06. He accepts the risk of drawing the Triforce and the Vault symbol.
+- A song opens in a new tab, by its official upload. The site hosts no audio: that would be
+  distributing someone's track. A hidden player would break YouTube's terms and a visible one would
+  be a window inside the terminal.
+- A password is for show, and any guess gets in. A visitor may still type a real one, so what is
+  typed never shows, is never echoed, and joins neither history. Only a yes opens what a `[y/N]`
+  guards, and the answer runs inside the key press, so the new tab is not blocked as a popup.
+- A drawing's line height is 1.35, the least at which its rows stay apart. At 1.2 they overlap, the
+  engine reads them as one row, and a short window shows none of it.
 - Phones and other touch-only devices are out: issue #27.
 
 ### The resume
@@ -219,6 +228,11 @@ The typed shell's lines, approved by Zack on 2026-11-06 (`components/Terminal/sh
   `usage: open github | linkedin`; `theme` alone prints `dark` or `light`; `cat get_resume.sh` prints
   `#!/bin/sh` then `open https://kups.me/Zachary_Kuptsow_Resume.pdf`.
 - The site's controls as commands: `open`, `mail`, `email`, `theme`, `plain`.
+- The eggs' words, as he chose them, are in `data/terminalEasterEggs.ts`, and
+  `test/data/terminalEasterEggs.test.ts` holds each one word for word.
+- Still drafts in the eggs, listed in the pull request: `Warning: this is loud. Play it? [y/N]`,
+  `ALERT: the price of Bitcoin has changed.`, and the commands `news`, `qwerty` (which draws a fish),
+  `rare` and `special`, which he asked for and did not name.
 - Still drafts, marked `// draft` in the constants and listed in the pull request: the `help` and
   `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
   `git` alone or with another subcommand, `man` alone, `theme` with another word, `wget` of another address, `sh` or `bash`

@@ -15,7 +15,11 @@ function stringsOf(egg: EasterEgg): readonly string[] {
   if (egg.kind === 'art') {
     return [...egg.lines, egg.narrowLine]
   }
-  return egg.lines.flatMap((line) => line.map((segment) => segment.text))
+  const printed = egg.lines.flatMap((line) => line.map((segment) => segment.text))
+  if (egg.kind === 'file') {
+    return egg.password ? [...printed, egg.password.label, egg.password.reply] : printed
+  }
+  return [...printed, egg.confirm ?? '', egg.pausedEnding?.text ?? '']
 }
 
 /**

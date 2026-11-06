@@ -21,6 +21,8 @@ import { findNode, listFolder, resolvePath, toAbsolutePath } from './fakeFileSys
 
 import type { CommandHandler, CommandOutcome, ShellContext, ShellState } from './types'
 
+/** What counts as yes to a `[y/N]`. Anything else, Enter alone included, is no. */
+const YES_ANSWER = /^y(es)?$/i
 const FLAG_PREFIX = '-'
 const SHOW_HIDDEN_FLAG = 'a'
 const VARIABLE_PATTERN = /\$(\?|[A-Za-z_][A-Za-z0-9_]*)/g
@@ -99,7 +101,18 @@ const print: CommandHandler = ([, target], state, context) => {
   if (content.kind === 'skill') {
     return succeed([content.skill])
   }
-  return { exitStatus: content.exitStatus, lines: content.lines }
+  const { exitStatus, lines, password } = content
+  if (password) {
+    // A fake lock: every guess gets in. The guess is not looked at, and the shell does not keep it.
+    return succeed([], {
+      asks: {
+        answer: () => ({ exitStatus, lines: [text(password.reply), ...lines] }),
+        isSecret: true,
+        label: password.label,
+      },
+    })
+  }
+  return { exitStatus, lines }
 }
 
 const echo: CommandHandler = ([, ...words], state) => {
@@ -233,11 +246,24 @@ function eggHandler(egg: EasterEgg): CommandHandler {
       context.columns >= egg.columns ? succeed([], { art: egg.lines }) : succeed([egg.narrowLine])
   }
   if (egg.kind === 'command') {
-    return () => ({
+    const run = (): CommandOutcome => ({
       effect: egg.opens ? { href: egg.opens, kind: 'open-url' } : undefined,
       exitStatus: egg.exitStatus ?? EXIT_STATUS.success,
       lines: egg.lines,
+      pausedEnding: egg.pausedEnding,
     })
+    const { confirm } = egg
+    if (!confirm) {
+      return run
+    }
+    return () =>
+      succeed([], {
+        asks: {
+          answer: (line) => (YES_ANSWER.test(line.trim()) ? run() : succeed()),
+          isSecret: false,
+          label: confirm,
+        },
+      })
   }
   throw new Error(`An egg file is not a command: "${egg.path}"`)
 }
