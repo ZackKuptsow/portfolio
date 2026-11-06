@@ -1,5 +1,6 @@
 import { applyTheme, readIsDark } from '@/components/applyTheme'
 
+import { assertEasterEggsValid } from './checkEasterEggs'
 import { buildCommandTable } from './commandTable'
 import { EXIT_STATUS } from './constants'
 import { findNode, listFolder, resolvePath } from './fakeFileSystem'
@@ -68,6 +69,7 @@ export class Shell {
     this.host = host
     this.context = context
     this.scroller = elements.scroller
+    assertEasterEggsValid(context.eggs)
     this.commandNames = [...buildCommandTable([]).keys()].sort()
     this.state = { cwd: host.cwd(), history: [], lastExitStatus: EXIT_STATUS.success }
     this.input = new TypedInput({
