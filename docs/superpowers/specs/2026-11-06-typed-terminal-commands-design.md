@@ -118,8 +118,8 @@ show only."
   rule is seen red before it ships.
 - **Every output is prebuilt.** It is a clone of markup React rendered (a card, a listing), or
   lines built from data with `createElement` and `textContent`, each line a list of segments that
-  are plain text or a link with a fixed `href`. Typed text is echoed back in exactly two places,
-  `echo` and the "not found" line, both through `textContent`.
+  are plain text or a link with a fixed `href`. Typed text is echoed back only through `textContent`: in `echo`, the
+  echoed line, and error lines such as "not found".
 - **Nothing leaves the browser and nothing persists.** No request, no storage. The history lives
   in memory for the page's life.
 - **No command comes from a link.** There is no address that pre-fills or runs a command.
@@ -173,8 +173,9 @@ and its file can never disagree:
 Zack: "it should appear like a real shell." Output prints under what is on screen, in order,
 and only what was asked for.
 
-- The engine inserts one session container as the next sibling of the current step's block (the
-  furthest card reached), never inside it: the hero block is a centered flex box a full screen
+- The engine inserts a session container as the next sibling of the current step's block (the
+  furthest card reached), one per card typed on, so what was typed on an earlier card stays where it
+  was (changed from "one container" in review, 2026-11-06), never inside it: the hero block is a centered flex box a full screen
   high (`terminal.css`, `.terminal-hero`), and a child there would re-center the handle as output
   grew. `TerminalLayout.measure()` reads each block's box live; it learns one thing, that a step's
   bottom is the bottom of its block or of the container that follows it, whichever is lower. The
@@ -189,7 +190,8 @@ and only what was asked for.
   "Checks" asserts that the parser resolves every tour line to the folder and file the tour meant,
   not that typing one navigates.
 - **Removed, all of it:** on the tour's next `clear && …` command, on an upward command (the
-  screen shows another section), on switching to plain view.
+  screen shows another section), on switching to plain view. The layout is measured again when it
+  goes, because the track and the rows were measured with it in place.
 - **A typed `clear`** appends a screen's height of blank to the container and scrolls to it, so
   the screen is empty and the next output appears above the prompt. Everything printed stays in
   the scrollback above, as Terminal.app's `clear` leaves it. Claude's call: the site's own rule is

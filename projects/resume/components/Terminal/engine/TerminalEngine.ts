@@ -27,6 +27,7 @@ import { TerminalLayout } from './TerminalLayout'
 import { typeCommand } from './typeCommand'
 import { wireTerminalInput } from './wireTerminalInput'
 import { buildFileSystem } from '../shell/fakeFileSystem'
+import { SESSION_OUTPUT_ATTRIBUTE } from '../shell/SessionOutput'
 import { Shell } from '../shell/Shell'
 
 import type { CommandRoute, TerminalCommand } from '../buildCommand'
@@ -59,6 +60,8 @@ const KEYS_THAT_SCROLL_UP = new Set(['ArrowUp', 'PageUp'])
 const KEYS_THAT_SCROLL = new Set([...KEYS_THAT_SCROLL_UP, ' ', 'ArrowDown', 'PageDown'])
 /** A click on one of these is the control's; a click anywhere else puts the keyboard back on the prompt. */
 const INTERACTIVE_SELECTOR = 'a, button, dialog, input, select, textarea, [tabindex]'
+/** What sits on the scroll track, so a control in it can be brought clear of the prompt. */
+const REVEALED_ON_FOCUS_SELECTOR = `[data-block], [${SESSION_OUTPUT_ATTRIBUTE}]`
 
 /**
  * The terminal, on top of the plain flow in the server's HTML: one stationary screen that the
@@ -454,19 +457,22 @@ export class TerminalEngine {
     done: () => void,
     keepScrollTop?: number,
   ): void {
-    // Another section, or a `clear`: whatever was typed into the old screen goes with it.
+    // Another section, or a `clear`: whatever was typed into the old screen goes with it, and the
+    // track and rows were measured with it in place, so a scroll kept from them no longer holds.
     const isNewScreen =
       this.steps[target].sectionId !== this.steps[this.currentStepIndex].sectionId ||
       this.steps[target].clearsBefore
-    if (isNewScreen) {
-      this.shell.onScreenChanged()
+    const didRemoveOutput = isNewScreen && this.shell.onScreenChanged()
+    if (didRemoveOutput) {
+      this.layout.measure()
     }
+    const scrollTopToKeep = didRemoveOutput ? undefined : keepScrollTop
     this.currentStepIndex = target
     this.scroll.direction = way
     this.exitPull = 0
     this.layout.showStep(target)
     const settleScroll = () => {
-      if (keepScrollTop === undefined) {
+      if (scrollTopToKeep === undefined) {
         const mapped = this.layout.mappedSteps[target]
         this.scroll.setScroll(way === 'down' ? mapped.start : mapped.end)
       } else {
@@ -578,7 +584,7 @@ export class TerminalEngine {
   /** A control reached by keyboard must be on screen, not behind the prompt or above the clip. */
   private revealFocused = (target: HTMLElement): void => {
     // A block not printed yet is hidden, and cannot take focus, so this one is on the current track.
-    if (this.isPlain || this.isBusy || !target.closest('[data-block]')) {
+    if (this.isPlain || this.isBusy || !target.closest(REVEALED_ON_FOCUS_SELECTOR)) {
       return
     }
     const revealedAt = this.layout.scrollToReveal(

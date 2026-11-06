@@ -58,7 +58,9 @@ it.
 **The plain flow comes first.** React renders every section as plain output in one reading column,
 in the server's HTML. A visitor without a script, or with reduced motion, or printing, reads that,
 and so does a search engine. `engine/TerminalEngine.ts` is an upgrade on top: it moves, clips and
-hides what React rendered, and writes no text of its own, so every word stays in the HTML.
+hides what React rendered, and writes no text of its own, so every word stays in the HTML. The one
+exception is what a visitor types at the prompt (see "Typing" below), which prints into containers
+of its own and is gone at the next clear.
 `test-built-site/pageText.test.ts` reads the file with its scripts stripped and checks every job,
 degree, skill and project is there.
 
@@ -128,7 +130,7 @@ line through it, stopping at the first failure as `&&` does; anything else is ba
 `command not found`. The shell speaks as bash, and its fixed lines are in `shell/constants.ts`, the
 ones Zack has not approved yet marked `// draft`.
 
-Output prints into one container after the current card (`shell/SessionOutput.ts`), which
+Output prints into a container after the current card, one per card typed on (`shell/SessionOutput.ts`), which
 `TerminalLayout.measure()` counts as part of the step, so it is on the scroll track like everything
 else. The typed line is echoed before its result, as scrollback; the tour's own commands are not.
 The tour's next `clear && …`, an upward command and plain view remove the container. A typed `clear`
@@ -316,6 +318,10 @@ jsdom cannot see:
   screen clears between sections, End and Home jump, and up from the first screen types `exit`.
 - Going back through what is printed is a plain scroll, with no command and every card still there,
   and only going past the top of a section types one (`scrollback.spec.ts`).
+- What a visitor types prints under the current card in whole rows and clear of the prompt, a
+  scroll or the screen changing takes it away and leaves the layout as if nothing was typed, the
+  tour's commands stay true from wherever a typed `cd` left the prompt, and the menu, the resume
+  window and plain view keep their keys (`typedCommands.spec.ts`).
 - Skills prints its columns one at a time, in whole lines, and a click or plain view part way through
   leaves none half printed (`skillsColumns.spec.ts`).
 - One swipe does one thing: played as a trackpad sends it, momentum and all, the hardest flick types

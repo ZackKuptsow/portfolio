@@ -76,8 +76,10 @@ export const APPROVED_COPY = {
 // draft
 export const DRAFT_COPY = {
   gitNotACommand: (word: string) => `git: '${word}' is not a git command. See 'git --help'.`,
+  gitUsage: 'usage: git log',
   lsMissing: (path: string) => `ls: cannot access '${path}': No such file or directory`,
   manMissing: (word: string) => `No manual entry for ${word}`,
+  manUsage: 'What manual page do you want?',
   scriptMissing: (interpreter: string, path: string) =>
     `${interpreter}: ${path}: No such file or directory`,
   scriptNotFound: (path: string) => `${SHELL_NAME}: ${path}: No such file or directory`,

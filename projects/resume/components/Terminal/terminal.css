@@ -455,6 +455,10 @@ html.dark .terminal-section-heading {
   text-align: left;
 }
 
+.terminal-session + .terminal-block {
+  margin-top: 2rem;
+}
+
 .terminal-session-line {
   overflow-wrap: anywhere;
 }

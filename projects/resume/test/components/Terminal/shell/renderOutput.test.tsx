@@ -56,7 +56,8 @@ describe('renderOutput', () => {
     const listing = renderListing(['draynow.txt', 'low_rate_co.txt'])
 
     expect(listing.className).toBe('terminal-listing')
-    expect(listing.getAttribute('aria-hidden')).toBe('true')
+    // The page's own listing repeats its headings, so it is hidden. A typed one repeats nothing.
+    expect(listing.hasAttribute('aria-hidden')).toBe(false)
     expect(
       [...listing.querySelectorAll('.terminal-listing-file')].map((file) => file.textContent),
     ).toEqual(['draynow.txt', 'low_rate_co.txt'])

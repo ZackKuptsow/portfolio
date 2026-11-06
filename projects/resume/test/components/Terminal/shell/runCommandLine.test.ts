@@ -198,6 +198,12 @@ describe('runCommandLine', () => {
     expect(runCommandLine('sudo', state, eggContext).outcomes[0].lines.map(textOf)).toEqual(['no'])
   })
 
+  it('never prints an empty name for git or man with no word after them', () => {
+    expect(firstLine(runCommandLine('git', state, context))).toBe('usage: git log')
+    expect(firstLine(runCommandLine('man', state, context))).toBe('What manual page do you want?')
+    expect(runCommandLine('man', state, context).state.lastExitStatus).toBe(1)
+  })
+
   it('prints git log, date and uname from the context', () => {
     expect(
       runCommandLine('git log', state, {

@@ -1,40 +1,45 @@
-/** Marks the one container the typed shell prints into. The layout measures it with its step. */
+/** Marks a container the typed shell prints into. The layout measures it with its step. */
 export const SESSION_OUTPUT_ATTRIBUTE = 'data-session-output'
 const CONTAINER_CLASS = 'terminal-session'
 const BLANK_CLASS = 'terminal-session-blank'
 
 /**
- * Where typed output goes: one container after the block of the current step, never inside it
- * (the hero block centers its children). It is read aloud as it prints, so an egg a screen reader
- * user finds is heard. Everything in it is removed when the screen changes.
+ * Where typed output goes: a container after the block of the current step, never inside it (the
+ * hero block centers its children). Each card typed on keeps its own, because what is printed stays
+ * printed, and the order on screen is the order things happened. Each is read aloud as it prints, so
+ * an egg a screen reader user finds is heard. All of them go when the screen changes.
  */
 export class SessionOutput {
-  private container: HTMLElement | null = null
+  private readonly containers = new Map<HTMLElement, HTMLElement>()
+  private current: HTMLElement | null = null
 
+  /** The container the shell is printing into now. */
   get element(): HTMLElement | null {
-    return this.container
+    return this.current
   }
 
-  /** The container after this block, made if there is none there. Moving blocks removes the old one. */
+  /** This block's container, made if it has none, which is where printing goes from now on. */
   ensureAfter(block: HTMLElement): HTMLElement {
-    if (this.container && this.container.previousElementSibling === block) {
-      return this.container
+    const existing = this.containers.get(block)
+    if (existing) {
+      this.current = existing
+      return existing
     }
-    this.remove()
     const container = document.createElement('div')
     container.className = CONTAINER_CLASS
     container.setAttribute(SESSION_OUTPUT_ATTRIBUTE, '')
     container.setAttribute('aria-live', 'polite')
     block.after(container)
-    this.container = container
+    this.containers.set(block, container)
+    this.current = container
     return container
   }
 
   append(nodes: readonly HTMLElement[]): void {
-    if (!this.container) {
+    if (!this.current) {
       throw new Error('The shell has no session container to print into')
     }
-    this.container.append(...nodes)
+    this.current.append(...nodes)
   }
 
   /** A typed `clear`: a blank the height of the screen, so what was printed scrolls out of view. */
@@ -45,8 +50,14 @@ export class SessionOutput {
     this.append([blank])
   }
 
-  remove(): void {
-    this.container?.remove()
-    this.container = null
+  /** Takes every container off the page, and says whether there was any to take. */
+  remove(): boolean {
+    const hadOutput = this.containers.size > 0
+    for (const container of this.containers.values()) {
+      container.remove()
+    }
+    this.containers.clear()
+    this.current = null
+    return hadOutput
   }
 }

@@ -107,9 +107,12 @@ export class Shell {
     this.state = { ...this.state, history: [...this.state.history, command] }
   }
 
-  /** The screen shows something else now, so what was typed into it is gone, as `clear` would leave it. */
-  onScreenChanged(): void {
-    this.session.remove()
+  /**
+   * The screen shows something else now, so what was typed into it is gone, as `clear` would leave
+   * it. Says whether anything went, because the layout was measured with it in place.
+   */
+  onScreenChanged(): boolean {
+    return this.session.remove()
   }
 
   remove(): void {
@@ -156,14 +159,18 @@ export class Shell {
     this.appendOutcome(outcome)
     const effect = outcome.effect
     const next = () => this.playOutcomes(queue, fromHeight, done)
+    const bottomOfOutput = () => {
+      const container = this.session.element
+      return container ? this.host.bottomInScene(container) : fromHeight
+    }
     switch (effect?.kind) {
+      case 'clear':
+        // A blank is not output, so nothing prints through it, and what follows starts below it.
+        this.playOutcomes(queue, bottomOfOutput(), done)
+        return
       case 'download':
         this.host.printAppended(fromHeight, () =>
-          this.playDownload(() => {
-            const container = this.session.element
-            const after = container ? this.host.bottomInScene(container) : fromHeight
-            this.playOutcomes(queue, after, done)
-          }),
+          this.playDownload(() => this.playOutcomes(queue, bottomOfOutput(), done)),
         )
         return
       case 'exit':

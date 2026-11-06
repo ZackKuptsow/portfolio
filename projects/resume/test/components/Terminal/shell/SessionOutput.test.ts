@@ -37,12 +37,26 @@ describe('SessionOutput', () => {
     expect(session.element).toBe(first)
   })
 
-  it('moves to another block and leaves nothing behind', () => {
+  it('keeps what was typed after one card when typing moves on to the next', () => {
+    const first = session.ensureAfter(blockA)
+    const second = session.ensureAfter(blockB)
+
+    expect(document.querySelectorAll(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toHaveLength(2)
+    expect(blockA.nextElementSibling).toBe(first)
+    expect(blockB.nextElementSibling).toBe(second)
+    expect(session.element).toBe(second)
+    expect(session.ensureAfter(blockA)).toBe(first)
+  })
+
+  it('removes every container at once, and says whether there was anything to remove', () => {
+    expect(session.remove()).toBe(false)
+
     session.ensureAfter(blockA)
     session.ensureAfter(blockB)
 
-    expect(document.querySelectorAll(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toHaveLength(1)
-    expect(blockB.nextElementSibling?.hasAttribute(SESSION_OUTPUT_ATTRIBUTE)).toBe(true)
+    expect(session.remove()).toBe(true)
+    expect(document.querySelectorAll(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toHaveLength(0)
+    expect(session.remove()).toBe(false)
   })
 
   it('appends nodes in order, and a blank of the asked height for clear', () => {

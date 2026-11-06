@@ -221,7 +221,7 @@ The typed shell's lines, approved by Zack on 2026-11-06 (`components/Terminal/sh
 - The site's controls as commands: `open`, `mail`, `email`, `theme`, `plain`.
 - Still drafts, marked `// draft` in the constants and listed in the pull request: the `help` and
   `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
-  `git` with another subcommand, `theme` with another word, `wget` of another address, `sh` or `bash`
+  `git` alone or with another subcommand, `man` alone, `theme` with another word, `wget` of another address, `sh` or `bash`
   of a missing script, and `./x` that does not exist.
 
 ## Colours

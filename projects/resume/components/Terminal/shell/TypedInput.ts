@@ -68,7 +68,10 @@ export class TypedInput {
       this.clearLine()
       return true
     }
-    if (event.ctrlKey || event.metaKey || event.altKey) {
+    // On Windows AltGr reports Ctrl and Alt together, and it is how most of Europe types `~`.
+    const isAltGrCharacter =
+      event.ctrlKey && event.altKey && !event.metaKey && event.key.length === PRINTABLE_KEY_LENGTH
+    if ((event.ctrlKey || event.metaKey || event.altKey) && !isAltGrCharacter) {
       return false
     }
     if (event.key.length === PRINTABLE_KEY_LENGTH) {

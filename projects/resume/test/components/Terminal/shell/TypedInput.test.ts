@@ -76,6 +76,18 @@ describe('TypedInput', () => {
     expect(typed.textContent).toBe('')
   })
 
+  // On Windows AltGr reports Ctrl and Alt together, and `~` is an AltGr key on most of Europe's layouts.
+  it('types a character made with AltGr, and takes no other key held with Ctrl and Alt', () => {
+    expect(input.handleKey(keyEvent('~', { altKey: true, ctrlKey: true }))).toBe(true)
+    expect(input.line).toBe('~')
+
+    expect(input.handleKey(keyEvent('ArrowUp', { altKey: true, ctrlKey: true }))).toBe(false)
+    expect(input.handleKey(keyEvent('~', { altKey: true, ctrlKey: true, metaKey: true }))).toBe(
+      false,
+    )
+    expect(input.line).toBe('~')
+  })
+
   it('deletes with Backspace and clears with Escape', () => {
     type('pwd')
     expect(input.handleKey(keyEvent('Backspace'))).toBe(true)

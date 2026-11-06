@@ -175,8 +175,21 @@ describe('Shell', () => {
     expect(container().lastElementChild?.classList.contains('terminal-session-blank')).toBe(true)
     expect((container().lastElementChild as HTMLElement).style.height).toBe('640px')
 
-    shell.onScreenChanged()
+    expect(shell.onScreenChanged()).toBe(true)
     expect(document.querySelector(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toBeNull()
+    expect(shell.onScreenChanged()).toBe(false)
+  })
+
+  it('prints nothing through the blank of a clear, and what follows it from below the blank', () => {
+    host.bottomInScene = vi.fn((element: HTMLElement) => element.children.length * 100)
+
+    submit('clear')
+    // The echoed line and the blank are both there when printing starts, so the blank is not streamed.
+    expect(host.printAppended).toHaveBeenLastCalledWith(200, expect.any(Function))
+
+    submit('clear && pwd')
+    // Two more for this line's echo and blank, and then `pwd` prints from below that blank.
+    expect(host.printAppended).toHaveBeenLastCalledWith(400, expect.any(Function))
   })
 
   it('keeps a key typed while a command runs, swallows Enter, and shows the line once it has landed', () => {

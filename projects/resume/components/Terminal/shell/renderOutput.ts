@@ -58,11 +58,13 @@ export function renderLines(lines: readonly OutputLine[]): readonly HTMLElement[
   })
 }
 
-/** The listing markup the page uses: names on a row, each able to wrap after an underscore. */
+/**
+ * The listing markup the page uses: names on a row, each able to wrap after an underscore. Not
+ * hidden from a screen reader as the page's is: that one repeats the headings, this repeats nothing.
+ */
 export function renderListing(names: readonly string[]): HTMLElement {
   const listing = document.createElement('p')
   listing.className = LISTING_CLASS
-  listing.setAttribute('aria-hidden', 'true')
   for (const name of names) {
     const file = document.createElement('span')
     file.className = LISTING_FILE_CLASS

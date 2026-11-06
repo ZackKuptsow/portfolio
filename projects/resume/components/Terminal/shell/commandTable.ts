@@ -161,6 +161,9 @@ function runScript(interpreter: string): CommandHandler {
 }
 
 const manual: CommandHandler = ([, name]) => {
+  if (name === undefined) {
+    return fail(DRAFT_COPY.manUsage)
+  }
   const entry = HELP_LINES.find(([command]) => command.split(' ')[0] === name)
   if (!entry) {
     return fail(DRAFT_COPY.manMissing(name ?? ''))
@@ -178,6 +181,9 @@ const help: CommandHandler = () => {
 const git: CommandHandler = ([, subcommand], _, context) => {
   if (subcommand === 'log') {
     return succeed(context.gitLog)
+  }
+  if (subcommand === undefined) {
+    return fail(DRAFT_COPY.gitUsage)
   }
   return fail(DRAFT_COPY.gitNotACommand(subcommand ?? ''))
 }
