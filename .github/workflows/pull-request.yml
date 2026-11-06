@@ -1,7 +1,7 @@
 # Runs the deploy's gates on a pull request, so a red gate shows before the merge.
 #
-# Nothing here can block a merge: branch rules are not available on this repository. The
-# gate that blocks is the `needs` in `deploy.yml`.
+# Nothing here can block a merge: no branch rule is set on this repository. The gate that
+# blocks is the `needs` in `deploy.yml`.
 name: Pull request
 
 on:

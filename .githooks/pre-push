@@ -6,7 +6,7 @@
 #   Skip for one push:            git push --no-verify
 #
 # Turning it on makes git read its hooks from .githooks only. A hook that sits in
-# .git/hooks, such as a checkout guard, stops running. See "Before a push" in the README.
+# .git/hooks, such as a checkout guard, stops running. See "Before a push" in docs/pipeline.md.
 #
 # For every branch or tag being pushed: the payload scan on its newest commit, first. Then,
 # for each project the push changes, the static checks and the tests. It costs no Actions
