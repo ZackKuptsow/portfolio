@@ -444,3 +444,31 @@ html.dark .terminal-section-heading {
     display: none;
   }
 }
+
+/*
+ * What a visitor typed at the prompt prints here, after the current card, in the output's own
+ * type. The typed line is echoed before its result, as a terminal's scrollback keeps it, and a
+ * typed `clear` appends a blank the height of the screen. Art keeps its spaces.
+ */
+.terminal-session {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.terminal-session-line {
+  overflow-wrap: anywhere;
+}
+
+.terminal-session-echo {
+  color: hsl(var(--foreground));
+}
+
+.terminal-session-art {
+  overflow-x: hidden;
+  font-family: inherit;
+  white-space: pre;
+}
+
+.terminal-session-blank {
+  width: 100%;
+}
