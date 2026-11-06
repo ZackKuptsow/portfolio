@@ -1,4 +1,5 @@
 import { INITIAL_PATH, RESUME_COMMAND } from './constants'
+import { relativePathBetween } from './shell/fakeFileSystem'
 
 import type { SectionId, TerminalSection, TerminalStep } from './types'
 
@@ -28,7 +29,11 @@ function directoryPath(directory: string): string {
   return `${INITIAL_PATH}/${directory}`
 }
 
-/** The `cd` that gets from `cwd` into a section's folder, or nothing when already there. */
+/**
+ * The `cd` that gets from `cwd` into a section's folder, or nothing when already there. From the
+ * portfolio it is the table's `cd ./<folder>`; from anywhere else, a typed `cd` included, it is the
+ * relative path a shell would type.
+ */
 function changeInto(cwd: string, directory: string): string {
   if (cwd === directoryPath(directory)) {
     return ''
@@ -36,10 +41,7 @@ function changeInto(cwd: string, directory: string): string {
   if (cwd === INITIAL_PATH) {
     return `cd ./${directory} && `
   }
-  if (cwd === HOME_PATH) {
-    return `cd portfolio/${directory} && `
-  }
-  return `cd ../${directory} && `
+  return `cd ${relativePathBetween(cwd, directoryPath(directory))} && `
 }
 
 /** The `cd` that gets from `cwd` up to the portfolio, or nothing when already there. */
@@ -47,7 +49,7 @@ function changeToPortfolio(cwd: string): string {
   if (cwd === INITIAL_PATH) {
     return ''
   }
-  return cwd === HOME_PATH ? 'cd portfolio && ' : 'cd .. && '
+  return `cd ${relativePathBetween(cwd, INITIAL_PATH)} && `
 }
 
 /** The file's name as seen from `cwd`. */
