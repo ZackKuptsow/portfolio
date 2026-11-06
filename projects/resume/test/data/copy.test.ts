@@ -83,7 +83,7 @@ describe('resume content', () => {
       SAVE_STATE_TOUR: 6,
       // A function holds no visible string.
       buildProjects: 0,
-      projects: 49,
+      projects: 55,
     })
   })
 

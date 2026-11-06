@@ -35,6 +35,12 @@ describe('projects', () => {
     expect(everything).not.toMatch(/kindrd/i)
   })
 
+  it('counts nothing and mentions no decision records, which go stale or read as process', () => {
+    const everything = JSON.stringify(projects)
+
+    expect(everything).not.toMatch(/decision record|\bADR \d|\b\d+ (tests?|test files|phases)\b/i)
+  })
+
   it('links only to pages that exist: https elsewhere, or a file this site serves', () => {
     const hrefs = projects.flatMap((project) => project.links.map((link) => link.href))
 

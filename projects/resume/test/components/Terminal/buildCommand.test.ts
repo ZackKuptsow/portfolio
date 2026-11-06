@@ -164,17 +164,18 @@ describe('initialCwd', () => {
 })
 
 describe('measureLongestPromptLine', () => {
-  const LONGEST_FILE = 'a_household_assistant_by_text_and_the_mac_that_answers_it.txt'
+  // The menu's jump from the work folder. Reading the longest file comes to less.
+  const LONGEST_COMMAND = 'clear && cd ~/portfolio/education && ls'
 
-  it('counts the longest file with the folder it is really read from, and not a longer one', () => {
+  it('counts the longest command with the folder it is really typed in, and not a longer one', () => {
     expect(measureLongestPromptLine(sections, steps, (path) => path)).toBe(
-      `~/portfolio/projects $ cat ${LONGEST_FILE}`.length,
+      `~/portfolio/work_experience $ ${LONGEST_COMMAND}`.length,
     )
   })
 
   it('counts less on a phone, whose prompt shows the short path', () => {
     expect(measureLongestPromptLine(sections, steps, shortenPromptPath)).toBe(
-      `~/projects $ cat ${LONGEST_FILE}`.length,
+      `~/work_experience $ ${LONGEST_COMMAND}`.length,
     )
   })
 })

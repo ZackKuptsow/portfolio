@@ -455,6 +455,9 @@ does not ask for one.
 - Don't make `kups.me/get_resume.sh` real, because he chose decoration on page 8.
 - Don't ship a new line of copy without his approval, or mention comp or why he left a job. Don't add
   comment lines or jokes: "I will add them if I want them."
+- Do write a project card like a launch page: what it does, then what makes it worth a look. Don't lead
+  with what it refuses, count anything, mention decision records, or state a default as a feature: "We
+  don't need to state obvious facts. That should be a default."
 
 **Traps the prototypes found, each measured in Chrome:**
 

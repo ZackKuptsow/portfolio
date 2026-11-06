@@ -13,7 +13,7 @@ const PAGE_TITLE = 'Projects'
  */
 export const metadata: Metadata = {
   alternates: { canonical: PROJECTS_PAGE_PATH },
-  description: `Side projects and open source by ${PERSON_NAME}: a Hermes Agent plugin, a system design study app with a recorded tour, and the AWS behind this site.`,
+  description: `Side projects and open source by ${PERSON_NAME}: a Hermes Agent plugin, an interview prep app with a recorded tour, and the AWS behind this site.`,
   title: `${PAGE_TITLE} | ${SITE_TITLE}`,
 }
 

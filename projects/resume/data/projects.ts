@@ -4,10 +4,15 @@
  *
  * Every project gives a visitor somewhere to go (the code, a live site, a
  * recorded demo) or says, in a few words, why there is nowhere to go yet. A
- * project card with neither is only a claim. The copy follows the resume's
- * rules: plain sentences, numbers only where the repository can back them,
- * and no em or en dash, which `test/data/copy.test.ts` enforces. The private
- * products are described at the level of their public pages and no further.
+ * project card with neither is only a claim.
+ *
+ * The copy reads like a launch page: what the thing does and who it is for,
+ * then what makes it worth a look. No counts, because a count goes stale between
+ * deploys. Nothing about how decisions were recorded, and nothing a reader would
+ * assume anyway, such as a working 404 page: "That should be a default" (Zack,
+ * 2026-11-06). No em or en dash, which `test/data/copy.test.ts` enforces. The
+ * private products are described at the level of their public pages and no
+ * further.
  */
 
 import type { NonEmptyList } from '@/data/profile'
@@ -80,6 +85,9 @@ export const SAVE_STATE_TOUR: ProjectVideo = {
   triggerLabel: 'watch the tour',
 }
 
+/** The one project that is public code, which the household assistant's card links to as well. */
+const HERMES_PLUGIN_REPOSITORY_URL = 'https://github.com/ZackKuptsow/hermes-imessage-shortcuts'
+
 /**
  * The projects, with the links a build is allowed to show. Save State's repository is
  * private while it is being prepared, so its card has the tour and no code link.
@@ -92,75 +100,82 @@ export function buildProjects({ saveStateLiveUrl }: ProjectsOptions): NonEmptyLi
   return [
     {
       description:
-        'A platform plugin for Hermes Agent, the open source agent from Nous Research, that lets you text your agent over iMessage from a Mac you already own, with no Full Disk Access and no relay service in the middle. A Shortcuts automation posts each incoming text to a listener on the loopback address; the reply goes back through imsg from the same Messages account.',
+        'Text your AI agent the way you text anyone else. Hermes Agent, the open source agent from Nous Research, already has iMessage options of its own. This plugin is my take on one, built to experiment with Hermes, n8n automations and local LLMs. Your phone, your Mac, your agent: that is the whole route.',
       highlights: [
-        'A sender allow list checked before the gateway sees a text, a shared secret compared in constant time, and a refusal to start in any profile but the texting one, so a cloud model in another profile can never answer by accident.',
-        '72 tests, 15 of them inside the agent runtime itself. CI runs both forms on macOS, the second after installing Hermes Agent with its own install script.',
-        'An optional tool forwards a household command to a second service and reports only whether the answer was delivered, so the other person in the house never has their data pass through the model.',
+        'Private by design: Messages hands the agent one text at a time, so it never needs your message history or broad access to the Mac.',
+        'Answers only you: a sender allow list, a shared secret and a dedicated texting profile stand between a stranger and the model.',
+        'Tested in the real runtime: CI on macOS installs Hermes Agent from scratch and runs the suite inside it.',
+        'The front door to my house: it carries texts to the household assistant, next in this list.',
       ],
-      links: [{ href: 'https://github.com/ZackKuptsow/hermes-imessage-shortcuts', label: 'code' }],
-      subtitle: 'Hermes Agent platform plugin · Python · 2026',
+      links: [{ href: HERMES_PLUGIN_REPOSITORY_URL, label: 'code' }],
+      subtitle: 'Text your AI agent over iMessage · Python · open source · 2026',
       title: 'hermes-imessage-shortcuts',
     },
     {
       description:
-        'A system design interview study app for iPhone and the web: spaced repetition cards, back of the envelope estimation drills, quizzes and a timed mock interview, all graded without any runtime AI. Progress lives on the device in SQLite and syncs as an append only event log to a serverless AWS backend that stays inside the free tier.',
+        "Run the household from a text thread. Text the assistant to add to the shared shopping list, check off a to-do, set a reminder or get the day's calendar, and it is done. The assistant runs on AWS for the whole household, and a Mac at home answers my own texts with Hermes Agent on a local model.",
       highlights: [
-        'One Expo codebase for iOS and web, 31 phases since September 2026, each closed by a multi agent review with every finding fixed or left with its reason.',
-        "A practice IDE runs the learner's Python in a Lambda with no route out of its VPC, behind a token checking gateway with reserved concurrency, and records the attempt without a self report.",
-        'Content is markdown with frontmatter, checked by Zod schemas at build time and fed from an Obsidian study vault.',
+        'Predictable by design: the model only translates a text into a command. Everything that acts is plain, tested code.',
+        "The home stays home: the house runs on Home Assistant, kept to the local network, and the Mac's agent runs a local model through Ollama.",
+        'An open source front door: texts reach the Mac through hermes-imessage-shortcuts, the plugin above.',
+      ],
+      links: [{ href: HERMES_PLUGIN_REPOSITORY_URL, label: 'the iMessage plugin' }],
+      privateBecause: "it holds the household's data and the home's automations",
+      subtitle:
+        'Lists, to-dos and reminders by text · Python, AWS, Home Assistant, Hermes Agent · 2026',
+      title: 'Household assistant',
+    },
+    {
+      description:
+        'Interview prep that fits in your pocket. Spaced repetition cards, back of the envelope estimation drills, quizzes and a timed mock interview, all graded on the spot by the app itself, with no AI at runtime. Start on your phone and carry on from the web.',
+      highlights: [
+        'One codebase, two platforms: a single Expo app, React Native on iOS and React on the web.',
+        'Local first, synced after: progress lives on the device in SQLite and syncs as an append only event log to a serverless AWS backend that stays inside the free tier.',
+        'A real code runner: the practice IDE runs your Python in an isolated Lambda behind a token checking gateway, and records every attempt.',
+        'Content as code: every card is markdown, checked by Zod schemas at build time and fed from my own study notes.',
       ],
       links: saveStateLinks,
-      subtitle: 'System design interview prep on iOS and web · Expo, TypeScript, AWS · 2026',
+      subtitle:
+        'Interview Prep for Engineers · iOS and web · React, React Native, Expo, TypeScript, AWS · 2026',
       title: 'Save State',
       video: SAVE_STATE_TOUR,
     },
     {
       description:
-        'A text assistant for one household, and the home automation behind it. The assistant runs on AWS and acts on the commands people text it: the shared shopping list, to-dos, the day\u0027s calendar, reminders. The home runs Home Assistant with no remote access, and on the Mac at home Hermes Agent, on a local model through Ollama, answers one person\u0027s texts and forwards household commands to the assistant.',
+        'Creative collaboration starts here. akin is where creatives of every kind connect around projects rather than follower counts: build a portfolio, pitch what you want to make, then find the people you want to make it with. The waitlist is live, and the mobile app is in progress.',
       highlights: [
-        'The model only translates a message into a command (ADR 0004). What runs is code.',
-        'No process Hermes can launch gets Full Disk Access, and nothing in the home is reachable from outside it.',
-        'Every decision is written down: 73 decision records in the assistant and 37 in the home, and 169 test files in the assistant.',
-      ],
-      links: [],
-      privateBecause: "it holds the household's data and the home's automations",
-      subtitle: 'Two private repositories · Python, AWS, Home Assistant, Hermes Agent · 2026',
-      title: 'A household assistant by text, and the Mac that answers it',
-    },
-    {
-      description:
-        'A place for creatives to find collaborators around projects rather than follower counts, from a startup I co-founded. The landing site and its waitlist are live; a mobile app is in progress.',
-      highlights: [
-        'The waitlist collects an email and nothing else, counts before it writes and compensates on failure, and rate limits by a window carried in the counter key. Eight decision records say why.',
-        'A static export on AWS, built with Terraform rather than CDK and DynamoDB rather than RDS.',
+        'The app is the product: the creative collaboration app itself, in React Native on Expo.',
+        'A waitlist that is already live: a static Next.js site on AWS, provisioned with Terraform, with DynamoDB behind the signups.',
       ],
       links: [{ href: 'https://theakin.app', label: 'live site' }],
-      subtitle: 'A startup · Next.js, AWS, Terraform · 2026',
+      subtitle: 'A startup I co-founded · React Native, Expo, TypeScript, Next.js, AWS · 2026',
       title: 'akin',
     },
     {
       description:
-        'A second brain for travel, for two people, started this month: a design system, a web app, a mobile app and a backend, each its own repository. The model work will run on Amazon Bedrock.',
+        'A second brain for leisure travel. Capture inspiration from anywhere, plan it into trips, and relive where you have been on a rotating 3D globe. In progress, on iPhone and the web.',
       links: [],
       privateBecause: 'early days',
-      subtitle: 'A second brain for travel · TypeScript, AWS · 2026',
+      subtitle: 'A second brain for travel · Python, TypeScript, AWS · in progress',
       title: 'awty',
     },
     {
-      description:
-        'Two tools built in a day each, with their tests. One turns a folder of notes into a Gemini Notebook audio overview from a single command. The other is a local, CodeSignal style practice server for interview problems, in Python with no build step: a vim editor, locked test files and a phase clock.',
+      description: 'The tools behind the rest of this list, each with its own tests.',
+      highlights: [
+        'Notes to audio: one command turns a folder of notes into a Gemini Notebook audio overview.',
+        'Interview practice: a local, CodeSignal style server with a vim editor, locked test files and a phase clock, in plain Python with no build step.',
+        'Dotfiles: a new Mac is ready from one clone and one script, with the Claude Code skills, agents and hooks I work with. It scans itself before it installs anything.',
+      ],
       links: [],
-      privateBecause: 'wired to my notes vault',
-      subtitle: 'Two small tools · Python · 2026',
+      privateBecause: 'wired to my notes and my machine',
+      subtitle: 'Tools I built for my own work · Python, Shell · 2026',
       title: 'Smaller tools',
     },
     {
       description:
-        'This site, and the AWS behind it: a Next.js static export on S3 and CloudFront from a CDK stack, and a Step Functions service that emails the resume on request through SES, with Zod validation and a DynamoDB rate limit in front of it.',
+        'You are looking at it. A portfolio that behaves like a terminal: scroll, and it types the next command and prints the next section. Underneath is plain HTML, a Next.js static export on S3 and CloudFront from a CDK stack.',
       highlights: [
-        'The checks run against the built files and in a real browser: sections revealed on a phone, no sideways scroll, focus kept inside the resume dialog, and every request to another host aborted so no check can send an email.',
-        'A missing path answers with the 404 page and a 404 status, every PDF carries a noindex header, and the payload scan runs first in every CI job that installs.',
+        'Resume on request: a Step Functions service emails it through SES, with Zod validation and a DynamoDB rate limit in front.',
       ],
       links: [{ href: 'https://github.com/ZackKuptsow/portfolio', label: 'code' }],
       subtitle: 'kups.me · Next.js, AWS CDK, Step Functions · 2025 to 2026',
