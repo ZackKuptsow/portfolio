@@ -11,7 +11,7 @@ import {
 } from '@/components/Terminal/shell/renderOutput'
 
 function blockOnPage(blockId: string): HTMLElement {
-  render(<Terminal startSectionId="hero" />)
+  render(<Terminal gitLog={[]} startSectionId="hero" />)
   const block = document.querySelector<HTMLElement>(`[data-block="${blockId}"]`)
   if (!block) {
     throw new Error(`The page has no block "${blockId}"`)

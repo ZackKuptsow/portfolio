@@ -137,20 +137,33 @@ export class TerminalLayout {
    * never covers a line of output. Phones wrap the long ones.
    */
   private measurePromptReserve(): number {
-    const { prompt, root } = this.elements
+    const { prompt } = this.elements
     const styles = getComputedStyle(prompt)
     const framing =
       parseFloat(styles.paddingTop) +
       parseFloat(styles.paddingBottom) +
       parseFloat(styles.borderTopWidth)
+    return this.promptRows().rows * parseFloat(styles.lineHeight) + framing
+  }
+
+  /** The rows the prompt keeps for the longest command, and the characters each holds. */
+  private promptRows(): { columns: number; rows: number } {
+    const { prompt, root } = this.elements
+    const styles = getComputedStyle(prompt)
     const innerWidth =
       root.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight)
     const longestLine =
       root.clientWidth < PROMPT_SHORT_PATH_BELOW_PIXELS
         ? this.longestPromptLine.withShortPath
         : this.longestPromptLine.withFullPath
-    const rows = Math.ceil(longestLine / this.measureColumns(prompt, innerWidth))
-    return rows * parseFloat(styles.lineHeight) + framing
+    const columns = this.measureColumns(prompt, innerWidth)
+    return { columns, rows: Math.max(1, Math.ceil(longestLine / columns)) }
+  }
+
+  /** Characters a typed line may have after a prefix, so typing never grows the prompt. */
+  promptLineCapacity(prefixLength: number): number {
+    const { columns, rows } = this.promptRows()
+    return Math.max(0, rows * columns - prefixLength)
   }
 
   /** Measure after fonts, after scrollbars, and on rotation. Each of these moves every line. */

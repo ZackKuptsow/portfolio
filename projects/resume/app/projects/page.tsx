@@ -22,5 +22,5 @@ export const metadata: Metadata = {
  * lands on them. Its own title and `h1` are what keep it worth indexing.
  */
 export default function ProjectsPage() {
-  return <Terminal startSectionId="projects" />
+  return <Terminal gitLog={[]} startSectionId="projects" />
 }

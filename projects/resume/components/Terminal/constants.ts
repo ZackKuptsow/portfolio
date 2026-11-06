@@ -28,6 +28,9 @@ export const RESUME_COMMAND = 'wget kups.me/get_resume.sh && sh get_resume.sh'
 /** Typed when the reader scrolls up past the first screen, which reprints the hero. */
 export const EXIT_COMMAND = 'exit'
 
+/** What stands between the prompt's path and the command. */
+export const PROMPT_SEPARATOR = ' $ '
+
 /** The address the hero prints, a line of today's site. */
 export const HERO_PATH = '~/root/portfolio'
 

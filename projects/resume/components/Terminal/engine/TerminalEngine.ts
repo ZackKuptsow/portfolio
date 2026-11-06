@@ -1,3 +1,5 @@
+import { terminalEasterEggs } from '@/data/terminalEasterEggs'
+
 import {
   buildCommand,
   initialCwd,
@@ -9,11 +11,13 @@ import {
   DRAWER_CLOSE_MILLISECONDS,
   EXIT_COMMAND,
   INITIAL_PATH,
+  PROMPT_SEPARATOR,
   SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS,
   SCROLL_UP_AT_TOP_TO_EXIT_PIXELS,
   SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_BY_TOUCH_PIXELS,
   SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS,
 } from '../constants'
+import { printAppendedOutput, showAppendedOutput } from './appendedOutput'
 import { CommandClock } from './commandClock'
 import { playDownload } from './playDownload'
 import { ScrollDriver } from './ScrollDriver'
@@ -22,9 +26,13 @@ import { streamOutput } from './streamOutput'
 import { TerminalLayout } from './TerminalLayout'
 import { typeCommand } from './typeCommand'
 import { wireTerminalInput } from './wireTerminalInput'
+import { buildFileSystem } from '../shell/fakeFileSystem'
+import { Shell } from '../shell/Shell'
 
 import type { CommandRoute, TerminalCommand } from '../buildCommand'
+import type { ShellHost } from '../shell/Shell'
 import type { SectionId, TerminalSection, TerminalStep } from '../types'
+import type { AppendedOutputView } from './appendedOutput'
 import type { ScrollDirection } from './ScrollDriver'
 import type { TerminalElements } from './TerminalLayout'
 
@@ -36,6 +44,8 @@ export type TerminalLocation = {
 
 export type TerminalEngineOptions = {
   elements: TerminalElements
+  /** The repository's last commits, read at build, which a typed `git log` prints. */
+  gitLog: readonly string[]
   onLocationChange: (location: TerminalLocation) => void
   openResumeWindow: () => void
   /** Find in page matched a section the terminal hides. The plain flow can show it. */
@@ -47,16 +57,19 @@ export type TerminalEngineOptions = {
 const JUMP_KEY_SECTION: Partial<Record<string, SectionId>> = { End: 'projects', Home: 'hero' }
 const KEYS_THAT_SCROLL_UP = new Set(['ArrowUp', 'PageUp'])
 const KEYS_THAT_SCROLL = new Set([...KEYS_THAT_SCROLL_UP, ' ', 'ArrowDown', 'PageDown'])
+/** A click on one of these is the control's; a click anywhere else puts the keyboard back on the prompt. */
+const INTERACTIVE_SELECTOR = 'a, button, dialog, input, select, textarea, [tabindex]'
 
 /**
  * The terminal, on top of the plain flow in the server's HTML: one stationary screen that the
  * scroll drives. Reading is 1:1. Scrolling past the end of a section types a command on its own
  * time, then the screen clears and the output prints top down in whole rows.
  *
- * It holds no text of its own and writes no markup: it moves, clips and hides the sections
- * React rendered, so every word stays in the HTML for search, screen readers and find in page.
- * Checks read it through the DOM: `data-busy`, `data-current-step`, `data-step-start` and
- * `data-step-end` on the root.
+ * It holds no text of its own: it moves, clips and hides the sections React rendered, so every
+ * word stays in the HTML for search, screen readers and find in page. The one exception is the
+ * typed shell's container (`shell/`), which holds copies of the page's own markup and the lines of
+ * a closed table, for a visitor who types at the prompt. Checks read the engine through the DOM:
+ * `data-busy`, `data-current-step`, `data-step-start` and `data-step-end` on the root.
  */
 export class TerminalEngine {
   private readonly abortController = new AbortController()
@@ -66,6 +79,7 @@ export class TerminalEngine {
   private readonly options: TerminalEngineOptions
   private readonly scroll: ScrollDriver
   private readonly sections: readonly TerminalSection[]
+  private readonly shell: Shell
   private readonly steps: readonly TerminalStep[]
 
   private currentStepIndex: number
@@ -104,6 +118,61 @@ export class TerminalEngine {
       readMappedSteps: () => this.layout.mappedSteps,
       scroller: options.elements.scroller,
     })
+    this.shell = new Shell({
+      context: {
+        eggs: terminalEasterEggs,
+        gitLog: options.gitLog,
+        root: buildFileSystem(this.sections, terminalEasterEggs),
+      },
+      elements: { scroller: options.elements.scroller, typed: options.elements.typed },
+      host: this.shellHost(),
+    })
+  }
+
+  /** What the typed shell may ask of the engine, which stays the owner of the screen and the clock. */
+  private shellHost(): ShellHost {
+    return {
+      bottomInScene: (element) =>
+        element.getBoundingClientRect().bottom -
+        this.layout.sceneOf(this.currentStepIndex).getBoundingClientRect().top,
+      clock: this.clock,
+      currentBlock: () => this.layout.blockOf(this.currentStepIndex),
+      cwd: () => this.cwd,
+      followOutput: () => showAppendedOutput(this.appendedOutputView()),
+      isBusy: () => this.isBusy,
+      landOnHero: (done) => {
+        this.cwd = INITIAL_PATH
+        this.land(0, 'down', done)
+      },
+      measureColumns: (element) => this.layout.measureColumns(element, element.clientWidth),
+      openResumeWindow: () => this.options.openResumeWindow(),
+      printAppended: (fromSceneHeight, done) =>
+        printAppendedOutput(this.appendedOutputView(), fromSceneHeight, done),
+      promptLineCapacity: () =>
+        this.layout.promptLineCapacity(this.cwd.length + PROMPT_SEPARATOR.length),
+      requestPlainView: () => this.options.requestPlainView(),
+      runBusy: (work) => {
+        this.clock.reset()
+        this.markBusy()
+        work(this.finishCommand)
+      },
+      setCwd: (cwd) => {
+        this.cwd = cwd
+        this.announceLocation()
+      },
+      usableHeight: () => this.layout.usableHeight,
+    }
+  }
+
+  private appendedOutputView(): AppendedOutputView {
+    return {
+      clock: this.clock,
+      draw: () => this.draw(),
+      layout: this.layout,
+      publishStep: () => this.publishStep(),
+      scroll: this.scroll,
+      stepIndex: this.currentStepIndex,
+    }
   }
 
   /** Takes over from the plain flow. Nothing here runs unless the page opted in before painting. */
@@ -113,7 +182,7 @@ export class TerminalEngine {
     this.stopInput = wireTerminalInput({
       elements: this.elements,
       handlers: {
-        onClick: this.fastForwardIfBusy,
+        onClick: this.handleClick,
         onFindInPage: this.options.requestPlainView,
         onFocusIn: this.revealFocused,
         onKeyDown: this.handleKeyDown,
@@ -191,6 +260,7 @@ export class TerminalEngine {
     this.isBusy = false
     this.pendingNavigation = null
     delete this.elements.root.dataset.busy
+    this.shell.remove()
     this.elements.typed.textContent = ''
     if (isPlain) {
       this.layout.applyPlainFlow()
@@ -325,6 +395,7 @@ export class TerminalEngine {
     const { typed } = this.elements
     this.clock.reset()
     this.markBusy()
+    this.shell.recordTourCommand(command)
     typeCommand({
       clock: this.clock,
       command,
@@ -382,6 +453,13 @@ export class TerminalEngine {
     done: () => void,
     keepScrollTop?: number,
   ): void {
+    // Another section, or a `clear`: whatever was typed into the old screen goes with it.
+    const isNewScreen =
+      this.steps[target].sectionId !== this.steps[this.currentStepIndex].sectionId ||
+      this.steps[target].clearsBefore
+    if (isNewScreen) {
+      this.shell.onScreenChanged()
+    }
     this.currentStepIndex = target
     this.scroll.direction = way
     this.exitPull = 0
@@ -455,14 +533,23 @@ export class TerminalEngine {
     }
   }
 
-  private fastForwardIfBusy = (): void => {
+  /** A click hurries a running command, and puts the keyboard back on the prompt unless it was a control's. */
+  private handleClick = (event: MouseEvent): void => {
     if (this.isBusy) {
       this.clock.fastForward()
+    }
+    const target = event.target instanceof Element ? event.target : null
+    if (!this.isPlain && !target?.closest(INTERACTIVE_SELECTOR)) {
+      this.elements.scroller.focus({ preventScroll: true })
     }
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {
     if (this.isPlain) {
+      return
+    }
+    // The shell takes a key once a line has text, and a printable key that starts one.
+    if (this.shell.handleKey(event)) {
       return
     }
     if (KEYS_THAT_SCROLL.has(event.key)) {

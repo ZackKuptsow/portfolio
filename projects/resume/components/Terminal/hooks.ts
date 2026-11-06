@@ -15,6 +15,8 @@ type TerminalElementRefs = {
 }
 
 type UseTerminalEngineOptions = {
+  /** The repository's last commits, read at build, for the typed `git log`. */
+  gitLog: readonly string[]
   /** False until every section is on the page, which the engine needs before it can measure. */
   isReadyToStart: boolean
   onResumeWindowOpenRequest: () => void
@@ -41,6 +43,7 @@ function readElements(refs: TerminalElementRefs): TerminalElements {
  * the terminal from the menu.
  */
 export function useTerminalEngine({
+  gitLog,
   isReadyToStart,
   onResumeWindowOpenRequest,
   refs,
@@ -61,6 +64,7 @@ export function useTerminalEngine({
   const startEngine = useCallback(() => {
     const engine = new TerminalEngine({
       elements: readElements(refs),
+      gitLog,
       onLocationChange: setLocation,
       openResumeWindow: () => openResumeRef.current(),
       requestPlainView: () => {
@@ -71,7 +75,7 @@ export function useTerminalEngine({
     })
     engine.start()
     engineRef.current = engine
-    // The refs and the start section are fixed for the life of the page.
+    // The refs, the start section and the commits are fixed for the life of the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -1,4 +1,4 @@
-import { INITIAL_PATH, RESUME_COMMAND } from './constants'
+import { INITIAL_PATH, PROMPT_SEPARATOR, RESUME_COMMAND } from './constants'
 import { relativePathBetween } from './shell/fakeFileSystem'
 
 import type { SectionId, TerminalSection, TerminalStep } from './types'
@@ -6,8 +6,6 @@ import type { SectionId, TerminalSection, TerminalStep } from './types'
 const HOME_PATH = '~'
 const PROFILE_FILE = 'developer.profile'
 const FILE_EXTENSION = '.txt'
-/** What stands between the path and the typed command. */
-const PROMPT_SEPARATOR = ' $ '
 
 /** How the reader got here: scrolling down, scrolling up, or from the menu. */
 export type CommandRoute = 'down' | 'menu' | 'up'

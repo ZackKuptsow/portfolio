@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
-import { THEME_COLOR, THEME_STORAGE_KEY } from './themeColor'
-
-const DARK_CLASS = 'dark'
+import { THEME_CHANGED_EVENT, applyTheme, readIsDark } from './applyTheme'
+import { THEME_COLOR } from './themeColor'
 
 function setBrowserThemeColor(isDark: boolean): void {
   document
@@ -14,28 +13,23 @@ function setBrowserThemeColor(isDark: boolean): void {
 
 /**
  * The site's theme. The pre-paint script already applied it, so this mirrors that decision into
- * state rather than working it out again. A choice made here is stored and wins from then on.
+ * state rather than working it out again, and follows every later change, whether the menu or the
+ * typed shell made it. A choice made here is stored and wins from then on.
  */
 export function useTheme() {
   const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
-    const isDarkNow = document.documentElement.classList.contains(DARK_CLASS)
+    const isDarkNow = readIsDark()
     setIsDark(isDarkNow)
     setBrowserThemeColor(isDarkNow)
+    const follow = () => setIsDark(readIsDark())
+    window.addEventListener(THEME_CHANGED_EVENT, follow)
+    return () => window.removeEventListener(THEME_CHANGED_EVENT, follow)
   }, [])
 
   const toggleTheme = () => {
-    const nextIsDark = !isDark
-    setIsDark(nextIsDark)
-    document.documentElement.classList.toggle(DARK_CLASS, nextIsDark)
-    setBrowserThemeColor(nextIsDark)
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, nextIsDark ? 'dark' : 'light')
-    } catch (error) {
-      // The switch still works for this page. It just cannot be remembered.
-      console.warn('The theme choice could not be stored', error)
-    }
+    applyTheme(!isDark)
   }
 
   return { isDark, toggleTheme }
