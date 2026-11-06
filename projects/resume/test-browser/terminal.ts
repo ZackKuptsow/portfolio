@@ -222,6 +222,7 @@ export function readSessionOutputView(page: Page): Promise<SessionOutputView> {
     const sceneBox = scene.getBoundingClientRect()
     const dockTop = dock.getBoundingClientRect().top
     const tolerance = 0.5
+    const seenRows = new Set<string>()
     const view: SessionOutputView = { cutRows: [], overlappingDock: [], shownRows: [] }
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
     while (walker.nextNode()) {
@@ -242,7 +243,12 @@ export function readSessionOutputView(page: Page): Promise<SessionOutputView> {
           view.cutRows.push(text)
         }
         if (isInside) {
-          view.shownRows.push(text)
+          // A `pre` reports a box for each line and another for its line break, so count each once.
+          const rowKey = `${Math.round(top)}:${text}`
+          if (!seenRows.has(rowKey)) {
+            seenRows.add(rowKey)
+            view.shownRows.push(text)
+          }
           if (rect.bottom > dockTop + tolerance) {
             view.overlappingDock.push(text)
           }

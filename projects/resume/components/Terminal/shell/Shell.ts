@@ -1,8 +1,8 @@
 import { applyTheme, readIsDark } from '@/components/applyTheme'
+import { FRESH_SHELL_EXIT_STATUS } from '@/data/terminalEasterEggs'
 
 import { assertEasterEggsValid } from './checkEasterEggs'
 import { buildCommandTable } from './commandTable'
-import { EXIT_STATUS } from './constants'
 import { findNode, listFolder, resolvePath } from './fakeFileSystem'
 import { cloneCard, renderArt, renderEchoedLine, renderLines, renderListing } from './renderOutput'
 import { runCommandLine } from './runCommandLine'
@@ -71,7 +71,7 @@ export class Shell {
     this.scroller = elements.scroller
     assertEasterEggsValid(context.eggs)
     this.commandNames = [...buildCommandTable([]).keys()].sort()
-    this.state = { cwd: host.cwd(), history: [], lastExitStatus: EXIT_STATUS.success }
+    this.state = { cwd: host.cwd(), history: [], lastExitStatus: FRESH_SHELL_EXIT_STATUS }
     this.input = new TypedInput({
       complete: (prefix) => this.complete(prefix),
       maxLength: host.promptLineCapacity,

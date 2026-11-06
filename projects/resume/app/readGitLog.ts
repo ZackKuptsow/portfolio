@@ -4,6 +4,10 @@ import { execFileSync } from 'node:child_process'
 export const GIT_LOG_LINES = 10
 const GIT_LOG_ARGUMENTS = ['log', '-n', String(GIT_LOG_LINES), '--format=%h %s'] as const
 
+/** No em or en dash in anything a visitor reads, and a commit subject can hold one. */
+const EM_OR_EN_DASH = /[–—]/g
+const PLAIN_HYPHEN = '-'
+
 /** Runs git with arguments and returns what it printed. The real one is `execFileSync`. */
 export type GitRunner = (gitArguments: readonly string[]) => string
 
@@ -23,7 +27,10 @@ export function readGitLog(runGit: GitRunner = runGitForReal): readonly string[]
   } catch (error) {
     throw new Error(`The build could not run git log for the typed shell: ${String(error)}`)
   }
-  const lines = output.split('\n').filter((line) => line.length > 0)
+  const lines = output
+    .split('\n')
+    .filter((line) => line.length > 0)
+    .map((line) => line.replace(EM_OR_EN_DASH, PLAIN_HYPHEN))
   if (lines.length === 0) {
     throw new Error('The build ran git log for the typed shell and got no commits')
   }

@@ -69,6 +69,8 @@ describe('renderOutput', () => {
 
     expect(art.tagName).toBe('PRE')
     expect(art.className).toBe('terminal-session-art')
+    // Read aloud it is a run of symbols. The echoed line above it already names what was asked for.
+    expect(art.getAttribute('aria-hidden')).toBe('true')
     expect(art.textContent).toBe('  /\\  \n /__\\ ')
   })
 

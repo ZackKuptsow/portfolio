@@ -14,6 +14,13 @@ describe('readGitLog', () => {
     expect(runGit).toHaveBeenCalledWith(['log', '-n', String(GIT_LOG_LINES), '--format=%h %s'])
   })
 
+  // No em or en dash in anything a visitor reads, and a commit subject can hold one.
+  it('prints a plain hyphen for an em or en dash in a commit subject', () => {
+    const lines = readGitLog(() => 'abc1234 fix: one — two\nbcd2345 fix: three – four\n')
+
+    expect(lines).toEqual(['abc1234 fix: one - two', 'bcd2345 fix: three - four'])
+  })
+
   it('reads the real repository by default', () => {
     const lines = readGitLog()
 

@@ -91,10 +91,14 @@ export function renderEchoedLine(path: string, line: string): HTMLElement {
   return paragraph
 }
 
-/** A drawing, in a block that keeps its spaces. */
+/**
+ * A drawing, in a block that keeps its spaces. Read aloud it is a run of symbols, so it is hidden,
+ * and the echoed line above it already names what was asked for.
+ */
 export function renderArt(lines: readonly string[]): HTMLElement {
   const art = document.createElement('pre')
   art.className = ART_CLASS
+  art.setAttribute('aria-hidden', 'true')
   art.textContent = lines.join('\n')
   return art
 }

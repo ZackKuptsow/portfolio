@@ -26,6 +26,9 @@ const SCROLLER = '.terminal-scroller'
 const BLANK = '.terminal-session-blank'
 const HERO_BLOCK = '[data-block="hero-0"]'
 const SECOND_WORK_BLOCK = '[data-block="work-1"]'
+const ART = '.terminal-session-art'
+/** Too short for the Vault's rows, with the title bar, prompt and footer around them. */
+const SHORT_WINDOW = { height: 360, width: LAPTOP_VIEWPORT.width }
 /** Part of a line, so the link is on the track and still cannot be read. */
 const BEHIND_THE_PROMPT_PIXELS = 10
 /** The gap between two cards, `margin-top: 2rem` in terminal.css. */
@@ -298,8 +301,117 @@ test.describe('typing at the prompt', () => {
   })
 })
 
+test.describe('what typing reaches outside the output', () => {
+  test.use({ viewport: LAPTOP_VIEWPORT })
+
+  // Every request off this host is aborted, so nothing leaves: the request is the proof a tab opened.
+  for (const [line, address] of [
+    ['open github', 'github.com/ZackKuptsow'],
+    ['sudo rm -rf /', 'dQw4w9WgXcQ'],
+  ]) {
+    test(`${line} opens its fixed address in a new tab`, async ({ context, page }) => {
+      await page.goto('/')
+      await waitForTerminal(page)
+      const opened = context.waitForEvent('request', (request) => request.url().includes(address))
+
+      await typeCommand(page, line)
+
+      await opened
+      await expect(page.locator('.terminal-prompt')).toBeVisible()
+    })
+  }
+
+  test('theme light switches the theme, and the menu follows', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await expect(page.locator('html')).toHaveClass(/dark/)
+
+    await typeCommand(page, 'theme light')
+
+    await expect(page.locator('html')).not.toHaveClass(/dark/)
+    await page.getByRole('button', { exact: true, name: 'Menu' }).click()
+    await expect(
+      page.getByRole('navigation', { name: 'Menu' }).getByRole('button', { name: 'dark mode' }),
+    ).toBeVisible()
+  })
+
+  test('wget plays the download under what is on screen, and opens no window', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+
+    await typeCommand(page, 'wget kups.me/get_resume.sh')
+
+    const output = await readSessionOutput(page)
+    expect(output).toContain('Resolving kups.me... done.')
+    expect(output).toContain("'get_resume.sh' saved")
+    await expect(page.getByRole('dialog', { name: DIALOG_NAME })).toHaveCount(0)
+  })
+
+  test('sh get_resume.sh opens the resume window, and closing it stays where the reader was', async ({
+    page,
+  }) => {
+    await openAt(page, 'developer.profile')
+
+    await typeCommand(page, 'sh get_resume.sh')
+
+    const dialog = page.getByRole('dialog', { name: DIALOG_NAME })
+    await expect(dialog).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await waitUntilIdle(page)
+    expect(await readActiveScene(page)).toBe('about')
+  })
+})
+
+test.describe('the drawings', () => {
+  test.use({ viewport: LAPTOP_VIEWPORT })
+
+  for (const name of ['triforce', 'vault']) {
+    test(`${name} prints whole and clear of the prompt`, async ({ page }) => {
+      await openAt(page, 'developer.profile')
+
+      await typeCommand(page, name)
+
+      const view = await readSessionOutputView(page)
+      expect(view.cutRows).toEqual([])
+      expect(view.overlappingDock).toEqual([])
+      const fitsItsBox = await page
+        .locator(ART)
+        .evaluate((art) => art.scrollWidth <= art.clientWidth)
+      expect(fitsItsBox).toBe(true)
+    })
+  }
+
+  // Lines of a drawing that overlap read as one row to the engine, and then it can only clip all or
+  // nothing: on a short window the drawing would never show in part.
+  test('a window too short for the drawing scrolls through it a row at a time', async ({
+    page,
+  }) => {
+    await page.setViewportSize(SHORT_WINDOW)
+    await openAt(page, 'developer.profile')
+
+    await typeCommand(page, 'vault')
+
+    const rowsHigh = await page
+      .locator(ART)
+      .evaluate((art) => art.textContent?.split('\n').length ?? 0)
+    const view = await readSessionOutputView(page)
+    expect(view.cutRows).toEqual([])
+    expect(view.shownRows.length).toBeGreaterThan(0)
+    expect(view.shownRows.length).toBeLessThan(rowsHigh)
+  })
+})
+
 test.describe('typing at the prompt, on a phone-sized window with a keyboard', () => {
   test.use({ viewport: PHONE_VIEWPORT })
+
+  test('a drawing too wide for the window says so instead', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+
+    await typeCommand(page, 'vault')
+
+    expect(await page.locator(ART).count()).toBe(0)
+    expect(await readSessionOutput(page)).toContain('vault: window too narrow')
+  })
 
   test('Space with an empty line scrolls the output', async ({ page }) => {
     await openAt(page, 'work_experience/')

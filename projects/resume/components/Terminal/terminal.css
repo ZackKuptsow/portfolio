@@ -467,9 +467,14 @@ html.dark .terminal-section-heading {
   color: hsl(var(--foreground));
 }
 
+/*
+ * Tight enough to read as a drawing, and no tighter: below the font's own box of 1.32 the lines
+ * overlap, the engine reads them as one row, and it can only clip the whole drawing at once.
+ */
 .terminal-session-art {
   overflow-x: hidden;
   font-family: inherit;
+  line-height: 1.35;
   white-space: pre;
 }
 

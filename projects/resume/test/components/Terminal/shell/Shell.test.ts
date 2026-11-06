@@ -227,6 +227,18 @@ describe('Shell', () => {
     expect(typed.textContent).toBe('su')
   })
 
+  it('prints 42 for the first echo of the exit status, and the truth once anything has run', () => {
+    submit('echo $?')
+    expect(childTexts().at(-1)).toBe('42')
+
+    submit('echo $?')
+    expect(childTexts().at(-1)).toBe('0')
+
+    submit('nope')
+    submit('echo $?')
+    expect(childTexts().at(-1)).toBe('127')
+  })
+
   it('sends nothing and stores nothing', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
     const storage = vi.spyOn(Storage.prototype, 'setItem')
