@@ -19,6 +19,7 @@ data/identity.ts  # Who the site is about: name forms, role, location, email, pr
 data/profile.ts   # Resume content: work experience, education, skills, about copy
 data/projects.ts  # The projects: side projects and open source, each with its links and any demo
 data/householdAssistantSms.ts  # The household assistant's SMS pages: brand, keyword, the three Twilio replies
+data/terminalEasterEggs.ts     # What the typed shell hides: files, commands, drawings and links, as data
 demo/             # The GIF at the top of the repository's README, and the storyboard that films it
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
@@ -109,6 +110,40 @@ plain view is the way to search.
 **The scrollbar is hidden.** The screen does not move, so a scrollbar would only measure the virtual
 track. `test-browser/wholeRowsWithScrollbar.spec.ts` shows a real one anyway, because Playwright
 hides them by default and that once hid 363 cut lines out of 557 positions.
+
+**Typing.** A visitor with a hardware keyboard can type at the prompt (`components/Terminal/shell/`;
+the design is `docs/superpowers/specs/2026-11-06-typed-terminal-commands-design.md`). It is
+type-anywhere: a printable key starts the line, and while the line is empty every key is the engine's,
+so Space and the arrows scroll and Tab moves focus as before (`shell/TypedInput.ts`). With text in
+the line, Space is a character, Tab completes command names and the entries of the folder named, Up
+and Down recall, Enter runs. Scrolling past the end of a section drops a half-typed line and types the
+tour's command.
+
+The shell is a closed table, for show. `tokenizeCommandLine.ts` splits a line on `&&` and strips a
+pair of quotes, and refuses `|`, `;`, `>`, `<`, a backtick and `$(`. `fakeFileSystem.ts` builds the
+tree behind the prompt from the same data as the tour, so a card and its file never disagree, and
+`buildCommand.ts` uses its `relativePathBetween` to type a true `cd` from wherever a typed `cd` left
+the prompt. `commandTable.ts` holds every command the shell knows and `runCommandLine.ts` runs a
+line through it, stopping at the first failure as `&&` does; anything else is bash's
+`command not found`. The shell speaks as bash, and its fixed lines are in `shell/constants.ts`, the
+ones Zack has not approved yet marked `// draft`.
+
+Output prints into one container after the current card (`shell/SessionOutput.ts`), which
+`TerminalLayout.measure()` counts as part of the step, so it is on the scroll track like everything
+else. The typed line is echoed before its result, as scrollback; the tour's own commands are not.
+The tour's next `clear && …`, an upward command and plain view remove the container. A typed `clear`
+appends a blank the height of the screen, so what was printed stays reachable above. `cat` prints a
+copy of the card (`renderOutput.ts`, `cloneCard`), stripped of its header, its controls and the ids
+and data attributes the engine finds blocks by.
+
+Nothing typed is evaluated, sent or stored. Every string reaches the DOM through `textContent`, and
+an ESLint override in `.eslintrc.js` forbids `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `eval`
+and `Function` under `components/Terminal/` (seen red on a planted line before it shipped). `open`
+opens only the site's own addresses, and no command comes from a link. The easter eggs are data in
+`data/terminalEasterEggs.ts`, checked by `shell/checkEasterEggs.ts` against the rules the shell
+relies on; the list ships empty, and the words are Zack's. `git log` prints the repository's last
+commits, read at build by `app/readGitLog.ts`, which is why the gates job checks out 20 commits.
+Phones and other touch-only devices are out: issue #27.
 
 ## The projects page
 

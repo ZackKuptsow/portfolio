@@ -59,4 +59,23 @@ module.exports = {
       typescript: {},
     },
   },
+  overrides: [
+    {
+      // The typed shell prints only what it was given, through textContent, and evaluates
+      // nothing typed. See docs/superpowers/specs/2026-11-06-typed-terminal-commands-design.md.
+      files: ['components/Terminal/**/*.ts', 'components/Terminal/**/*.tsx'],
+      rules: {
+        'no-eval': 'error',
+        'no-implied-eval': 'error',
+        'no-new-func': 'error',
+        'no-restricted-properties': [
+          'error',
+          ...['innerHTML', 'outerHTML', 'insertAdjacentHTML'].map((property) => ({
+            message: `The terminal writes text with textContent, never markup from a string (${property}). See the typed commands design.`,
+            property,
+          })),
+        ],
+      },
+    },
+  ],
 }
