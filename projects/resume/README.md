@@ -19,6 +19,7 @@ data/identity.ts  # Who the site is about: name forms, role, location, email, pr
 data/profile.ts   # Resume content: work experience, education, skills, about copy
 data/projects.ts  # The projects: side projects and open source, each with its links and any demo
 data/householdAssistantSms.ts  # The household assistant's SMS pages: brand, keyword, the three Twilio replies
+demo/             # The GIF at the top of the repository's README, and the storyboard that films it
 public/           # Static assets
 share-image/      # HTML source of the picture shown when the site is shared
 test/             # Vitest suites, mirroring app/, components/ and data/
@@ -130,6 +131,12 @@ legacy name never appears. The private products are described at the level of th
 and no further. A project may carry a recording (`video`). Its link row then ends with a control
 that opens the recording in a `TerminalDialog`, the same window as the resume. Only the poster and
 the file's metadata load with the page; closing the window pauses the recording.
+
+Each card reads like a launch page: what the thing does and who it is for, then what makes it worth
+a look. Three rules came from Zack's review on 2026-11-06. No counts, because a count on a site that
+deploys rarely goes stale within days. Nothing about decision records. And nothing a reader would
+assume anyway: "We don't need to state obvious facts. That should be a default." A working 404 page,
+a browser test or a green gate is a default. `test/data/projects.test.ts` checks the first two.
 
 The Save State entry shows a `live site` link only when `NEXT_PUBLIC_SAVE_STATE_LIVE_URL` is set
 at build time (see Environment). Leave it unset until the site is behind a login, so it offers no
@@ -315,6 +322,24 @@ A failed check leaves a trace in `test-results/`. Open it with
 
 A new check is unproven until it has been seen red: break what it protects, build, and watch it
 fail.
+
+## The GIF in the repository's README
+
+`demo/terminal.gif` is the picture at the top of the repository's README, and
+`demo/storyboard.yaml` is what it films, in the format of the `demo-video` skill in Zack's dotfiles.
+The clip stops before Projects, so a change to a project's copy does not make it stale. A change to
+the profile or to the first job does. To record it again, build, then from this folder:
+
+```bash
+python3 ~/dotfiles/hermes/skills/creative/demo-video/scripts/capture_web.py \
+  --storyboard demo/storyboard.yaml --output <directory> --export-directory out \
+  --repository <a repository whose Playwright has its browser cached>
+ffmpeg -i <directory>/terminal.webm -filter_complex "fps=12,scale=800:-1:flags=lanczos,split[first][second];[first]palettegen=max_colors=64:stats_mode=diff[palette];[second][palette]paletteuse=dither=none:diff_mode=rectangle" demo/terminal.gif
+```
+
+`--repository` is there because the script launches Playwright's own Chromium, and this project has
+none: its browser checks use the installed Chrome. Those commands were run as written on 2026-11-06,
+and they make a valid clip that is not quite the committed one. See `notes` in the storyboard.
 
 ## Commands
 

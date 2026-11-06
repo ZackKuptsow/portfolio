@@ -514,7 +514,7 @@ test.describe('on a phone', () => {
     await page.goto('/')
     await waitForTerminal(page)
     await pointAtOutput(page)
-    await chooseFromMenu(page, 'projects/')
+    await chooseFromMenu(page, 'work_experience/')
     await waitUntilIdle(page)
     await page.evaluate(() => {
       const typed = document.querySelector('.terminal-typed')
@@ -534,11 +534,10 @@ test.describe('on a phone', () => {
       ;(window as unknown as { promptReading: typeof reading }).promptReading = reading
     })
 
-    // Two cards on from the first is `cat a_household_assistant_by_text_and_...txt`. Typed at its
-    // own pace, because a fast-forwarded command is gone before the prompt can be read.
-    await wheelUntilBusy(page, 'down')
-    await waitUntilIdle(page)
-    await wheelUntilBusy(page, 'down')
+    // `clear && cd ~/portfolio/education && ls`, typed in the work folder, is the longest line any
+    // prompt holds (`measureLongestPromptLine`). Typed at its own pace, because a fast-forwarded
+    // command is gone before the prompt can be read.
+    await chooseFromMenu(page, 'education/')
     await waitUntilIdle(page)
 
     const { overlap, tallest } = await page.evaluate(
