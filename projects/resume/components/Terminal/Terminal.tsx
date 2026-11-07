@@ -18,12 +18,14 @@ import {
 } from './components/scenes'
 import { TerminalFooter } from './components/TerminalFooter'
 import { TitleBar } from './components/TitleBar'
-import { TERMINAL_ON_CLASS } from './constants'
+import { HELP_COMMAND, TERMINAL_ON_CLASS } from './constants'
 import { useTerminalEngine } from './hooks'
 
 import type { SectionId } from './types'
 
 type TerminalProps = {
+  /** The repository's last commits, read at build, which a typed `git log` prints. */
+  gitLog: readonly string[]
   /** Where the terminal opens. `/projects.html` opens at Projects, and every other page at the hero. */
   startSectionId: Extract<SectionId, 'hero' | 'projects'>
 }
@@ -71,7 +73,7 @@ const Scenes = memo(function Scenes({
  * holds only the Projects section. The rest arrives with the script, so the resume text has one
  * home for search engines: the home page.
  */
-export function Terminal({ startSectionId }: TerminalProps) {
+export function Terminal({ gitLog, startSectionId }: TerminalProps) {
   const isProjectsPage = startSectionId === 'projects'
   const resumeControls = useModalDialog()
   const [hasMounted, setHasMounted] = useState(false)
@@ -87,8 +89,9 @@ export function Terminal({ startSectionId }: TerminalProps) {
 
   const showsEverySection = !isProjectsPage || hasMounted
 
-  const { handleResumeWindowClosed, isPlain, location, navigate, togglePlainView } =
+  const { handleResumeWindowClosed, isPlain, location, navigate, togglePlainView, typeAtPrompt } =
     useTerminalEngine({
+      gitLog,
       isReadyToStart: hasMounted,
       onResumeWindowOpenRequest: resumeControls.open,
       refs: {
@@ -145,6 +148,12 @@ export function Terminal({ startSectionId }: TerminalProps) {
     [navigate],
   )
 
+  const handleRunHelp = useCallback(() => {
+    setIsDrawerOpen(false)
+    scrollerRef.current?.focus({ preventScroll: true })
+    typeAtPrompt(HELP_COMMAND)
+  }, [typeAtPrompt])
+
   return (
     <div
       ref={rootRef}
@@ -155,6 +164,7 @@ export function Terminal({ startSectionId }: TerminalProps) {
         currentSectionId={location.sectionId}
         isDrawerOpen={isDrawerOpen}
         isPlain={isPlain}
+        onRunHelp={handleRunHelp}
         onSelectSection={handleSelectSection}
         onToggleDrawer={handleToggleDrawer}
         onTogglePlainView={handleTogglePlainView}

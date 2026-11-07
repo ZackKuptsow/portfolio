@@ -1,5 +1,7 @@
 import type { ProjectLink } from '@/data/projects'
 
+import { NOT_CLONED_ATTRIBUTE } from '../shell/renderOutput'
+
 import type { ReactNode } from 'react'
 
 type EntryBlockProps = {
@@ -37,7 +39,8 @@ export function EntryBlock({
 
   return (
     <div className="terminal-block" data-block={blockId}>
-      {header}
+      {/* A typed `cat` clones the card, and prints neither the header nor a control (`cloneCard`). */}
+      {header && <div {...{ [NOT_CLONED_ATTRIBUTE]: '' }}>{header}</div>}
       <h3 className="terminal-entry-title terminal-glow-hover">{title}</h3>
       <p className="terminal-secondary">{subtitle}</p>
       {description && <p className="terminal-text">{description}</p>}
@@ -69,7 +72,7 @@ export function EntryBlock({
             </li>
           ))}
           {note !== undefined && <li className="terminal-note">{note}</li>}
-          {action !== undefined && <li>{action}</li>}
+          {action !== undefined && <li {...{ [NOT_CLONED_ATTRIBUTE]: '' }}>{action}</li>}
         </ul>
       )}
       <p aria-hidden="true" className="terminal-eof">

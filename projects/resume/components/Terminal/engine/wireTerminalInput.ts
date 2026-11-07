@@ -7,7 +7,7 @@ const WRAPPING_ANIMATION_NAME = 'terminal-type'
 
 /** What the reader did, for the engine to act on. */
 export type TerminalInputHandlers = {
-  onClick: () => void
+  onClick: (event: MouseEvent) => void
   onFindInPage: () => void
   onFocusIn: (target: HTMLElement) => void
   onKeyDown: (event: KeyboardEvent) => void

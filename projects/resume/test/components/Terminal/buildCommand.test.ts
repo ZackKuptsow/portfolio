@@ -132,6 +132,33 @@ describe('buildCommand', () => {
     ])
   })
 
+  // A typed `cd` can leave the prompt anywhere in the fake filesystem, and the tour's next
+  // command has to be true from there too.
+  it.each([
+    ['/', 'clear && cd home/zack/portfolio/education && ls'],
+    ['/home', 'clear && cd zack/portfolio/education && ls'],
+    ['~/portfolio/skills/languages_frameworks', 'clear && cd ../../education && ls'],
+    ['~/portfolio/education', 'clear && ls'],
+  ])('types a true cd into education from %s', (cwd, command) => {
+    expect(play(cwd, [{ route: 'down', stepIndex: firstStepOf('education') }])).toEqual([command])
+  })
+
+  it('cats a card and the profile by a true path from the root and from a skill group', () => {
+    const lastWorkStep = firstStepOf('education') - 1
+    expect(play('/', [{ route: 'up', stepIndex: lastWorkStep }])).toEqual([
+      'cd home/zack/portfolio && cat work_experience/qlik.txt',
+    ])
+    expect(
+      play('~/portfolio/skills/languages_frameworks', [{ route: 'up', stepIndex: lastWorkStep }]),
+    ).toEqual(['cd ../.. && cat work_experience/qlik.txt'])
+    expect(play('/home', [{ route: 'down', stepIndex: firstStepOf('about') }])).toEqual([
+      'clear && cd zack/portfolio && cat developer.profile',
+    ])
+    expect(play('/', [{ route: 'down', stepIndex: firstStepOf('skills') }])).toEqual([
+      'clear && cd home/zack/portfolio/skills && ls -la',
+    ])
+  })
+
   it('leaves the prompt where the command says', () => {
     const step = steps[firstStepOf('skills')]
 

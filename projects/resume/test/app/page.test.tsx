@@ -1,9 +1,15 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import Home from '@/app/page'
 import { education, skillGroups, workExperience } from '@/data/profile'
 import { projects } from '@/data/projects'
+
+// The page reads the repository's commits at build. Here the lines are fixed, so the test needs no git.
+vi.mock('@/app/readGitLog', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/app/readGitLog')>()),
+  readGitLog: () => ['abc1234 test: a fixed commit line'],
+}))
 
 // No em or en dash in anything a visitor reads. See "Content" in the README.
 const EM_OR_EN_DASH = /[–—]/

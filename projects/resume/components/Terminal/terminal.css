@@ -444,3 +444,51 @@ html.dark .terminal-section-heading {
     display: none;
   }
 }
+
+/*
+ * What a visitor typed at the prompt prints here, after the current card, in the output's own
+ * type. The typed line is echoed before its result, as a terminal's scrollback keeps it, and a
+ * typed `clear` appends a blank the height of the screen. Art keeps its spaces.
+ */
+.terminal-session {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.terminal-session + .terminal-block {
+  margin-top: 2rem;
+}
+
+.terminal-session-line {
+  overflow-wrap: anywhere;
+}
+
+.terminal-session-echo {
+  color: hsl(var(--foreground));
+}
+
+/*
+ * Tight enough to read as a drawing, and no tighter: below the font's own box of 1.32 the lines
+ * overlap, the engine reads them as one row, and it can only clip the whole drawing at once.
+ */
+.terminal-session-art {
+  overflow-x: hidden;
+  font-family: inherit;
+  line-height: 1.35;
+  white-space: pre;
+}
+
+/* A song's official player, printed as output. It scrolls and clears like everything else. */
+.terminal-session-player {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: 180px;
+  margin-top: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.terminal-session-blank {
+  width: 100%;
+}

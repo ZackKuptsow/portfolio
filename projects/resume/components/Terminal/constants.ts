@@ -28,6 +28,9 @@ export const RESUME_COMMAND = 'wget kups.me/get_resume.sh && sh get_resume.sh'
 /** Typed when the reader scrolls up past the first screen, which reprints the hero. */
 export const EXIT_COMMAND = 'exit'
 
+/** What stands between the prompt's path and the command. */
+export const PROMPT_SEPARATOR = ' $ '
+
 /** The address the hero prints, a line of today's site. */
 export const HERO_PATH = '~/root/portfolio'
 
@@ -58,9 +61,27 @@ export const MENU_SECTIONS: readonly { label: string; sectionId: SectionId }[] =
   { label: 'projects/', sectionId: 'projects' },
 ]
 
+/**
+ * What the prompt says where someone has stopped: on the first screen, where they may not know the
+ * page scrolls, and at the end of the tour, with nothing left to scroll and the shell still to find.
+ * Zack's words and places, 2026-11-06.
+ */
+export const PROMPT_HINT = {
+  endOfTour: 'try: help',
+  firstScreen: 'scroll, or try: help',
+} as const
+
+/** How long the prompt stays bare before the hint, so scrolling is what people do first. By feel. */
+export const PROMPT_HINT_WAIT_MILLISECONDS = 6_000
+export const PROMPT_HINT_FADE_MILLISECONDS = 2_000
+
+/** What the menu's help entry types at the prompt. */
+export const HELP_COMMAND = 'help'
+
 /** The menu's other entries. */
 export const MENU_LABEL = {
   darkMode: 'dark mode',
+  help: HELP_COMMAND,
   lightMode: 'light mode',
   plainView: 'plain view',
   terminalView: 'terminal view',

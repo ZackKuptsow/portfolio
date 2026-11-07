@@ -172,6 +172,93 @@ export function readCommands(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as unknown as { typedCommands: string[] }).typedCommands)
 }
 
+const SESSION_OUTPUT = '[data-session-output]'
+const TYPED = '.terminal-typed'
+
+/** Types a line at the prompt as a visitor does, runs it, and waits for it to print. */
+export async function typeCommand(page: Page, line: string): Promise<void> {
+  await page.keyboard.type(line)
+  await page.keyboard.press('Enter')
+  await waitUntilIdle(page)
+}
+
+export function readTypedLine(page: Page): Promise<string> {
+  return page.locator(TYPED).evaluate((typed) => typed.textContent ?? '')
+}
+
+/** What the typed shell has printed, as one string, or null when it has printed nothing. */
+export function readSessionOutput(page: Page): Promise<string | null> {
+  return page.evaluate(
+    (selector) => document.querySelector(selector)?.textContent ?? null,
+    SESSION_OUTPUT,
+  )
+}
+
+/** How the typed shell's output sits on screen at the current scroll position. */
+export type SessionOutputView = {
+  /** Text rows of the output that the clip cuts through. */
+  cutRows: string[]
+  /** Text rows of the output shown whole, inside the clip. */
+  shownRows: string[]
+  /** Rows shown behind the prompt or footer, where nobody can read them. */
+  overlappingDock: string[]
+}
+
+/** Reads the typed shell's output against the scene's clip, in the page, like `wholeRows.ts` does. */
+export function readSessionOutputView(page: Page): Promise<SessionOutputView> {
+  return page.evaluate((selector) => {
+    const scene = document.querySelector<HTMLElement>('.terminal-scene.is-active')
+    const container = scene?.querySelector<HTMLElement>(selector)
+    const dock = document.querySelector<HTMLElement>('.terminal-dock')
+    if (!scene || !container || !dock) {
+      throw new Error('The typed shell has printed nothing on the section on screen')
+    }
+    const match = /^inset\((-?[\d.]+)px .*calc\(100% - (-?[\d.]+)px\)/.exec(scene.style.clipPath)
+    if (!match) {
+      throw new Error(`Unreadable clip: "${scene.style.clipPath}"`)
+    }
+    const topEdge = Number(match[1])
+    const bottomEdge = Number(match[2])
+    const sceneBox = scene.getBoundingClientRect()
+    const dockTop = dock.getBoundingClientRect().top
+    const tolerance = 0.5
+    const seenRows = new Set<string>()
+    const view: SessionOutputView = { cutRows: [], overlappingDock: [], shownRows: [] }
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+    while (walker.nextNode()) {
+      const node = walker.currentNode
+      if (!node.textContent?.trim()) {
+        continue
+      }
+      const range = document.createRange()
+      range.selectNodeContents(node)
+      for (const rect of range.getClientRects()) {
+        const top = rect.top - sceneBox.top
+        const bottom = rect.bottom - sceneBox.top
+        const text = node.textContent.trim().slice(0, 40)
+        const isAbove = bottom <= topEdge + tolerance
+        const isBelow = top >= bottomEdge - tolerance
+        const isInside = top >= topEdge - tolerance && bottom <= bottomEdge + tolerance
+        if (!isAbove && !isBelow && !isInside) {
+          view.cutRows.push(text)
+        }
+        if (isInside) {
+          // A `pre` reports a box for each line and another for its line break, so count each once.
+          const rowKey = `${Math.round(top)}:${text}`
+          if (!seenRows.has(rowKey)) {
+            seenRows.add(rowKey)
+            view.shownRows.push(text)
+          }
+          if (rect.bottom > dockTop + tolerance) {
+            view.overlappingDock.push(text)
+          }
+        }
+      }
+    }
+    return view
+  }, SESSION_OUTPUT)
+}
+
 /** Switches to the plain flow, the way a visitor does: in the title bar, or on a phone the menu. */
 export async function enterPlainView(page: Page): Promise<void> {
   await waitForTerminal(page)

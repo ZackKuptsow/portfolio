@@ -1,3 +1,4 @@
+import { readGitLog } from '@/app/readGitLog'
 import { Terminal } from '@/components/Terminal'
 import { PERSON_NAME, SITE_TITLE } from '@/data/identity'
 import { PROJECTS_PAGE_PATH } from '@/data/projects'
@@ -22,5 +23,5 @@ export const metadata: Metadata = {
  * lands on them. Its own title and `h1` are what keep it worth indexing.
  */
 export default function ProjectsPage() {
-  return <Terminal startSectionId="projects" />
+  return <Terminal gitLog={readGitLog()} startSectionId="projects" />
 }

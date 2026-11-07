@@ -106,6 +106,55 @@ prompt is in the portfolio, so the next hop is `cat education/<file>.txt`. The s
 | Resume          | `wget kups.me/get_resume.sh && sh get_resume.sh`                      | skipped: going up never opens the window           | `wget kups.me/get_resume.sh && sh get_resume.sh` |
 | Projects        | `clear && cd ../projects && ls`, then `cat <file>.txt` per card       | nothing: there is no section below it to come from | `clear && cd ~/portfolio/projects && ls`         |
 
+### Typing
+
+Decided with Zack on 2026-11-06; the design is
+`docs/superpowers/specs/2026-11-06-typed-terminal-commands-design.md`. "The terminal prompt is
+almost an easter egg in and of itself."
+
+- A visitor with a hardware keyboard can type at the prompt. Type-anywhere: a printable key starts
+  the line. With an empty line, Space scrolls, the arrows scroll and Tab moves focus, as before.
+  With text in it, Space is a character, Tab completes, Up and Down recall, Enter runs, Escape
+  clears. Scrolling past the end of a section drops a half-typed line and types the tour's command:
+  scrolling stays the main road. A key pressed while the tour's command runs hurries it and is kept,
+  as a terminal keeps typing it has not got to yet.
+- It is for show. "We are prebuilding everything." Every command is an entry in a closed table over
+  the same fake filesystem the tour uses, and every output exists before the visitor arrives:
+  a copy of a card on the page, or fixed lines. Nothing typed is evaluated, sent anywhere, stored,
+  or arrives through a link. `open` opens only the site's own addresses.
+- Output prints under what is on screen, after the current card, in order, with the typed line
+  echoed before its result as a terminal's scrollback keeps it (his choice; the tour's own commands
+  are still never printed). The tour's next `clear && …` wipes it, as a real terminal would. A typed
+  `clear` scrolls the screen blank and leaves everything above in the scrollback.
+- The shell speaks as bash (his choice over zsh). Typed lines print at the tour's pace, through the
+  same clock, so nothing new is tuned.
+- Easter eggs are data (`data/terminalEasterEggs.ts`): a file, a command with a fixed response, a
+  drawing with a narrow-screen line, a link, an exit status, a question the next line answers, and
+  a real pause in a line. The words are his or the works' own, chosen on two decision pages on
+  2026-11-06. He accepts the risk of drawing the Triforce and the Vault symbol.
+- A song plays in the output, from its official upload, in a small player that exists only once
+  someone has typed the command, and goes when the screen changes (his choice, 2026-11-06). The site
+  hosts no audio: copying a track onto it would be distributing someone's work. Some browsers need
+  one press on the player to start.
+- Animations are frames of plain text (`data/terminalEggFrames.ts`), played on the terminal's clock,
+  so a key or a click goes straight to the last. Every frame is one height, so nothing jumps.
+- `encrypt` loses a dot off his text, which falls to a floor below it, and `decrypt` runs it backwards.
+- Scrolling stays what people do first, so the prompt is bare on arrival. If someone has not scrolled
+  after 6 seconds, `scroll, or try: help` fades in over 2. It goes at the first scroll, and does not
+  come back. At the end of the tour, with nothing left to scroll, `try: help` fades in the same way.
+  Nothing shows while reading a section, or at all once a line has been typed (his choices, 2026-11-06).
+  It is in the arrows' colour, quieter than the footer links. On the prompt's `card` that is 5.69 to 1
+  dark and 3.54 light, under the 4.5 for text, which he accepted: it is a nudge, and repeats nothing
+  a visitor needs. The menu has a `help` entry that types it. Neither shows on a phone. `help` ends by pointing at
+  `/usr/games`, which lists the hidden commands, and `hint` names one not tried yet. `sudo` stays out
+  of all of them, so it stays a surprise.
+- A password is for show, and any guess gets in. A visitor may still type a real one, so what is
+  typed never shows, is never echoed, and joins neither history. Only a yes opens what a `[y/N]`
+  guards, and the answer runs inside the key press, so the new tab is not blocked as a popup.
+- A drawing's line height is 1.35, the least at which its rows stay apart. At 1.2 they overlap, the
+  engine reads them as one row, and a short window shows none of it.
+- Phones and other touch-only devices are out: issue #27.
+
 ### The resume
 
 Reaching the end of Skills types the `wget` command, clears the screen, runs a fake download with a
@@ -169,6 +218,7 @@ speed is absolutely perfect." So leave them alone unless he says otherwise.
 | Download: progress tick                                  | 130 ms, 360 ms between 55% and 75%                 |
 | Download: after saved, then before the window            | 360 ms, then 800 ms                                |
 | Drawer closes                                            | 190 ms                                             |
+| The prompt's hint: wait, then fade in                    | 6000 ms, then 2000 ms                              |
 
 ### New copy
 
@@ -181,6 +231,28 @@ Each line approved by Zack on 2026-11-04.
 - Menu: `$ ls ~/portfolio`, `light mode`, `dark mode`, `plain view`, `terminal view`, and the section
   entries `~/whoami`, `developer.profile`, `work_experience/`, `education/`, `skills/`,
   `get_resume.sh`, `projects/`
+
+The typed shell's lines, approved by Zack on 2026-11-06 (`components/Terminal/shell/constants.ts`):
+
+- Bash's own words: `bash: <word>: command not found`, `bash: syntax error near unexpected token
+'<character>'`, `bash: cd: <path>: No such file or directory`, `bash: cd: <path>: Not a directory`,
+  `cat: <path>: No such file or directory`, `cat: <path>: Is a directory`. `which` on a miss prints
+  nothing and exits 1.
+- `whoami` prints `zachary.kuptsow`; `uname` prints `Linux`; `open` alone prints
+  `usage: open github | linkedin`; `theme` alone prints `dark` or `light`; `cat get_resume.sh` prints
+  `#!/bin/sh` then `open https://kups.me/Zachary_Kuptsow_Resume.pdf`.
+- The site's controls as commands: `open`, `mail`, `email`, `theme`, `plain`.
+- The eggs' words, as he chose them, are in `data/terminalEasterEggs.ts`, and
+  `test/data/terminalEasterEggs.test.ts` holds each one word for word.
+- Tried in the preview and approved on 2026-11-06 ("Everything else looks good"), in the eggs:
+  `Warning: this is loud. Play it? [y/N]`, `ALERT: the price of Bitcoin has changed.`,
+  `There's more in /usr/games`, `Try: <command>`, `You found them all.`, `+30 lives`,
+  `Computing... <n> years remaining`, `A steam train goes by.`, `0 files remain.`,
+  `Broadcast message from ceres: Oye, beratna! Taki for the ping. Sasa ke?`, the `loot` lines, and the
+  commands `bitcoin`, `news`, `qwerty` (which draws a fish) and `rare`.
+- Approved the same way, in `TOOL_COPY` in the constants: the `help` and `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
+  `git` alone or with another subcommand, `man` alone, `theme` with another word, `wget` of another address, `sh` or `bash`
+  of a missing script, and `./x` that does not exist.
 
 ## Colours
 
@@ -216,7 +288,7 @@ the project's own CSS variables, so a later build can use them as they are. `tex
 | card                   | #fafafa | #0a0a0a | Title bar, prompt, footer, drawer, resume window (from app/globals.css)                                                                                  |
 | primary                | #333333 | #00ff00 | Headings, prompt symbol, links, filled button (from app/globals.css)                                                                                     |
 | primary-foreground     | #ffffff | #000000 | Text on primary where a component asks for it (from app/globals.css)                                                                                     |
-| arrow                  | #858585 | #07a007 | List arrows, drawn as primary at 60% over background (from components/Card.tsx:130)                                                                      |
+| arrow                  | #858585 | #07a007 | List arrows and the prompt's hint, drawn as primary at 60% over background (from components/Card.tsx:130)                                                |
 | muted                  | #ebebeb | #141414 | The email field (from app/globals.css)                                                                                                                   |
 | muted-foreground       | #666666 | #a3c2a3 | Subtitles, listings, footer links, placeholder (from app/globals.css)                                                                                    |
 | border                 | #cccccc | #004d00 | Dividers and decoration, which carry no meaning (from app/globals.css)                                                                                   |
@@ -448,8 +520,10 @@ does not ask for one.
 **The direction:**
 
 - Don't put a window inside the terminal, because "that doesn't make sense". The resume window and the
-  tour are the only ones.
-- Don't print command lines in the output, because the prompt already shows them.
+  tour are the only ones. A song's player is printed as output and scrolls away with it, his choice on
+  2026-11-06, knowing it bends this.
+- Don't print the tour's command lines in the output, because the prompt already shows them. A line
+  the visitor typed is the exception: it is echoed before its result, as scrollback (2026-11-06).
 - Don't add a logout screen. "I just want it to go back to the hero page."
 - Don't add colour to the light theme, because he chose it as it is, on page 9.
 - Don't make `kups.me/get_resume.sh` real, because he chose decoration on page 8.

@@ -11,6 +11,7 @@ import {
   offsetAt,
 } from './scrollMap'
 import { clipToWholeRows, formatRowClip, measureTextRows } from './textRows'
+import { SESSION_OUTPUT_ATTRIBUTE } from '../shell/SessionOutput'
 
 import type { SectionId, TerminalStep } from '../types'
 import type { MappedStep } from './scrollMap'
@@ -136,20 +137,33 @@ export class TerminalLayout {
    * never covers a line of output. Phones wrap the long ones.
    */
   private measurePromptReserve(): number {
-    const { prompt, root } = this.elements
+    const { prompt } = this.elements
     const styles = getComputedStyle(prompt)
     const framing =
       parseFloat(styles.paddingTop) +
       parseFloat(styles.paddingBottom) +
       parseFloat(styles.borderTopWidth)
+    return this.promptRows().rows * parseFloat(styles.lineHeight) + framing
+  }
+
+  /** The rows the prompt keeps for the longest command, and the characters each holds. */
+  private promptRows(): { columns: number; rows: number } {
+    const { prompt, root } = this.elements
+    const styles = getComputedStyle(prompt)
     const innerWidth =
       root.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight)
     const longestLine =
       root.clientWidth < PROMPT_SHORT_PATH_BELOW_PIXELS
         ? this.longestPromptLine.withShortPath
         : this.longestPromptLine.withFullPath
-    const rows = Math.ceil(longestLine / this.measureColumns(prompt, innerWidth))
-    return rows * parseFloat(styles.lineHeight) + framing
+    const columns = this.measureColumns(prompt, innerWidth)
+    return { columns, rows: Math.max(1, Math.ceil(longestLine / columns)) }
+  }
+
+  /** Characters a typed line may have after a prefix, so typing never grows the prompt. */
+  promptLineCapacity(prefixLength: number): number {
+    const { columns, rows } = this.promptRows()
+    return Math.max(0, rows * columns - prefixLength)
   }
 
   /** Measure after fonts, after scrollbars, and on rotation. Each of these moves every line. */
@@ -176,9 +190,10 @@ export class TerminalLayout {
     this.mappedSteps = mapStepsToScroll(
       this.steps.map((step, index) => {
         const sceneTop = this.sceneOf(index).getBoundingClientRect().top
-        const box = this.blockOf(index).getBoundingClientRect()
+        const block = this.blockOf(index)
+        const box = block.getBoundingClientRect()
         return {
-          bottom: box.bottom - sceneTop,
+          bottom: this.bottomWithSessionOutput(block, box.bottom) - sceneTop,
           clearsBefore: step.clearsBefore,
           top: box.top - sceneTop,
         }
@@ -190,6 +205,18 @@ export class TerminalLayout {
     )
     const lastStep = this.mappedSteps[this.mappedSteps.length - 1]
     track.style.height = `${lastStep.end + TRACK_ROOM_PAST_THE_END_PIXELS + scroller.clientHeight}px`
+  }
+
+  /**
+   * A step reaches to the bottom of its block, or of the typed shell's output after it, whichever
+   * is lower, so what a visitor typed is on the scroll track like everything else.
+   */
+  private bottomWithSessionOutput(block: HTMLElement, blockBottom: number): number {
+    const next = block.nextElementSibling
+    if (next instanceof HTMLElement && next.hasAttribute(SESSION_OUTPUT_ATTRIBUTE)) {
+      return Math.max(blockBottom, next.getBoundingClientRect().bottom)
+    }
+    return blockBottom
   }
 
   /** The hero fills what the screen has, so its one screen needs no scrolling of its own. */
@@ -307,6 +334,29 @@ export class TerminalLayout {
       runs: [
         { fromHeight, showTo: showSceneTo, toHeight: Math.min(columnsTop, screenBottom) },
         ...columnRuns,
+      ],
+    }
+  }
+
+  /**
+   * What prints for typed output: from a height in the scene, the bottom of what was there before,
+   * down to the bottom of what can show on screen.
+   */
+  planPrintingFrom(stepIndex: number, fromSceneHeight: number): PrintPlan {
+    const scene = this.sceneOf(stepIndex)
+    const sceneBox = scene.getBoundingClientRect()
+    const screenTop = this.elements.stage.getBoundingClientRect().top - sceneBox.top
+    const screenBottom = Math.min(sceneBox.height, screenTop + this.usableHeight)
+    const output = scene.querySelector<HTMLElement>('.terminal-output') ?? scene
+    return {
+      finish: () => undefined,
+      lineHeight: parseFloat(getComputedStyle(output).lineHeight),
+      runs: [
+        {
+          fromHeight: Math.max(screenTop, fromSceneHeight),
+          showTo: (height) => this.clipScene(scene, screenTop, height),
+          toHeight: screenBottom,
+        },
       ],
     }
   }
