@@ -50,6 +50,15 @@ describe('the drawings with their lines', () => {
     expect(outcome.asks).toBeUndefined()
   })
 
+  it('special has the occasion written on the ashtray, under the cigarette', () => {
+    const art = runCommandLine('special', state, context).outcomes[0].art ?? []
+    const cigaretteRow = art.findIndex((row) => row.includes('|::::|'))
+    const writtenRow = art.findIndex((row) => row.includes('special occasion'))
+
+    expect(writtenRow).toBeGreaterThan(cigaretteRow)
+    expect(cigaretteRow).toBeGreaterThanOrEqual(0)
+  })
+
   it('special says so when the window cannot hold the cigarette', () => {
     expect(
       runCommandLine('special', state, {

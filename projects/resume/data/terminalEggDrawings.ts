@@ -64,7 +64,7 @@ export const SUIT_DRAWING = [
   '      |__________|',
 ] as const
 
-/** An original little robot, stuck at the bottom of a staircase. */
+/** A robot stuck at the bottom of a staircase. Zack's own edit, so check with him before changing it. */
 export const ROBOT_AT_THE_STAIRS_DRAWING = [
   '        ',
   '    |',
