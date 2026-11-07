@@ -139,9 +139,15 @@ almost an easter egg in and of itself."
 - Animations are frames of plain text (`data/terminalEggFrames.ts`), played on the terminal's clock,
   so a key or a click goes straight to the last. Every frame is one height, so nothing jumps.
 - `encrypt` loses a dot off his text, which falls to a floor below it, and `decrypt` runs it backwards.
-- The prompt says `try: help` until a first line is typed, and the menu has a `help` entry that types
-  it. Neither shows on a phone. `help` ends by pointing at `/usr/games`, which lists the hidden
-  commands, and `hint` names one not tried yet. `sudo` stays out of all of them, so it stays a surprise.
+- Scrolling stays what people do first, so the prompt is bare on arrival. If someone has not scrolled
+  after 6 seconds, `scroll, or try: help` fades in over 2. It goes at the first scroll, and does not
+  come back. At the end of the tour, with nothing left to scroll, `try: help` fades in the same way.
+  Nothing shows while reading a section, or at all once a line has been typed (his choices, 2026-11-06).
+  It is in the arrows' colour, quieter than the footer links. On the prompt's `card` that is 5.69 to 1
+  dark and 3.54 light, under the 4.5 for text, which he accepted: it is a nudge, and repeats nothing
+  a visitor needs. The menu has a `help` entry that types it. Neither shows on a phone. `help` ends by pointing at
+  `/usr/games`, which lists the hidden commands, and `hint` names one not tried yet. `sudo` stays out
+  of all of them, so it stays a surprise.
 - A password is for show, and any guess gets in. A visitor may still type a real one, so what is
   typed never shows, is never echoed, and joins neither history. Only a yes opens what a `[y/N]`
   guards, and the answer runs inside the key press, so the new tab is not blocked as a popup.
@@ -212,6 +218,7 @@ speed is absolutely perfect." So leave them alone unless he says otherwise.
 | Download: progress tick                                  | 130 ms, 360 ms between 55% and 75%                 |
 | Download: after saved, then before the window            | 360 ms, then 800 ms                                |
 | Drawer closes                                            | 190 ms                                             |
+| The prompt's hint: wait, then fade in                    | 6000 ms, then 2000 ms                              |
 
 ### New copy
 
@@ -281,7 +288,7 @@ the project's own CSS variables, so a later build can use them as they are. `tex
 | card                   | #fafafa | #0a0a0a | Title bar, prompt, footer, drawer, resume window (from app/globals.css)                                                                                  |
 | primary                | #333333 | #00ff00 | Headings, prompt symbol, links, filled button (from app/globals.css)                                                                                     |
 | primary-foreground     | #ffffff | #000000 | Text on primary where a component asks for it (from app/globals.css)                                                                                     |
-| arrow                  | #858585 | #07a007 | List arrows, drawn as primary at 60% over background (from components/Card.tsx:130)                                                                      |
+| arrow                  | #858585 | #07a007 | List arrows and the prompt's hint, drawn as primary at 60% over background (from components/Card.tsx:130)                                                |
 | muted                  | #ebebeb | #141414 | The email field (from app/globals.css)                                                                                                                   |
 | muted-foreground       | #666666 | #a3c2a3 | Subtitles, listings, footer links, placeholder (from app/globals.css)                                                                                    |
 | border                 | #cccccc | #004d00 | Dividers and decoration, which carry no meaning (from app/globals.css)                                                                                   |

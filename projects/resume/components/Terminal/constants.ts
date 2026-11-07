@@ -61,8 +61,19 @@ export const MENU_SECTIONS: readonly { label: string; sectionId: SectionId }[] =
   { label: 'projects/', sectionId: 'projects' },
 ]
 
-/** Says the prompt takes typing, in the prompt itself, until someone has typed. */
-export const PROMPT_HINT = 'try: help'
+/**
+ * What the prompt says where someone has stopped: on the first screen, where they may not know the
+ * page scrolls, and at the end of the tour, with nothing left to scroll and the shell still to find.
+ * Zack's words and places, 2026-11-06.
+ */
+export const PROMPT_HINT = {
+  endOfTour: 'try: help',
+  firstScreen: 'scroll, or try: help',
+} as const
+
+/** How long the prompt stays bare before the hint, so scrolling is what people do first. By feel. */
+export const PROMPT_HINT_WAIT_MILLISECONDS = 6_000
+export const PROMPT_HINT_FADE_MILLISECONDS = 2_000
 
 /** What the menu's help entry types at the prompt. */
 export const HELP_COMMAND = 'help'

@@ -12,6 +12,7 @@ import {
   EXIT_COMMAND,
   INITIAL_PATH,
   PROMPT_SEPARATOR,
+  SCROLL_NOISE_PIXELS,
   SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS,
   SCROLL_UP_AT_TOP_TO_EXIT_PIXELS,
   SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_BY_TOUCH_PIXELS,
@@ -20,6 +21,7 @@ import {
 import { printAppendedOutput, showAppendedOutput } from './appendedOutput'
 import { CommandClock } from './commandClock'
 import { playDownload } from './playDownload'
+import { promptHintAt } from './promptHint'
 import { ScrollDriver } from './ScrollDriver'
 import { findStepAt } from './scrollMap'
 import { streamOutput } from './streamOutput'
@@ -72,7 +74,8 @@ const REVEALED_ON_FOCUS_SELECTOR = `[data-block], [${SESSION_OUTPUT_ATTRIBUTE}]`
  * word stays in the HTML for search, screen readers and find in page. The one exception is the
  * typed shell's container (`shell/`), which holds copies of the page's own markup and the lines of
  * a closed table, for a visitor who types at the prompt. Checks read the engine through the DOM:
- * `data-busy`, `data-current-step`, `data-step-start` and `data-step-end` on the root.
+ * `data-busy`, `data-current-step`, `data-prompt-hint`, `data-step-start` and `data-step-end` on
+ * the root.
  */
 export class TerminalEngine {
   private readonly abortController = new AbortController()
@@ -88,6 +91,7 @@ export class TerminalEngine {
   private currentStepIndex: number
   private cwd = INITIAL_PATH
   private exitPull = 0
+  private hasMovedOn = false
   private isBusy = false
   private isDestroyed = false
   private isPlain = false
@@ -201,6 +205,7 @@ export class TerminalEngine {
           this.countUpwardAtTop(pulled, SCROLL_UP_AT_TOP_TO_EXIT_BY_TOUCH_PIXELS)
         },
         onWheelUp: (amount) => {
+          this.noteWheelTurned()
           this.scroll.noteSwipe(Math.abs(amount), SCROLL_WHILE_RUNNING_TO_FAST_FORWARD_PIXELS)
           this.countUpwardAtTop(amount, SCROLL_UP_AT_TOP_TO_EXIT_PIXELS)
         },
@@ -356,6 +361,36 @@ export class TerminalEngine {
 
   private draw(): void {
     this.layout.draw(this.currentStepIndex, this.elements.scroller.scrollTop)
+    this.publishPromptHint()
+  }
+
+  /** The stylesheet picks the hint up from here, and restarts its wait whenever it comes back. */
+  private publishPromptHint(): void {
+    const { scrollTop } = this.elements.scroller
+    const { end, start } = this.layout.mappedSteps[this.currentStepIndex]
+    // A wheel, a touch, a key or a dragged scrollbar can each do this. The code's own moves on
+    // arrival land exactly on the start, so they do not read as someone scrolling.
+    if (Math.abs(scrollTop - start) > SCROLL_NOISE_PIXELS) {
+      this.hasMovedOn = true
+    }
+    const hint = promptHintAt({
+      hasMovedOn: this.hasMovedOn,
+      isLastStep: this.currentStepIndex === this.steps.length - 1,
+      scrollTop,
+      stepEnd: end,
+    })
+    const { dataset } = this.elements.root
+    if (hint) {
+      dataset.promptHint = hint
+    } else {
+      delete dataset.promptHint
+    }
+  }
+
+  /** A wheel up at the very top moves nothing, but whoever turned it knows the page scrolls. */
+  private noteWheelTurned(): void {
+    this.hasMovedOn = true
+    this.publishPromptHint()
   }
 
   private handleResize = (): void => {
@@ -411,6 +446,7 @@ export class TerminalEngine {
 
   private markBusy(): void {
     this.isBusy = true
+    this.hasMovedOn = true
     this.scroll.noteBusyStart()
     this.elements.root.dataset.busy = 'true'
   }

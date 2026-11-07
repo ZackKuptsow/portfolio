@@ -18,6 +18,10 @@ import {
   wheelUntilBusy,
   wheelUntilNextCommand,
 } from './terminal'
+import {
+  PROMPT_HINT_FADE_MILLISECONDS,
+  PROMPT_HINT_WAIT_MILLISECONDS,
+} from '../components/Terminal/constants'
 
 import type { Page } from '@playwright/test'
 
@@ -30,7 +34,18 @@ const ART = '.terminal-session-art'
 const YOU_SUFFER_VIDEO = '9Z1IGjr2cT0'
 const FADE_VIDEO = 'KvMY1uzSC1E'
 const THE_TEXT_ENDING = 'every single detail is'
-const PROMPT_HINT = '.terminal-prompt-hint'
+const PROMPT = '.terminal-prompt'
+/** The hint on screen, if any. Playwright counts its wait at opacity 0 as shown, so these do too. */
+const SHOWN_PROMPT_HINT = '.terminal-prompt-hint:visible'
+const FIRST_SCREEN_ROOT = '.terminal-root[data-prompt-hint="first-screen"]'
+const END_OF_TOUR_ROOT = '.terminal-root[data-prompt-hint="end-of-tour"]'
+/** Past the wait and the fade, with room for a slow machine. */
+const PROMPT_HINT_LIMIT_MILLISECONDS =
+  PROMPT_HINT_WAIT_MILLISECONDS + PROMPT_HINT_FADE_MILLISECONDS + 2_000
+/** Less than a screen, and less than it takes to start a command. */
+const SMALL_WHEEL_PIXELS = 40
+/** A swipe short of a command is forgotten after 700 ms. */
+const PULL_FORGOTTEN_SETTLE_MILLISECONDS = 1_000
 const ANIMATION_LIMIT_MILLISECONDS = 10_000
 const KONAMI_CODE = [
   'ArrowUp',
@@ -67,6 +82,15 @@ async function openAt(page: Page, menuLabel: string): Promise<void> {
   await waitForTerminal(page)
   await pointAtOutput(page)
   await chooseFromMenu(page, menuLabel)
+  await fastForward(page)
+  await waitUntilIdle(page)
+}
+
+/** The End key's trip to the last step, with its command skipped. */
+async function goToTheEndOfTheTour(page: Page): Promise<void> {
+  await page.goto('/')
+  await waitForTerminal(page)
+  await page.keyboard.press('End')
   await fastForward(page)
   await waitUntilIdle(page)
 }
@@ -578,20 +602,98 @@ test.describe('the animations', () => {
 test.describe('the guidance', () => {
   test.use({ viewport: LAPTOP_VIEWPORT })
 
-  test('the prompt says it takes typing until someone has typed', async ({ page }) => {
+  test('the first screen says it scrolls, but only after a wait', async ({ page }) => {
     await page.goto('/')
     await waitForTerminal(page)
-    const hint = page.locator(PROMPT_HINT)
-    await expect(hint).toBeVisible()
-    await expect(hint).toHaveText('try: help')
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+
+    await expect(hint).toHaveText('scroll, or try: help')
+    await page.waitForTimeout(PROMPT_HINT_WAIT_MILLISECONDS / 2)
+    await expect(hint).toHaveCSS('opacity', '0')
+
+    await expect(hint).toHaveCSS('opacity', '1', { timeout: PROMPT_HINT_LIMIT_MILLISECONDS })
+  })
+
+  test('a page that opens further on says it too', async ({ page }) => {
+    await page.goto('/projects.html')
+    await waitForTerminal(page)
+
+    await expect(page.locator(SHOWN_PROMPT_HINT)).toHaveText('scroll, or try: help')
+  })
+
+  test('the first scroll puts the hint away, and it stays away', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(1)
+
+    await page.mouse.wheel(0, SMALL_WHEEL_PIXELS)
+    await expect(hint).toHaveCount(0)
+
+    await page.waitForTimeout(PULL_FORGOTTEN_SETTLE_MILLISECONDS)
+    await expect(hint).toHaveCount(0)
+  })
+
+  test('a wheel up at the very top counts, though nothing moves', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(1)
+
+    await page.mouse.wheel(0, -SMALL_WHEEL_PIXELS)
+
+    await expect(hint).toHaveCount(0)
+  })
+
+  test('a dragged scrollbar counts, with no wheel or key to go by', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(1)
+
+    await page
+      .locator(SCROLLER)
+      .evaluate((scroller, top) => scroller.scrollTo(0, top), SMALL_WHEEL_PIXELS)
+
+    await expect(hint).toHaveCount(0)
+  })
+
+  test('a scrolling key counts', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(1)
+
+    await page.keyboard.press('ArrowDown')
+
+    await expect(hint).toHaveCount(0)
+  })
+
+  test('a section being read says nothing', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+
+    await expect(page.locator(SHOWN_PROMPT_HINT)).toHaveCount(0)
+  })
+
+  test('typing puts the hint away, and emptying the line starts the wait again', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(1)
 
     await page.keyboard.type('p')
-    await expect(hint).toBeHidden()
+    await expect(hint).toHaveCount(0)
+
     await page.keyboard.press('Escape')
-    await expect(hint).toBeVisible()
+    await expect(hint).toHaveCount(1)
+    await expect(hint).toHaveCSS('opacity', '0')
 
     await typeCommand(page, 'pwd')
-    await expect(hint).toBeHidden()
+    await expect(hint).toHaveCount(0)
   })
 
   test('the hint steps aside while the tour types', async ({ page }) => {
@@ -601,7 +703,34 @@ test.describe('the guidance', () => {
 
     await wheelUntilBusy(page, 'down')
 
-    await expect(page.locator(PROMPT_HINT)).toBeHidden()
+    await expect(page.locator(SHOWN_PROMPT_HINT)).toHaveCount(0)
+  })
+
+  test('the end of the tour offers the shell, after the same wait', async ({ page }) => {
+    await goToTheEndOfTheTour(page)
+    await scrollToTheEndOfTheStep(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+
+    await expect(hint).toHaveText('try: help')
+    await expect(hint).toHaveCSS('opacity', '0')
+
+    await expect(hint).toHaveCSS('opacity', '1', { timeout: PROMPT_HINT_LIMIT_MILLISECONDS })
+  })
+
+  test('someone who has typed has found the shell, so the end of the tour stays quiet', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await typeCommand(page, 'pwd')
+
+    await page.keyboard.press('End')
+    await fastForward(page)
+    await waitUntilIdle(page)
+    await scrollToTheEndOfTheStep(page)
+
+    await expect(page.locator(END_OF_TOUR_ROOT)).toHaveCount(1)
+    await expect(page.locator(SHOWN_PROMPT_HINT)).toHaveCount(0)
   })
 
   test('the menu has a help entry that types it at the prompt', async ({ page }) => {
@@ -640,6 +769,26 @@ test.describe('the guidance', () => {
   })
 })
 
+test.describe('the end of the tour, with more output than fits on screen', () => {
+  test.use({ viewport: SHORT_WINDOW })
+
+  test('says nothing until the last line is on screen, or after going back up', async ({
+    page,
+  }) => {
+    await goToTheEndOfTheTour(page)
+    const { stepEnd, stepStart } = await readTerminal(page)
+    expect(stepEnd).toBeGreaterThan(stepStart)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(0)
+
+    await scrollToTheEndOfTheStep(page)
+    await expect(hint).toHaveText('try: help')
+
+    await page.locator(SCROLLER).evaluate((scroller, top) => scroller.scrollTo(0, top), stepStart)
+    await expect(hint).toHaveCount(0)
+  })
+})
+
 test.describe('on a phone, which has no keyboard to type with', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: PHONE_VIEWPORT })
 
@@ -647,7 +796,9 @@ test.describe('on a phone, which has no keyboard to type with', () => {
     await page.goto('/')
     await waitForTerminal(page)
 
-    await expect(page.locator(PROMPT_HINT)).toBeHidden()
+    // The engine still says which hint is due, so only the phone rule is keeping it off screen.
+    await expect(page.locator(FIRST_SCREEN_ROOT)).toHaveCount(1)
+    await expect(page.locator(SHOWN_PROMPT_HINT)).toHaveCount(0)
     await page.getByRole('button', { exact: true, name: 'Menu' }).click()
     await expect(
       page.getByRole('navigation', { name: 'Menu' }).getByRole('button', { name: 'help' }),
@@ -657,6 +808,20 @@ test.describe('on a phone, which has no keyboard to type with', () => {
 
 test.describe('typing at the prompt, on a phone-sized window with a keyboard', () => {
   test.use({ viewport: PHONE_VIEWPORT })
+
+  test('the hint fits on the prompt line, so it moves nothing when it goes', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+    const hint = page.locator(SHOWN_PROMPT_HINT)
+    await expect(hint).toHaveCount(1)
+    const withHint = await page.locator(PROMPT).boundingBox()
+
+    await page.mouse.wheel(0, -SMALL_WHEEL_PIXELS)
+    await expect(hint).toHaveCount(0)
+
+    expect((await page.locator(PROMPT).boundingBox())?.height).toBe(withHint?.height)
+  })
 
   test('a drawing too wide for the window stays out, and its line still prints', async ({
     page,

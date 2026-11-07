@@ -210,12 +210,33 @@ html.dark .terminal-prompt-path {
   animation: none;
 }
 
-/* Says the prompt takes typing, while it is empty and until someone has typed. */
+/*
+ * Waits, then fades in, so that scrolling is what people do first. Its times are set inline, from
+ * constants.ts. Coming back from display: none is what starts the wait again.
+ */
 .terminal-prompt-hint {
+  display: none;
   margin-left: 0.75ch;
-  color: hsl(var(--muted-foreground));
+  animation: terminal-prompt-hint-in ease both;
+  color: hsl(var(--arrow));
 }
 
+@keyframes terminal-prompt-hint-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.terminal-root[data-prompt-hint='first-screen'] .terminal-prompt-hint-first-screen,
+.terminal-root[data-prompt-hint='end-of-tour'] .terminal-prompt-hint-end-of-tour {
+  display: inline;
+}
+
+/* These match the rule above in specificity, so they have to come after it. */
 .terminal-typed:not(:empty) ~ .terminal-prompt-hint,
 .terminal-typed[data-has-typed] ~ .terminal-prompt-hint,
 .terminal-root[data-busy] .terminal-prompt-hint {
@@ -224,7 +245,7 @@ html.dark .terminal-prompt-path {
 
 /* A phone has no keyboard to type with, so nothing should suggest it can. */
 @media (hover: none), (pointer: coarse) {
-  .terminal-prompt-hint,
+  .terminal-root[data-prompt-hint] .terminal-prompt-hint,
   .terminal-drawer-help {
     display: none;
   }
