@@ -146,8 +146,9 @@ almost an easter egg in and of itself."
   It is in the arrows' colour, quieter than the footer links. On the prompt's `card` that is 5.69 to 1
   dark and 3.54 light, under the 4.5 for text, which he accepted: it is a nudge, and repeats nothing
   a visitor needs. The menu has a `help` entry that types it. Neither shows on a phone. `help` ends by pointing at
-  `/usr/games`, which lists the hidden commands, and `hint` names one not tried yet. `sudo` stays out
-  of all of them, so it stays a surprise.
+  `/usr/games`, which lists the hidden commands, and `hint` names one not tried yet. In the same folder,
+  `references.txt` says what each egg comes from (`data/terminalEggReferences.ts`), and a test fails if
+  an egg is missing from it. `sudo` stays out of all of them, so it stays a surprise.
 - A password is for show, and any guess gets in. A visitor may still type a real one, so what is
   typed never shows, is never echoed, and joins neither history. Only a yes opens what a `[y/N]`
   guards, and the answer runs inside the key press, so the new tab is not blocked as a popup.
