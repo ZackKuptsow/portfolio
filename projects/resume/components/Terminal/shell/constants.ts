@@ -73,11 +73,10 @@ export const APPROVED_COPY = {
 } as const
 
 /**
- * Lines a visitor can read that Zack has not approved yet. Each is the real tool's own wording
- * where the tool has one. Listed in the pull request for his approval; none ships without it.
+ * The shell's other lines, in the real tool's own wording where the tool has one. Zack tried them
+ * in the preview and approved them on 2026-11-06.
  */
-// draft
-export const DRAFT_COPY = {
+export const TOOL_COPY = {
   gitNotACommand: (word: string) => `git: '${word}' is not a git command. See 'git --help'.`,
   gitUsage: 'usage: git log',
   helpPointer: "There's more in /usr/games",
@@ -95,7 +94,6 @@ export const DRAFT_COPY = {
 } as const
 
 /** What `help` lists and `man` answers with, one line per command. Tier 1 to 3 only, never an egg. */
-// draft
 export const HELP_LINES: readonly (readonly [command: string, description: string])[] = [
   ['cat <file>', 'print a file'],
   ['cd <folder>', 'change folder'],

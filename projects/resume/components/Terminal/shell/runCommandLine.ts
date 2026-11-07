@@ -1,5 +1,5 @@
 import { buildCommandTable } from './commandTable'
-import { BASH_LINES, DRAFT_COPY, EXIT_STATUS, GAMES_DIRECTORY } from './constants'
+import { BASH_LINES, TOOL_COPY, EXIT_STATUS, GAMES_DIRECTORY } from './constants'
 import { resolvePath, toAbsolutePath } from './fakeFileSystem'
 import { tokenizeCommandLine } from './tokenizeCommandLine'
 
@@ -20,9 +20,7 @@ function notFound(word: string): CommandOutcome {
   const isPath = PATH_COMMAND_PREFIXES.some((prefix) => word.startsWith(prefix))
   return {
     exitStatus: EXIT_STATUS.notFound,
-    lines: [
-      [{ text: isPath ? DRAFT_COPY.scriptNotFound(word) : BASH_LINES.commandNotFound(word) }],
-    ],
+    lines: [[{ text: isPath ? TOOL_COPY.scriptNotFound(word) : BASH_LINES.commandNotFound(word) }]],
   }
 }
 

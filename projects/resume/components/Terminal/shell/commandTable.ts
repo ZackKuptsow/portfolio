@@ -5,7 +5,7 @@ import {
   APPROVED_COPY,
   BASH_LINES,
   COMMAND_DIRECTORY,
-  DRAFT_COPY,
+  TOOL_COPY,
   EXIT_STATUS,
   FORTUNE_COMMAND,
   GAMES_DIRECTORY,
@@ -54,7 +54,7 @@ const list: CommandHandler = ([, ...words], state, context) => {
   const target = paths[0] ?? state.cwd
   const node = findNode(context.root, resolvePath(state.cwd, target))
   if (!node) {
-    return fail(DRAFT_COPY.lsMissing(target), EXIT_STATUS.syntaxError)
+    return fail(TOOL_COPY.lsMissing(target), EXIT_STATUS.syntaxError)
   }
   if (node.kind === 'file') {
     return succeed([], { listing: [target] })
@@ -166,7 +166,7 @@ const fetchScript: CommandHandler = ([, address]) => {
   if ((RESUME_SCRIPT_ADDRESSES as readonly string[]).includes(address ?? '')) {
     return succeed([], { effect: { kind: 'download' } })
   }
-  return fail(DRAFT_COPY.wgetUnresolved(address ?? ''))
+  return fail(TOOL_COPY.wgetUnresolved(address ?? ''))
 }
 
 function runScript(interpreter: string): CommandHandler {
@@ -174,17 +174,17 @@ function runScript(interpreter: string): CommandHandler {
     if ((RESUME_SCRIPT_NAMES as readonly string[]).includes(script ?? '')) {
       return succeed([], { effect: { kind: 'open-resume' } })
     }
-    return fail(DRAFT_COPY.scriptMissing(interpreter, script ?? ''), EXIT_STATUS.notFound)
+    return fail(TOOL_COPY.scriptMissing(interpreter, script ?? ''), EXIT_STATUS.notFound)
   }
 }
 
 const manual: CommandHandler = ([, name]) => {
   if (name === undefined) {
-    return fail(DRAFT_COPY.manUsage)
+    return fail(TOOL_COPY.manUsage)
   }
   const entry = HELP_LINES.find(([command]) => command.split(' ')[0] === name)
   if (!entry) {
-    return fail(DRAFT_COPY.manMissing(name ?? ''))
+    return fail(TOOL_COPY.manMissing(name ?? ''))
   }
   return succeed([`${entry[0]}: ${entry[1]}`])
 }
@@ -193,7 +193,7 @@ const help: CommandHandler = () => {
   const width = Math.max(...HELP_LINES.map(([command]) => command.length))
   return succeed([
     ...HELP_LINES.map(([command, description]) => `${command.padEnd(width)}  ${description}`),
-    DRAFT_COPY.helpPointer,
+    TOOL_COPY.helpPointer,
   ])
 }
 
@@ -202,13 +202,13 @@ const git: CommandHandler = ([, subcommand], _, context) => {
     return succeed(context.gitLog)
   }
   if (subcommand === undefined) {
-    return fail(DRAFT_COPY.gitUsage)
+    return fail(TOOL_COPY.gitUsage)
   }
-  return fail(DRAFT_COPY.gitNotACommand(subcommand ?? ''))
+  return fail(TOOL_COPY.gitNotACommand(subcommand ?? ''))
 }
 
 const uname: CommandHandler = ([, flag]) =>
-  succeed([flag === '-a' ? DRAFT_COPY.unameAll : APPROVED_COPY.uname])
+  succeed([flag === '-a' ? TOOL_COPY.unameAll : APPROVED_COPY.uname])
 
 function openTarget(eggs: readonly EasterEgg[]): CommandHandler {
   return ([, target]) => {
@@ -238,7 +238,7 @@ const theme: CommandHandler = ([, name], _, context) => {
   if (name === THEME_NAMES.dark || name === THEME_NAMES.light) {
     return succeed([], { effect: { isDark: name === THEME_NAMES.dark, kind: 'theme' } })
   }
-  return fail(DRAFT_COPY.themeUsage)
+  return fail(TOOL_COPY.themeUsage)
 }
 
 const effectOnly =

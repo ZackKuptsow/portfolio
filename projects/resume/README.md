@@ -127,8 +127,7 @@ tree behind the prompt from the same data as the tour, so a card and its file ne
 `buildCommand.ts` uses its `relativePathBetween` to type a true `cd` from wherever a typed `cd` left
 the prompt. `commandTable.ts` holds every command the shell knows and `runCommandLine.ts` runs a
 line through it, stopping at the first failure as `&&` does; anything else is bash's
-`command not found`. The shell speaks as bash, and its fixed lines are in `shell/constants.ts`, the
-ones Zack has not approved yet marked `// draft`.
+`command not found`. The shell speaks as bash, and its fixed lines are in `shell/constants.ts`.
 
 Output prints into a container after the current card, one per card typed on (`shell/SessionOutput.ts`), which
 `TerminalLayout.measure()` counts as part of the step, so it is on the scroll track like everything

@@ -1,6 +1,6 @@
 import type { EasterEgg, EggQuestion } from '@/data/terminalEasterEggs'
 
-import { DRAFT_COPY, EXIT_STATUS } from './constants'
+import { TOOL_COPY, EXIT_STATUS } from './constants'
 import { fail, succeed, text } from './outcomes'
 
 import type { CommandHandler, CommandOutcome, ShellContext, ShellQuestion } from './types'
@@ -102,11 +102,11 @@ export const hint: CommandHandler = (_, state, context) => {
   )
   const untried = gameEggs(context.eggs).filter(({ name }) => !tried.has(name))
   if (untried.length === 0) {
-    return succeed([DRAFT_COPY.hintNothingLeft])
+    return succeed([TOOL_COPY.hintNothingLeft])
   }
   const { name, onlyWithArgument } = pickAtRandom(untried)
   return succeed([
-    DRAFT_COPY.hintTry(onlyWithArgument ? `${name} ${onlyWithArgument.argument}` : name),
+    TOOL_COPY.hintTry(onlyWithArgument ? `${name} ${onlyWithArgument.argument}` : name),
   ])
 }
 

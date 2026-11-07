@@ -237,14 +237,13 @@ The typed shell's lines, approved by Zack on 2026-11-06 (`components/Terminal/sh
 - The site's controls as commands: `open`, `mail`, `email`, `theme`, `plain`.
 - The eggs' words, as he chose them, are in `data/terminalEasterEggs.ts`, and
   `test/data/terminalEasterEggs.test.ts` holds each one word for word.
-- Still drafts in the eggs, listed in the pull request: `Warning: this is loud. Play it? [y/N]`,
-  `ALERT: the price of Bitcoin has changed.`, `There's more in /usr/games`, `Try: <command>`,
-  `You found them all.`, `+30 lives`, `Computing... <n> years remaining`, `A steam train goes by.`,
-  `0 files remain.`, `Broadcast message from ceres: Oye, beratna! Taki for the ping. Sasa ke?`, the
-  `loot` lines, and the commands `bitcoin`, `news`, `qwerty` (which draws a fish) and `rare`, which
-  he asked for and did not name.
-- Still drafts, marked `// draft` in the constants and listed in the pull request: the `help` and
-  `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
+- Tried in the preview and approved on 2026-11-06 ("Everything else looks good"), in the eggs:
+  `Warning: this is loud. Play it? [y/N]`, `ALERT: the price of Bitcoin has changed.`,
+  `There's more in /usr/games`, `Try: <command>`, `You found them all.`, `+30 lives`,
+  `Computing... <n> years remaining`, `A steam train goes by.`, `0 files remain.`,
+  `Broadcast message from ceres: Oye, beratna! Taki for the ping. Sasa ke?`, the `loot` lines, and the
+  commands `bitcoin`, `news`, `qwerty` (which draws a fish) and `rare`.
+- Approved the same way, in `TOOL_COPY` in the constants: the `help` and `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
   `git` alone or with another subcommand, `man` alone, `theme` with another word, `wget` of another address, `sh` or `bash`
   of a missing script, and `./x` that does not exist.
 
