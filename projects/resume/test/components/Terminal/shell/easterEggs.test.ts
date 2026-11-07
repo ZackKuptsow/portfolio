@@ -18,27 +18,53 @@ const context: ShellContext = {
   root: buildFileSystem(sections, []),
 }
 
-const art: EasterEgg = {
-  columns: 40,
-  kind: 'art',
-  lines: ['  /\\  ', ' /__\\ '],
-  name: 'triforce',
-  narrowLine: 'wider screen needed',
+const DRAWING = ['  /\\  ', ' /__\\ '] as const
+const DRAWING_COLUMNS = 6
+
+const drawnWithLine: EasterEgg = {
+  drawing: DRAWING,
+  kind: 'command',
+  lines: [[{ text: 'under it' }]],
+  name: 'drawn',
 }
+const drawnAlone: EasterEgg = { drawing: DRAWING, kind: 'command', lines: [], name: 'alone' }
 
 function textOf(line: OutputLine): string {
   return line.map((segment) => segment.text).join('')
 }
 
 describe('easter eggs in the shell', () => {
-  it('prints art when the columns allow, and the narrow line when they do not', () => {
-    const wide = runCommandLine('triforce', state, { ...context, columns: 80, eggs: [art] })
-    expect(wide.outcomes[0].art).toEqual(art.lines)
-    expect(wide.outcomes[0].lines).toEqual([])
+  it('prints a drawing with its line under it when the window holds the widest row', () => {
+    const fits = runCommandLine('drawn', state, {
+      ...context,
+      columns: DRAWING_COLUMNS,
+      eggs: [drawnWithLine],
+    })
 
-    const narrow = runCommandLine('triforce', state, { ...context, columns: 30, eggs: [art] })
+    expect(fits.outcomes[0].art).toEqual(DRAWING)
+    expect(fits.outcomes[0].lines.map(textOf)).toEqual(['under it'])
+  })
+
+  it('leaves the drawing out of a narrower window, and keeps the line', () => {
+    const narrow = runCommandLine('drawn', state, {
+      ...context,
+      columns: DRAWING_COLUMNS - 1,
+      eggs: [drawnWithLine],
+    })
+
     expect(narrow.outcomes[0].art).toBeUndefined()
-    expect(textOf(narrow.outcomes[0].lines[0])).toBe('wider screen needed')
+    expect(narrow.outcomes[0].lines.map(textOf)).toEqual(['under it'])
+  })
+
+  it('says so when a drawing is all there is and the window cannot hold it', () => {
+    const narrow = runCommandLine('alone', state, {
+      ...context,
+      columns: DRAWING_COLUMNS - 1,
+      eggs: [drawnAlone],
+    })
+
+    expect(narrow.outcomes[0].art).toBeUndefined()
+    expect(narrow.outcomes[0].lines.map(textOf)).toEqual(['alone: window too narrow'])
   })
 
   it("opens an egg's fixed address, prints its lines and reports its exit status", () => {
@@ -83,7 +109,7 @@ describe('checkEasterEggs', () => {
   it('passes a well-formed list', () => {
     expect(
       checkEasterEggs([
-        art,
+        drawnWithLine,
         { kind: 'command', lines: [[{ text: 'no' }]], name: 'sudo' },
         { kind: 'file', lines: [[{ text: 'x' }]], path: '~/portfolio/.secret' },
       ]),
@@ -100,7 +126,7 @@ describe('checkEasterEggs', () => {
     expect(
       checkEasterEggs([
         { kind: 'command', lines: [], name: 'sudo' },
-        { ...art, name: 'sudo' },
+        { ...drawnAlone, name: 'sudo' },
         { kind: 'file', lines: [], path: '/etc/passwd' },
         { kind: 'file', lines: [], path: '/etc/passwd' },
       ]),
@@ -126,20 +152,23 @@ describe('checkEasterEggs', () => {
         {
           kind: 'file',
           lines: [],
-          password: { label: 'Password:', reply: 'sure – really?' },
+          password: { doubts: ['sure – really?'], ending: 'fine', label: 'Password:' },
           path: '/three',
         },
+        {
+          kind: 'file',
+          lines: [],
+          password: { doubts: [], ending: 'joking – joking', label: 'Password:' },
+          path: '/four',
+        },
+        { drawing: ['– –'], kind: 'command', lines: [], name: 'five' },
       ]),
     ).toEqual([
       'The egg "one" holds an em or en dash',
       'The egg "two" holds an em or en dash',
       'The egg "/three" holds an em or en dash',
-    ])
-  })
-
-  it('names art that needs fewer columns than its widest line', () => {
-    expect(checkEasterEggs([{ ...art, columns: 3 }])).toEqual([
-      'The art "triforce" says 3 columns but a line is 6 wide',
+      'The egg "/four" holds an em or en dash',
+      'The egg "five" holds an em or en dash',
     ])
   })
 

@@ -244,7 +244,7 @@ describe('Shell', () => {
     const SECRET_FILE: EasterEgg = {
       kind: 'file',
       lines: [[{ text: 'let in' }]],
-      password: { label: 'Password:', reply: 'Are you sure about that?' },
+      password: { doubts: ['Are you sure about that?'], ending: 'Joking.', label: 'Password:' },
       path: '~/portfolio/.gate',
     }
     const CONFIRM: EasterEgg = {
@@ -274,7 +274,16 @@ describe('Shell', () => {
       submit('hunter2')
 
       expect(typed.textContent).toBe('')
-      expect(childTexts().slice(-2)).toEqual(['Are you sure about that?', 'let in'])
+      expect(childTexts().at(-1)).toBe('Are you sure about that?')
+
+      // Someone may type the same thing again here, so this answer is hidden too.
+      for (const character of 'hunter2') {
+        press(character)
+      }
+      expect(typed.textContent).toBe('')
+      press('Enter')
+
+      expect(childTexts().slice(-2)).toEqual(['Joking.', 'let in'])
       expect(document.body.textContent).not.toContain('hunter2')
 
       submit('history')
@@ -354,8 +363,29 @@ describe('Shell', () => {
       expect(childTexts().at(-1)).toBe('Password:')
 
       submit('guess')
+      expect(childTexts().at(-1)).toBe('Are you sure about that?')
+      submit('guess')
 
       expect(childTexts().slice(-2)).toEqual(['let in', 'zachary.kuptsow'])
+    })
+
+    it('prints a drawing above its line', () => {
+      const drawn: EasterEgg = {
+        drawing: ['/\\'],
+        kind: 'command',
+        lines: [[{ text: 'under it' }]],
+        name: 'drawn',
+      }
+      shell = new Shell({
+        context: { eggs: [drawn], gitLog: [], root: buildFileSystem(sections, []) },
+        elements: { scroller, typed },
+        host,
+      })
+
+      submit('drawn')
+
+      expect(childTexts().slice(-2)).toEqual(['/\\', 'under it'])
+      expect(container().querySelector('pre')?.nextElementSibling?.textContent).toBe('under it')
     })
   })
 

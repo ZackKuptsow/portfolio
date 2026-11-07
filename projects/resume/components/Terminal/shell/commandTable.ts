@@ -19,10 +19,18 @@ import {
 } from './constants'
 import { findNode, listFolder, resolvePath, toAbsolutePath } from './fakeFileSystem'
 
-import type { CommandHandler, CommandOutcome, ShellContext, ShellState } from './types'
+import type {
+  CommandHandler,
+  CommandOutcome,
+  ShellContext,
+  ShellQuestion,
+  ShellState,
+} from './types'
 
 /** What counts as yes to a `[y/N]`. Anything else, Enter alone included, is no. */
 const YES_ANSWER = /^y(es)?$/i
+/** What a drawing with no line of its own says when the window cannot hold it. */
+const WINDOW_TOO_NARROW = 'window too narrow'
 const FLAG_PREFIX = '-'
 const SHOW_HIDDEN_FLAG = 'a'
 const VARIABLE_PATTERN = /\$(\?|[A-Za-z_][A-Za-z0-9_]*)/g
@@ -103,16 +111,28 @@ const print: CommandHandler = ([, target], state, context) => {
   }
   const { exitStatus, lines, password } = content
   if (password) {
-    // A fake lock: every guess gets in. The guess is not looked at, and the shell does not keep it.
     return succeed([], {
-      asks: {
-        answer: () => ({ exitStatus, lines: [text(password.reply), ...lines] }),
-        isSecret: true,
-        label: password.label,
-      },
+      asks: askEachInSecret([password.label, ...password.doubts], () => ({
+        exitStatus,
+        lines: [text(password.ending), ...lines],
+      })),
     })
   }
   return { exitStatus, lines }
+}
+
+/**
+ * A fake lock: every answer gets through, and none is looked at or kept. The doubts are hidden like
+ * the password, because someone asked if they are sure may well type it again.
+ */
+function askEachInSecret(labels: readonly string[], finish: () => CommandOutcome): ShellQuestion {
+  const [label, ...rest] = labels
+  return {
+    answer: () =>
+      rest.length > 0 ? succeed([], { asks: askEachInSecret(rest, finish) }) : finish(),
+    isSecret: true,
+    label,
+  }
 }
 
 const echo: CommandHandler = ([, ...words], state) => {
@@ -240,32 +260,30 @@ const effectOnly =
   () =>
     succeed([], { effect })
 
-function eggHandler(egg: EasterEgg): CommandHandler {
-  if (egg.kind === 'art') {
-    return (_, __, context) =>
-      context.columns >= egg.columns ? succeed([], { art: egg.lines }) : succeed([egg.narrowLine])
-  }
-  if (egg.kind === 'command') {
-    const run = (): CommandOutcome => ({
+function eggHandler(egg: Extract<EasterEgg, { kind: 'command' }>): CommandHandler {
+  const { confirm, drawing } = egg
+  const run = (context: ShellContext): CommandOutcome => {
+    const fits = drawing && context.columns >= Math.max(...drawing.map((row) => row.length))
+    const isOnlyADrawing = drawing && egg.lines.length === 0
+    return {
+      art: fits ? drawing : undefined,
       effect: egg.opens ? { href: egg.opens, kind: 'open-url' } : undefined,
       exitStatus: egg.exitStatus ?? EXIT_STATUS.success,
-      lines: egg.lines,
+      lines: isOnlyADrawing && !fits ? [text(`${egg.name}: ${WINDOW_TOO_NARROW}`)] : egg.lines,
       pausedEnding: egg.pausedEnding,
-    })
-    const { confirm } = egg
-    if (!confirm) {
-      return run
     }
-    return () =>
-      succeed([], {
-        asks: {
-          answer: (line) => (YES_ANSWER.test(line.trim()) ? run() : succeed()),
-          isSecret: false,
-          label: confirm,
-        },
-      })
   }
-  throw new Error(`An egg file is not a command: "${egg.path}"`)
+  if (!confirm) {
+    return (_, __, context) => run(context)
+  }
+  return (_, __, context) =>
+    succeed([], {
+      asks: {
+        answer: (line) => (YES_ANSWER.test(line.trim()) ? run(context) : succeed()),
+        isSecret: false,
+        label: confirm,
+      },
+    })
 }
 
 /** Every command the shell knows. Anything else is "command not found". */
@@ -305,7 +323,7 @@ export function buildCommandTable(eggs: readonly EasterEgg[]): ReadonlyMap<strin
         }
   })
   for (const egg of eggs) {
-    if (egg.kind !== 'file') {
+    if (egg.kind === 'command') {
       table.set(egg.name, eggHandler(egg))
     }
   }

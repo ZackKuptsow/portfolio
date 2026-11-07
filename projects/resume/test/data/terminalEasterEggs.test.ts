@@ -33,20 +33,31 @@ describe('the easter eggs', () => {
     expect(checkEasterEggs(terminalEasterEggs)).toEqual([])
   })
 
-  it.each(['triforce', 'vault'])('draws %s by name, and hides from help', (name) => {
+  it.each([
+    ['link', "It's dangerous to go alone! Take this."],
+    ['guns', '87 bazillion'],
+  ])('%s prints its drawing with its line under it, and hides from help', (name, line) => {
     const { outcomes } = runCommandLine(name, state, context)
 
     expect(outcomes[0].art?.length).toBeGreaterThan(5)
-    expect(outcomes[0].lines).toEqual([])
+    expect(outcomes[0].lines.map(textOf)).toEqual([line])
     const help = runCommandLine('help', state, context).outcomes[0].lines.map(textOf).join('\n')
-    expect(help).not.toContain(name)
+    // As a whole word, because `help` does mention `linkedin`.
+    expect(help).not.toMatch(new RegExp(`\\b${name}\\b`))
   })
 
-  it.each(['triforce', 'vault'])('says %s needs a wider window, in a tool error shape', (name) => {
+  it.each([
+    ['link', "It's dangerous to go alone! Take this."],
+    ['guns', '87 bazillion'],
+  ])('%s keeps its line when the window is too narrow for the drawing', (name, line) => {
     const { outcomes } = runCommandLine(name, state, { ...context, columns: NARROW_WINDOW_COLUMNS })
 
     expect(outcomes[0].art).toBeUndefined()
-    expect(outcomes[0].lines.map(textOf)).toEqual([`${name}: window too narrow`])
+    expect(outcomes[0].lines.map(textOf)).toEqual([line])
+  })
+
+  it.each(['triforce', 'vault'])('%s no longer has a command of its own', (name) => {
+    expect(runCommandLine(name, state, context).state.lastExitStatus).toBe(127)
   })
 
   it('answers sudo as plain bash would, whatever follows it, and opens the Rick Roll', () => {
@@ -64,8 +75,6 @@ describe('the easter eggs', () => {
     ['cant', 'Remember the Cant.'],
     ['choom', 'preem'],
     ['compress', 'Weissman score: 5.2'],
-    ['decrypt', 'Was and is....'],
-    ['encrypt', 'Was and is....'],
     ['fade', 'Never fade away.'],
     ['fork', 'Holy forking shirt!'],
     ['guns', '87 bazillion'],
@@ -124,8 +133,18 @@ describe('the easter eggs', () => {
     expect(outcome.pausedEnding?.afterMilliseconds).toBeGreaterThan(0)
   })
 
-  it('special occasion warns and asks first, and only a yes plays it', () => {
-    const [asked] = runCommandLine('special occasion', state, context).outcomes
+  it('encrypt prints the line encoded, and decrypt prints the line', () => {
+    const encrypted = runCommandLine('encrypt', state, context).outcomes[0].lines.map(textOf)
+
+    expect(encrypted).toEqual(['V2FzIGFuZCBpcy4uLi4='])
+    expect(atob(encrypted[0])).toBe('Was and is....')
+    expect(runCommandLine('decrypt', state, context).outcomes[0].lines.map(textOf)).toEqual([
+      'Was and is....',
+    ])
+  })
+
+  it('bitcoin warns and asks first, and only a yes plays it', () => {
+    const [asked] = runCommandLine('bitcoin', state, context).outcomes
 
     expect(asked.lines).toEqual([])
     expect(asked.effect).toBeUndefined()
@@ -144,15 +163,27 @@ describe('the easter eggs', () => {
     expect(asked.asks?.answer('YES').effect).toBeDefined()
   })
 
-  it('.yougottagive asks for a password, doubts any guess, and lets them in', () => {
-    const [asked] = runCommandLine('cat .yougottagive', state, context).outcomes
+  it('.yougottagive asks for a password, doubts it twice, jokes, and lets them in', () => {
+    const [password] = runCommandLine('cat .yougottagive', state, context).outcomes
 
-    expect(asked.lines).toEqual([])
-    expect(asked.asks?.isSecret).toBe(true)
-    expect(asked.asks?.label).toBe('Password:')
+    expect(password.lines).toEqual([])
+    expect(password.asks?.isSecret).toBe(true)
+    expect(password.asks?.label).toBe('Password:')
     for (const guess of ['', 'hunter2']) {
-      expect(asked.asks?.answer(guess).lines).toEqual([
-        [{ text: 'Are you sure about that?' }],
+      const firstDoubt = password.asks?.answer(guess)
+      expect(firstDoubt?.lines).toEqual([])
+      expect(firstDoubt?.asks?.isSecret).toBe(true)
+      expect(firstDoubt?.asks?.label).toBe('Are you sure about that?')
+
+      const secondDoubt = firstDoubt?.asks?.answer(guess)
+      expect(secondDoubt?.lines).toEqual([])
+      expect(secondDoubt?.asks?.isSecret).toBe(true)
+      expect(secondDoubt?.asks?.label).toBe('Are you sure about that?')
+
+      const letIn = secondDoubt?.asks?.answer(guess)
+      expect(letIn?.asks).toBeUndefined()
+      expect(letIn?.lines).toEqual([
+        [{ text: "I'm joking. I'm joking" }],
         [{ href: 'https://getcalicocutpants.com/', text: 'https://getcalicocutpants.com/' }],
       ])
     }

@@ -324,7 +324,7 @@ test.describe('what typing reaches outside the output', () => {
     })
   }
 
-  test('special occasion warns first, opens nothing on a no, and plays on a yes', async ({
+  test('bitcoin warns first, opens nothing on a no, and plays on a yes', async ({
     context,
     page,
   }) => {
@@ -337,14 +337,14 @@ test.describe('what typing reaches outside the output', () => {
       }
     })
 
-    await typeCommand(page, 'special occasion')
+    await typeCommand(page, 'bitcoin')
     expect(await readSessionOutput(page)).toContain('Warning: this is loud. Play it? [y/N]')
     await page.keyboard.press('Enter')
     await waitUntilIdle(page)
     await page.waitForTimeout(DRAW_SETTLE_MILLISECONDS)
     expect(opened).toEqual([])
 
-    await typeCommand(page, 'special occasion')
+    await typeCommand(page, 'bitcoin')
     const played = context.waitForEvent('request', (request) =>
       request.url().includes(YOU_SUFFER_VIDEO),
     )
@@ -362,13 +362,17 @@ test.describe('what typing reaches outside the output', () => {
 
     await typeCommand(page, 'cat .yougottagive')
     expect(await readSessionOutput(page)).toContain('Password:')
-    await page.keyboard.type(PASSWORD_GUESS)
-    expect(await readTypedLine(page)).toBe('')
-    await page.keyboard.press('Enter')
-    await waitUntilIdle(page)
+    // The password, then each "Are you sure about that?", all hidden: someone may retype it.
+    for (const answer of ['password', 'first doubt', 'second doubt']) {
+      await page.keyboard.type(`${PASSWORD_GUESS}-${answer}`)
+      expect(await readTypedLine(page)).toBe('')
+      await page.keyboard.press('Enter')
+      await waitUntilIdle(page)
+    }
 
     const output = await readSessionOutput(page)
-    expect(output).toContain('Are you sure about that?')
+    expect(output?.match(/Are you sure about that\?/g)).toHaveLength(2)
+    expect(output).toContain("I'm joking. I'm joking")
     await expect(
       page.locator(`${SESSION_OUTPUT} a[href="https://getcalicocutpants.com/"]`),
     ).toBeVisible()
@@ -432,12 +436,18 @@ test.describe('what typing reaches outside the output', () => {
 test.describe('the drawings', () => {
   test.use({ viewport: LAPTOP_VIEWPORT })
 
-  for (const name of ['triforce', 'vault']) {
-    test(`${name} prints whole and clear of the prompt`, async ({ page }) => {
+  for (const [name, line] of [
+    ['link', "It's dangerous to go alone! Take this."],
+    ['guns', '87 bazillion'],
+  ]) {
+    test(`${name} prints its drawing whole, with its line under it`, async ({ page }) => {
       await openAt(page, 'developer.profile')
 
       await typeCommand(page, name)
 
+      const artBox = await page.locator(ART).boundingBox()
+      const lineBox = await page.locator(`${SESSION_OUTPUT} p`, { hasText: line }).boundingBox()
+      expect(lineBox?.y).toBeGreaterThan(artBox?.y ?? Infinity)
       const view = await readSessionOutputView(page)
       expect(view.cutRows).toEqual([])
       expect(view.overlappingDock).toEqual([])
@@ -456,7 +466,7 @@ test.describe('the drawings', () => {
     await page.setViewportSize(SHORT_WINDOW)
     await openAt(page, 'developer.profile')
 
-    await typeCommand(page, 'vault')
+    await typeCommand(page, 'guns')
 
     const rowsHigh = await page
       .locator(ART)
@@ -471,13 +481,15 @@ test.describe('the drawings', () => {
 test.describe('typing at the prompt, on a phone-sized window with a keyboard', () => {
   test.use({ viewport: PHONE_VIEWPORT })
 
-  test('a drawing too wide for the window says so instead', async ({ page }) => {
+  test('a drawing too wide for the window stays out, and its line still prints', async ({
+    page,
+  }) => {
     await openAt(page, 'developer.profile')
 
-    await typeCommand(page, 'vault')
+    await typeCommand(page, 'guns')
 
     expect(await page.locator(ART).count()).toBe(0)
-    expect(await readSessionOutput(page)).toContain('vault: window too narrow')
+    expect(await readSessionOutput(page)).toContain('87 bazillion')
   })
 
   test('Space with an empty line scrolls the output', async ({ page }) => {

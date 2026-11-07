@@ -12,14 +12,12 @@ function nameOf(egg: EasterEgg): string {
 }
 
 function stringsOf(egg: EasterEgg): readonly string[] {
-  if (egg.kind === 'art') {
-    return [...egg.lines, egg.narrowLine]
-  }
   const printed = egg.lines.flatMap((line) => line.map((segment) => segment.text))
   if (egg.kind === 'file') {
-    return egg.password ? [...printed, egg.password.label, egg.password.reply] : printed
+    const { password } = egg
+    return password ? [...printed, password.label, ...password.doubts, password.ending] : printed
   }
-  return [...printed, egg.confirm ?? '', egg.pausedEnding?.text ?? '']
+  return [...printed, ...(egg.drawing ?? []), egg.confirm ?? '', egg.pausedEnding?.text ?? '']
 }
 
 /**
@@ -59,14 +57,6 @@ export function checkEasterEggs(eggs: readonly EasterEgg[]): readonly string[] {
     }
     if (stringsOf(egg).some((text) => EM_OR_EN_DASH.test(text))) {
       problems.push(`The egg "${nameOf(egg)}" holds an em or en dash`)
-    }
-    if (egg.kind === 'art') {
-      const widest = Math.max(0, ...egg.lines.map((line) => line.length))
-      if (widest > egg.columns) {
-        problems.push(
-          `The art "${egg.name}" says ${egg.columns} columns but a line is ${widest} wide`,
-        )
-      }
     }
   }
   return problems

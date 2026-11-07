@@ -1,6 +1,6 @@
 import { toTerminalFileName } from '@/components/terminalFileName'
 import { skillGroups } from '@/data/profile'
-import type { EasterEgg, OutputLine } from '@/data/terminalEasterEggs'
+import type { EasterEgg, FilePassword, OutputLine } from '@/data/terminalEasterEggs'
 
 import { INITIAL_PATH } from '../constants'
 
@@ -15,7 +15,7 @@ export type FileContent =
       exitStatus: number
       kind: 'lines'
       lines: readonly OutputLine[]
-      password?: { label: string; reply: string }
+      password?: FilePassword
     }
   /** One skill, inside its group's folder. */
   | { kind: 'skill'; skill: string }
@@ -163,7 +163,7 @@ function cardFile(blockId: string): FileSystemNode {
 function linesFile(
   lines: readonly OutputLine[],
   exitStatus: number,
-  password?: { label: string; reply: string },
+  password?: FilePassword,
 ): FileSystemNode {
   return { content: { exitStatus, kind: 'lines', lines, password }, kind: 'file' }
 }

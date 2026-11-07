@@ -269,7 +269,8 @@ export class Shell {
   }
 
   private appendOutcome(outcome: CommandOutcome): void {
-    const nodes = [...renderLines(outcome.lines)]
+    // A drawing goes above its line.
+    const nodes = [...(outcome.art ? [renderArt(outcome.art)] : []), ...renderLines(outcome.lines)]
     if (outcome.listing) {
       nodes.push(renderListing(outcome.listing))
     }
@@ -281,9 +282,6 @@ export class Shell {
         throw new Error(`The page has no card "${outcome.cardBlockId}" to print`)
       }
       nodes.push(cloneCard(block))
-    }
-    if (outcome.art) {
-      nodes.push(renderArt(outcome.art))
     }
     this.session.append(nodes)
     switch (outcome.effect?.kind) {
