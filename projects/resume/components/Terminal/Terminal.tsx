@@ -18,7 +18,7 @@ import {
 } from './components/scenes'
 import { TerminalFooter } from './components/TerminalFooter'
 import { TitleBar } from './components/TitleBar'
-import { TERMINAL_ON_CLASS } from './constants'
+import { HELP_COMMAND, TERMINAL_ON_CLASS } from './constants'
 import { useTerminalEngine } from './hooks'
 
 import type { SectionId } from './types'
@@ -89,7 +89,7 @@ export function Terminal({ gitLog, startSectionId }: TerminalProps) {
 
   const showsEverySection = !isProjectsPage || hasMounted
 
-  const { handleResumeWindowClosed, isPlain, location, navigate, togglePlainView } =
+  const { handleResumeWindowClosed, isPlain, location, navigate, togglePlainView, typeAtPrompt } =
     useTerminalEngine({
       gitLog,
       isReadyToStart: hasMounted,
@@ -148,6 +148,12 @@ export function Terminal({ gitLog, startSectionId }: TerminalProps) {
     [navigate],
   )
 
+  const handleRunHelp = useCallback(() => {
+    setIsDrawerOpen(false)
+    scrollerRef.current?.focus({ preventScroll: true })
+    typeAtPrompt(HELP_COMMAND)
+  }, [typeAtPrompt])
+
   return (
     <div
       ref={rootRef}
@@ -158,6 +164,7 @@ export function Terminal({ gitLog, startSectionId }: TerminalProps) {
         currentSectionId={location.sectionId}
         isDrawerOpen={isDrawerOpen}
         isPlain={isPlain}
+        onRunHelp={handleRunHelp}
         onSelectSection={handleSelectSection}
         onToggleDrawer={handleToggleDrawer}
         onTogglePlainView={handleTogglePlainView}

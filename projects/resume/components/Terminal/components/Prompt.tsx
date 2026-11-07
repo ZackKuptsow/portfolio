@@ -1,4 +1,5 @@
 import { shortenPromptPath } from '../buildCommand'
+import { PROMPT_HINT } from '../constants'
 
 import type { RefObject } from 'react'
 
@@ -22,6 +23,8 @@ export function Prompt({ path, promptRef, typedRef }: PromptProps) {
       </span>{' '}
       <span className="command-prompt">$</span> <span ref={typedRef} className="terminal-typed" />
       <span className="terminal-cursor" />
+      {/* Hidden by the stylesheet on a phone, while anything runs, and once a line has been typed. */}
+      <span className="terminal-prompt-hint">{PROMPT_HINT}</span>
     </div>
   )
 }

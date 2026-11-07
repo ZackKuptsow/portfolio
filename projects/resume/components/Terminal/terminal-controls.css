@@ -210,6 +210,26 @@ html.dark .terminal-prompt-path {
   animation: none;
 }
 
+/* Says the prompt takes typing, while it is empty and until someone has typed. */
+.terminal-prompt-hint {
+  margin-left: 0.75ch;
+  color: hsl(var(--muted-foreground));
+}
+
+.terminal-typed:not(:empty) ~ .terminal-prompt-hint,
+.terminal-typed[data-has-typed] ~ .terminal-prompt-hint,
+.terminal-root[data-busy] .terminal-prompt-hint {
+  display: none;
+}
+
+/* A phone has no keyboard to type with, so nothing should suggest it can. */
+@media (hover: none), (pointer: coarse) {
+  .terminal-prompt-hint,
+  .terminal-drawer-help {
+    display: none;
+  }
+}
+
 .terminal-download {
   display: none;
 }

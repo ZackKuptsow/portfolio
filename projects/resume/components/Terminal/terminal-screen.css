@@ -133,7 +133,8 @@
   .terminal-back-link,
   .terminal-prompt,
   .terminal-download,
-  .terminal-resume-trigger {
+  .terminal-resume-trigger,
+  .terminal-session {
     display: none !important;
   }
 

@@ -1,4 +1,5 @@
 import type { EasterEgg, OutputLine, PausedEnding } from '@/data/terminalEasterEggs'
+import type { EggAnimation } from '@/data/terminalEggFrames'
 
 import type { FileSystemNode } from './fakeFileSystem'
 
@@ -10,6 +11,7 @@ export type ShellEffect =
   | { kind: 'open-resume' }
   | { href: string; kind: 'open-url' }
   | { kind: 'plain-view' }
+  | { kind: 'play-video'; videoId: string }
   | { isDark: boolean; kind: 'theme' }
 
 /** A question the shell waits on: the next line typed answers it, and is never run. */
@@ -23,7 +25,9 @@ export type ShellQuestion = {
 
 /** What one command printed and asked for. */
 export type CommandOutcome = {
-  /** A drawing, printed in a <pre>. */
+  /** Frames played on the terminal's clock, resting on the last. */
+  animation?: EggAnimation
+  /** A drawing, printed in a <pre> above the lines. */
   art?: readonly string[]
   /** What follows waits on an answer. */
   asks?: ShellQuestion

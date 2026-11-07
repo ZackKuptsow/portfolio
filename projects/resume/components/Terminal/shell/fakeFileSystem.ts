@@ -3,6 +3,7 @@ import { skillGroups } from '@/data/profile'
 import type { EasterEgg, FilePassword, OutputLine } from '@/data/terminalEasterEggs'
 
 import { INITIAL_PATH } from '../constants'
+import { FORTUNE_COMMAND, GAMES_DIRECTORY } from './constants'
 
 import type { TerminalSection } from '../types'
 
@@ -205,6 +206,15 @@ export function buildFileSystem(
           kind: 'file',
         })
       }
+    }
+  }
+
+  // Where Unix keeps its games, listing every hidden command but the surprises.
+  const games = eggs.flatMap((egg) => (egg.kind === 'command' && !egg.isNotAGame ? [egg.name] : []))
+  if (games.length > 0) {
+    const gamesFolder = ensureFolder(root, GAMES_DIRECTORY)
+    for (const name of [FORTUNE_COMMAND, ...games]) {
+      gamesFolder.entries.set(name, linesFile([], 0))
     }
   }
 

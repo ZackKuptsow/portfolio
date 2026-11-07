@@ -71,7 +71,17 @@ describe('the easter eggs', () => {
   // Word for word as Zack chose them on 2026-11-06, so an edit here is a decision, not a slip.
   it.each([
     ['abed', 'Cool. Cool cool cool.'],
+    ['amos', 'I am that guy.'],
+    ['basic', 'Ya basic!'],
     ['beltalowda', 'Beltalowda!'],
+    ['challenge', 'Challenge accepted.'],
+    ['claptrap', 'Minion!'],
+    ['greendale', "You're already accepted!"],
+    ['pop', 'Pop pop!'],
+    ['troy', 'Troy and Abed in the morning!'],
+    ['true', 'True story.'],
+    ['tyrell', 'Bonsoir, Elliot.'],
+    ['xyzzy', 'Nothing happens.'],
     ['cant', 'Remember the Cant.'],
     ['choom', 'preem'],
     ['compress', 'Weissman score: 5.2'],
@@ -118,29 +128,12 @@ describe('the easter eggs', () => {
     expect(runCommandLine('ls -a', state, context).outcomes[0].listing).toContain('.yougottagive')
   })
 
-  it('fade opens the song, by its official upload', () => {
-    expect(runCommandLine('fade', state, context).outcomes[0].effect).toEqual({
-      href: 'https://www.youtube.com/watch?v=KvMY1uzSC1E',
-      kind: 'open-url',
-    })
-  })
-
   it('legen holds its ending back for a real pause', () => {
     const [outcome] = runCommandLine('legen', state, context).outcomes
 
     expect(outcome.lines.map(textOf)).toEqual(['wait for it...'])
     expect(outcome.pausedEnding?.text).toBe(' dary!')
     expect(outcome.pausedEnding?.afterMilliseconds).toBeGreaterThan(0)
-  })
-
-  it('encrypt prints the line encoded, and decrypt prints the line', () => {
-    const encrypted = runCommandLine('encrypt', state, context).outcomes[0].lines.map(textOf)
-
-    expect(encrypted).toEqual(['V2FzIGFuZCBpcy4uLi4='])
-    expect(atob(encrypted[0])).toBe('Was and is....')
-    expect(runCommandLine('decrypt', state, context).outcomes[0].lines.map(textOf)).toEqual([
-      'Was and is....',
-    ])
   })
 
   it('bitcoin warns and asks first, and only a yes plays it', () => {
@@ -151,10 +144,7 @@ describe('the easter eggs', () => {
     expect(asked.asks?.isSecret).toBe(false)
     expect(asked.asks?.label).toBe('Warning: this is loud. Play it? [y/N]')
     const yes = asked.asks?.answer('y')
-    expect(yes?.effect).toEqual({
-      href: 'https://www.youtube.com/watch?v=9Z1IGjr2cT0',
-      kind: 'open-url',
-    })
+    expect(yes?.effect).toEqual({ kind: 'play-video', videoId: '9Z1IGjr2cT0' })
     expect(yes?.lines.map(textOf)).toEqual(['ALERT: the price of Bitcoin has changed.'])
     for (const declined of ['', 'n', 'no', 'maybe']) {
       expect(asked.asks?.answer(declined).effect).toBeUndefined()

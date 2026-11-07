@@ -17,7 +17,17 @@ function stringsOf(egg: EasterEgg): readonly string[] {
     const { password } = egg
     return password ? [...printed, password.label, ...password.doubts, password.ending] : printed
   }
-  return [...printed, ...(egg.drawing ?? []), egg.confirm ?? '', egg.pausedEnding?.text ?? '']
+  return [
+    ...printed,
+    ...(egg.drawing ?? []),
+    ...(egg.oneOf ?? []),
+    ...(egg.animation?.frames.flatMap(({ rows }) => rows) ?? []),
+    egg.animation?.finalLine ?? '',
+    egg.confirm ?? '',
+    egg.pausedEnding?.text ?? '',
+    egg.question?.label ?? '',
+    egg.question?.reply ?? '',
+  ]
 }
 
 /**

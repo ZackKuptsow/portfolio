@@ -1,5 +1,5 @@
 import { CONTACT_EMAIL, PROFILE_LINKS } from '@/data/identity'
-import type { EasterEgg, OutputLine } from '@/data/terminalEasterEggs'
+import type { EasterEgg } from '@/data/terminalEasterEggs'
 
 import {
   APPROVED_COPY,
@@ -7,6 +7,8 @@ import {
   COMMAND_DIRECTORY,
   DRAFT_COPY,
   EXIT_STATUS,
+  FORTUNE_COMMAND,
+  GAMES_DIRECTORY,
   HELP_LINES,
   HISTORY_NUMBER_WIDTH,
   HISTORY_SEPARATOR,
@@ -17,7 +19,9 @@ import {
   SHELL_VARIABLES,
   THEME_NAMES,
 } from './constants'
+import { eggHandler, fortune, gameEggs, hint } from './eggCommands'
 import { findNode, listFolder, resolvePath, toAbsolutePath } from './fakeFileSystem'
+import { fail, succeed, text } from './outcomes'
 
 import type {
   CommandHandler,
@@ -27,10 +31,6 @@ import type {
   ShellState,
 } from './types'
 
-/** What counts as yes to a `[y/N]`. Anything else, Enter alone included, is no. */
-const YES_ANSWER = /^y(es)?$/i
-/** What a drawing with no line of its own says when the window cannot hold it. */
-const WINDOW_TOO_NARROW = 'window too narrow'
 const FLAG_PREFIX = '-'
 const SHOW_HIDDEN_FLAG = 'a'
 const VARIABLE_PATTERN = /\$(\?|[A-Za-z_][A-Za-z0-9_]*)/g
@@ -40,21 +40,6 @@ const PROFILE_LINK_BY_TARGET: Record<(typeof OPEN_TARGETS)[number], string> = {
 }
 const DATE_LOCALE = 'en-US'
 const DAY_WIDTH = 2
-
-function text(line: string): OutputLine {
-  return [{ text: line }]
-}
-
-function succeed(
-  lines: readonly string[] = [],
-  extra: Partial<CommandOutcome> = {},
-): CommandOutcome {
-  return { exitStatus: EXIT_STATUS.success, lines: lines.map(text), ...extra }
-}
-
-function fail(line: string | null, exitStatus: number = EXIT_STATUS.failure): CommandOutcome {
-  return { exitStatus, lines: line === null ? [] : [text(line)] }
-}
 
 function splitFlags(words: readonly string[]): { flags: string; paths: readonly string[] } {
   const flagWords = words.filter((word) => word.startsWith(FLAG_PREFIX))
@@ -206,9 +191,10 @@ const manual: CommandHandler = ([, name]) => {
 
 const help: CommandHandler = () => {
   const width = Math.max(...HELP_LINES.map(([command]) => command.length))
-  return succeed(
-    HELP_LINES.map(([command, description]) => `${command.padEnd(width)}  ${description}`),
-  )
+  return succeed([
+    ...HELP_LINES.map(([command, description]) => `${command.padEnd(width)}  ${description}`),
+    DRAFT_COPY.helpPointer,
+  ])
 }
 
 const git: CommandHandler = ([, subcommand], _, context) => {
@@ -260,32 +246,6 @@ const effectOnly =
   () =>
     succeed([], { effect })
 
-function eggHandler(egg: Extract<EasterEgg, { kind: 'command' }>): CommandHandler {
-  const { confirm, drawing } = egg
-  const run = (context: ShellContext): CommandOutcome => {
-    const fits = drawing && context.columns >= Math.max(...drawing.map((row) => row.length))
-    const isOnlyADrawing = drawing && egg.lines.length === 0
-    return {
-      art: fits ? drawing : undefined,
-      effect: egg.opens ? { href: egg.opens, kind: 'open-url' } : undefined,
-      exitStatus: egg.exitStatus ?? EXIT_STATUS.success,
-      lines: isOnlyADrawing && !fits ? [text(`${egg.name}: ${WINDOW_TOO_NARROW}`)] : egg.lines,
-      pausedEnding: egg.pausedEnding,
-    }
-  }
-  if (!confirm) {
-    return (_, __, context) => run(context)
-  }
-  return (_, __, context) =>
-    succeed([], {
-      asks: {
-        answer: (line) => (YES_ANSWER.test(line.trim()) ? run(context) : succeed()),
-        isSecret: false,
-        label: confirm,
-      },
-    })
-}
-
 /** Every command the shell knows. Anything else is "command not found". */
 export function buildCommandTable(eggs: readonly EasterEgg[]): ReadonlyMap<string, CommandHandler> {
   const table = new Map<string, CommandHandler>([
@@ -298,8 +258,10 @@ export function buildCommandTable(eggs: readonly EasterEgg[]): ReadonlyMap<strin
     ['echo', echo],
     ['email', mail],
     ['exit', effectOnly({ kind: 'exit' })],
+    [FORTUNE_COMMAND, fortune],
     ['git', git],
     ['help', help],
+    ['hint', hint],
     ['history', history],
     ['ls', list],
     ['mail', mail],
@@ -313,14 +275,14 @@ export function buildCommandTable(eggs: readonly EasterEgg[]): ReadonlyMap<strin
     ['wget', fetchScript],
     ['whoami', () => succeed([APPROVED_COPY.whoami])],
   ])
+  const games = new Set([FORTUNE_COMMAND, ...gameEggs(eggs).map(({ name }) => name)])
   table.set('which', ([, ...names]) => {
-    const found = names.filter((name) => table.has(name))
+    const found = names
+      .filter((name) => table.has(name))
+      .map((name) => `${games.has(name) ? GAMES_DIRECTORY : COMMAND_DIRECTORY}/${name}`)
     return found.length === names.length
-      ? succeed(found.map((name) => `${COMMAND_DIRECTORY}/${name}`))
-      : {
-          exitStatus: EXIT_STATUS.failure,
-          lines: found.map((name) => text(`${COMMAND_DIRECTORY}/${name}`)),
-        }
+      ? succeed(found)
+      : { exitStatus: EXIT_STATUS.failure, lines: found.map(text) }
   })
   for (const egg of eggs) {
     if (egg.kind === 'command') {

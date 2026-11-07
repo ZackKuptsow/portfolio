@@ -116,5 +116,10 @@ export function useTerminalEngine({
     engineRef.current?.handleResumeWindowClosed()
   }, [])
 
-  return { handleResumeWindowClosed, isPlain, location, navigate, togglePlainView }
+  /** The menu's help entry, which also waits for the drawer it closes. */
+  const typeAtPrompt = useCallback((line: string) => {
+    engineRef.current?.typeAtPrompt(line)
+  }, [])
+
+  return { handleResumeWindowClosed, isPlain, location, navigate, togglePlainView, typeAtPrompt }
 }

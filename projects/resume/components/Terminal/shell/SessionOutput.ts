@@ -12,6 +12,7 @@ const BLANK_CLASS = 'terminal-session-blank'
 export class SessionOutput {
   private readonly containers = new Map<HTMLElement, HTMLElement>()
   private current: HTMLElement | null = null
+  private player: HTMLElement | null = null
 
   /** The container the shell is printing into now. */
   get element(): HTMLElement | null {
@@ -50,6 +51,13 @@ export class SessionOutput {
     this.append([blank])
   }
 
+  /** One song at a time: a new player stops the last by taking it off the page. */
+  appendPlayer(player: HTMLElement): void {
+    this.player?.remove()
+    this.player = player
+    this.append([player])
+  }
+
   /** Takes every container off the page, and says whether there was any to take. */
   remove(): boolean {
     const hadOutput = this.containers.size > 0
@@ -58,6 +66,7 @@ export class SessionOutput {
     }
     this.containers.clear()
     this.current = null
+    this.player = null
     return hadOutput
   }
 }

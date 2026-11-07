@@ -92,6 +92,7 @@ export class TerminalEngine {
   private isDestroyed = false
   private isPlain = false
   private needsRemeasure = false
+  private pendingLine: string | null = null
   private pendingNavigation: { sectionId: SectionId; stepIndex?: number } | null = null
   private stopInput: () => void = () => undefined
 
@@ -251,6 +252,30 @@ export class TerminalEngine {
     } else {
       typeIt()
     }
+  }
+
+  /** Types a line at the prompt and runs it as if the visitor had, after the drawer closes. */
+  typeAtPrompt(line: string): void {
+    if (this.isPlain) {
+      return
+    }
+    if (this.isBusy) {
+      // Finish what is running at once, then type it.
+      this.pendingLine = line
+      this.clock.fastForward()
+      return
+    }
+    const { typed } = this.elements
+    this.clock.reset()
+    this.markBusy()
+    this.clock.after(DRAWER_CLOSE_MILLISECONDS, () =>
+      typeCommand({
+        clock: this.clock,
+        command: line,
+        element: typed,
+        onEntered: () => this.shell.runLine(line),
+      }),
+    )
   }
 
   /** Switches between the terminal and the plain flow, keeping the reader on the same section. */
@@ -425,6 +450,12 @@ export class TerminalEngine {
       const { sectionId, stepIndex } = this.pendingNavigation
       this.pendingNavigation = null
       this.navigate(sectionId, { stepIndex })
+      return
+    }
+    if (this.pendingLine) {
+      const line = this.pendingLine
+      this.pendingLine = null
+      this.typeAtPrompt(line)
       return
     }
     this.scroll.schedule()

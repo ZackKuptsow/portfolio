@@ -9,6 +9,13 @@ const PROMPT_SYMBOL = '$'
 const LINE_CLASS = 'terminal-session-line'
 const ECHO_CLASS = 'terminal-session-echo'
 const ART_CLASS = 'terminal-session-art'
+const SPOKEN_CLASS = 'sr-only'
+const PLAYER_CLASS = 'terminal-session-player'
+const PLAYER_ORIGIN = 'https://www.youtube-nocookie.com'
+const PLAYER_TITLE = 'Video player'
+const PLAYER_PERMISSIONS = 'autoplay; encrypted-media'
+/** YouTube's player refuses to play when it cannot see which site it is on. */
+const PLAYER_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 /** React marks what a clone must not carry: a section's header, a card's controls. */
 export const NOT_CLONED_ATTRIBUTE = 'data-not-cloned'
@@ -101,6 +108,30 @@ export function renderArt(lines: readonly string[]): HTMLElement {
   art.setAttribute('aria-hidden', 'true')
   art.textContent = lines.join('\n')
   return art
+}
+
+/** For a screen reader, what a hidden animation came to. The engine measures no row for it. */
+export function renderSpokenLine(line: string): HTMLElement {
+  const spoken = document.createElement('p')
+  spoken.className = SPOKEN_CLASS
+  spoken.textContent = line
+  return spoken
+}
+
+/**
+ * The official upload of a song, playing in the output. The address is built from a fixed id in
+ * the data, and only exists on the page once someone has typed the command. It starts by itself
+ * where the browser allows, and takes one press where it does not.
+ */
+export function renderPlayer(videoId: string): HTMLElement {
+  const player = document.createElement('iframe')
+  player.className = PLAYER_CLASS
+  player.src = `${PLAYER_ORIGIN}/embed/${videoId}?autoplay=1`
+  player.title = PLAYER_TITLE
+  player.setAttribute('allow', PLAYER_PERMISSIONS)
+  player.setAttribute('allowfullscreen', '')
+  player.setAttribute('referrerpolicy', PLAYER_REFERRER_POLICY)
+  return player
 }
 
 /**

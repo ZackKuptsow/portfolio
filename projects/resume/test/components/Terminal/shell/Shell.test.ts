@@ -389,6 +389,184 @@ describe('Shell', () => {
     })
   })
 
+  describe('an animation', () => {
+    const ANIMATED: EasterEgg = {
+      animation: {
+        finalLine: 'three',
+        frames: [
+          { holdMilliseconds: 100, rows: ['one'] },
+          { holdMilliseconds: 100, rows: ['two'] },
+          { holdMilliseconds: 0, rows: ['three'] },
+        ],
+      },
+      kind: 'command',
+      lines: [],
+      name: 'animated',
+    }
+
+    beforeEach(() => {
+      shell = new Shell({
+        context: { eggs: [ANIMATED], gitLog: [], root: buildFileSystem(sections, []) },
+        elements: { scroller, typed },
+        host,
+      })
+      vi.useFakeTimers()
+    })
+
+    const stage = () => container().querySelector('.terminal-session-art')
+
+    it('plays its frames on the clock, and rests on the last', async () => {
+      submit('animated')
+      expect(stage()?.textContent).toBe('one')
+
+      await vi.advanceTimersByTimeAsync(100)
+      expect(stage()?.textContent).toBe('two')
+      await vi.advanceTimersByTimeAsync(100)
+
+      expect(stage()?.textContent).toBe('three')
+      expect(host.followOutput).toHaveBeenCalled()
+    })
+
+    it('goes straight to the last frame when hurried', async () => {
+      submit('animated')
+
+      host.clock.fastForward()
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(stage()?.textContent).toBe('three')
+    })
+
+    it('hides the frames from a screen reader, and gives it the last line', async () => {
+      submit('animated')
+      await vi.advanceTimersByTimeAsync(200)
+
+      expect(stage()?.getAttribute('aria-hidden')).toBe('true')
+      expect(container().querySelector('.sr-only')?.textContent).toBe('three')
+    })
+  })
+
+  describe('a video', () => {
+    const SONG: EasterEgg = {
+      kind: 'command',
+      lines: [[{ text: 'playing' }]],
+      name: 'song',
+      plays: 'abc123',
+    }
+    const OTHER_SONG: EasterEgg = { ...SONG, name: 'other', plays: 'def456' }
+
+    beforeEach(() => {
+      shell = new Shell({
+        context: { eggs: [SONG, OTHER_SONG], gitLog: [], root: buildFileSystem(sections, []) },
+        elements: { scroller, typed },
+        host,
+      })
+    })
+
+    it('plays under its line, from its fixed address, with no cookies', () => {
+      submit('song')
+
+      const player = container().querySelector('iframe')
+      expect(player?.getAttribute('src')).toBe(
+        'https://www.youtube-nocookie.com/embed/abc123?autoplay=1',
+      )
+      expect(player?.getAttribute('allow')).toContain('autoplay')
+      expect(player?.title).not.toBe('')
+      expect(player?.previousElementSibling?.textContent).toBe('playing')
+    })
+
+    it('stops the last one when another starts', () => {
+      submit('song')
+      submit('other')
+
+      const players = document.querySelectorAll('iframe')
+      expect(players).toHaveLength(1)
+      expect(players[0].getAttribute('src')).toContain('def456')
+    })
+
+    it('stops when the screen changes', () => {
+      submit('song')
+
+      shell.onScreenChanged()
+
+      expect(document.querySelector('iframe')).toBeNull()
+    })
+  })
+
+  describe('the prompt hint', () => {
+    it('is spent by the first line typed', () => {
+      expect(typed.hasAttribute('data-has-typed')).toBe(false)
+
+      submit('pwd')
+
+      expect(typed.hasAttribute('data-has-typed')).toBe(true)
+    })
+
+    it('is not spent by the tour typing', () => {
+      shell.recordTourCommand('whoami')
+
+      expect(typed.hasAttribute('data-has-typed')).toBe(false)
+    })
+  })
+
+  it('runs a line it is handed, as the menu asks, clearing what was half typed', () => {
+    press('x')
+
+    shell.runLine('pwd')
+
+    expect(childTexts()).toEqual(['~/portfolio $ pwd', '/home/zack/portfolio'])
+    expect(typed.textContent).toBe('')
+  })
+
+  describe('the Konami code', () => {
+    const CODE = [
+      'ArrowUp',
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowLeft',
+      'ArrowRight',
+      'b',
+      'a',
+    ]
+
+    it('prints its line, leaving nothing half typed', () => {
+      for (const key of CODE) {
+        press(key)
+      }
+
+      expect(childTexts()).toEqual(['+30 lives'])
+      expect(typed.textContent).toBe('')
+    })
+
+    it('does nothing for a wrong key in the middle, and can start again', () => {
+      for (const key of [...CODE.slice(0, 4), 'x', ...CODE.slice(4)]) {
+        press(key)
+      }
+      expect(document.querySelector(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toBeNull()
+
+      press('Escape')
+      for (const key of CODE) {
+        press(key)
+      }
+      expect(childTexts()).toEqual(['+30 lives'])
+    })
+
+    it('waits for a running command to finish', () => {
+      host.isBusy = () => true
+      for (const key of CODE) {
+        press(key)
+      }
+      expect(document.querySelector(`[${SESSION_OUTPUT_ATTRIBUTE}]`)).toBeNull()
+
+      host.isBusy = () => false
+      shell.onCommandFinished()
+
+      expect(childTexts()).toEqual(['+30 lives'])
+    })
+  })
+
   it('holds the ending of a line back for its pause, and a key hurries it', async () => {
     const PAUSED: EasterEgg = {
       kind: 'command',

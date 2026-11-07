@@ -132,9 +132,16 @@ almost an easter egg in and of itself."
   drawing with a narrow-screen line, a link, an exit status, a question the next line answers, and
   a real pause in a line. The words are his or the works' own, chosen on two decision pages on
   2026-11-06. He accepts the risk of drawing the Triforce and the Vault symbol.
-- A song opens in a new tab, by its official upload. The site hosts no audio: that would be
-  distributing someone's track. A hidden player would break YouTube's terms and a visible one would
-  be a window inside the terminal.
+- A song plays in the output, from its official upload, in a small player that exists only once
+  someone has typed the command, and goes when the screen changes (his choice, 2026-11-06). The site
+  hosts no audio: copying a track onto it would be distributing someone's work. Some browsers need
+  one press on the player to start.
+- Animations are frames of plain text (`data/terminalEggFrames.ts`), played on the terminal's clock,
+  so a key or a click goes straight to the last. Every frame is one height, so nothing jumps.
+- `encrypt` loses a dot off his text, which falls to a floor below it, and `decrypt` runs it backwards.
+- The prompt says `try: help` until a first line is typed, and the menu has a `help` entry that types
+  it. Neither shows on a phone. `help` ends by pointing at `/usr/games`, which lists the hidden
+  commands, and `hint` names one not tried yet. `sudo` stays out of all of them, so it stays a surprise.
 - A password is for show, and any guess gets in. A visitor may still type a real one, so what is
   typed never shows, is never echoed, and joins neither history. Only a yes opens what a `[y/N]`
   guards, and the answer runs inside the key press, so the new tab is not blocked as a popup.
@@ -231,8 +238,10 @@ The typed shell's lines, approved by Zack on 2026-11-06 (`components/Terminal/sh
 - The eggs' words, as he chose them, are in `data/terminalEasterEggs.ts`, and
   `test/data/terminalEasterEggs.test.ts` holds each one word for word.
 - Still drafts in the eggs, listed in the pull request: `Warning: this is loud. Play it? [y/N]`,
-  `ALERT: the price of Bitcoin has changed.`, and the commands `news`, `qwerty` (which draws a fish),
-  `rare` and `special`, which he asked for and did not name.
+  `ALERT: the price of Bitcoin has changed.`, `There's more in /usr/games`, `Try: <command>`,
+  `You found them all.`, `+30 lives`, `Computing... <n> years remaining`, `A steam train goes by.`,
+  the `loot` lines, and the commands `bitcoin`, `news`, `qwerty` (which draws a fish) and `rare`, which
+  he asked for and did not name.
 - Still drafts, marked `// draft` in the constants and listed in the pull request: the `help` and
   `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
   `git` alone or with another subcommand, `man` alone, `theme` with another word, `wget` of another address, `sh` or `bash`
@@ -504,7 +513,8 @@ does not ask for one.
 **The direction:**
 
 - Don't put a window inside the terminal, because "that doesn't make sense". The resume window and the
-  tour are the only ones.
+  tour are the only ones. A song's player is printed as output and scrolls away with it, his choice on
+  2026-11-06, knowing it bends this.
 - Don't print the tour's command lines in the output, because the prompt already shows them. A line
   the visitor typed is the exception: it is echoed before its result, as scrollback (2026-11-06).
 - Don't add a logout screen. "I just want it to go back to the hero page."

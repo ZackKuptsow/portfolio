@@ -61,9 +61,16 @@ export const MENU_SECTIONS: readonly { label: string; sectionId: SectionId }[] =
   { label: 'projects/', sectionId: 'projects' },
 ]
 
+/** Says the prompt takes typing, in the prompt itself, until someone has typed. */
+export const PROMPT_HINT = 'try: help'
+
+/** What the menu's help entry types at the prompt. */
+export const HELP_COMMAND = 'help'
+
 /** The menu's other entries. */
 export const MENU_LABEL = {
   darkMode: 'dark mode',
+  help: HELP_COMMAND,
   lightMode: 'light mode',
   plainView: 'plain view',
   terminalView: 'terminal view',

@@ -1,10 +1,20 @@
 import { buildCommandTable } from './commandTable'
-import { BASH_LINES, DRAFT_COPY, EXIT_STATUS } from './constants'
+import { BASH_LINES, DRAFT_COPY, EXIT_STATUS, GAMES_DIRECTORY } from './constants'
+import { resolvePath, toAbsolutePath } from './fakeFileSystem'
 import { tokenizeCommandLine } from './tokenizeCommandLine'
 
 import type { CommandOutcome, RunResult, ShellContext, ShellState } from './types'
 
 const PATH_COMMAND_PREFIXES = ['./', '/'] as const
+
+/** `/usr/games/panic`, or `./panic` from inside it, is `panic`. */
+function gameNameAtPath(word: string, cwd: string): string | null {
+  if (!word.includes('/')) {
+    return null
+  }
+  const path = toAbsolutePath(resolvePath(cwd, word))
+  return path.startsWith(`${GAMES_DIRECTORY}/`) ? path.slice(GAMES_DIRECTORY.length + 1) : null
+}
 
 function notFound(word: string): CommandOutcome {
   const isPath = PATH_COMMAND_PREFIXES.some((prefix) => word.startsWith(prefix))
@@ -41,7 +51,7 @@ export function runCommandLine(line: string, state: ShellState, context: ShellCo
 
   const outcomes: CommandOutcome[] = []
   for (const words of tokenized.commands) {
-    const handler = table.get(words[0])
+    const handler = table.get(gameNameAtPath(words[0], current.cwd) ?? words[0])
     const outcome = handler ? handler(words, current, context) : notFound(words[0])
     outcomes.push(outcome)
     current = {

@@ -146,7 +146,11 @@ opens only the site's own addresses, and no command comes from a link. The easte
 relies on; the words are Zack's or the works' own, and the data test holds each one word for word.
 An egg can ask a question the next typed line answers, which is never run (`ShellQuestion`). A secret
 answer never shows, is never echoed and joins neither history, because a visitor may type a real
-password into the fake one. Songs open in a new tab; the site hosts no audio. `git log` prints the
+password into the fake one. Animations are frames of plain text in `data/terminalEggFrames.ts`, played
+on the terminal's clock, and the drawings are in `data/terminalEggDrawings.ts`. A song plays from its
+official upload in a player printed as output (`renderPlayer`), which exists only once the command is
+typed and goes when the screen changes; the site hosts no audio. `help` points at `/usr/games`, which
+lists the hidden commands, and `hint` names one not tried yet. `git log` prints the
 repository's last commits, read at build by `app/readGitLog.ts`, which is why the gates job checks
 out 20 commits, with any em or en dash in a subject printed as a hyphen.
 Phones and other touch-only devices are out: issue #27.

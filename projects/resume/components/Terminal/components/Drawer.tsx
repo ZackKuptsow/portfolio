@@ -10,6 +10,8 @@ type DrawerProps = {
   id: string
   isOpen: boolean
   isPlain: boolean
+  /** Types `help` at the prompt, which also shows that typing works. */
+  onRunHelp: () => void
   onSelectSection: (sectionId: SectionId) => void
   onTogglePlainView: () => void
 }
@@ -24,6 +26,7 @@ export function Drawer({
   id,
   isOpen,
   isPlain,
+  onRunHelp,
   onSelectSection,
   onTogglePlainView,
 }: DrawerProps) {
@@ -49,6 +52,11 @@ export function Drawer({
                 </button>
               </li>
             ))}
+            <li className="terminal-drawer-help">
+              <button type="button" className="terminal-drawer-item" onClick={onRunHelp}>
+                {MENU_LABEL.help}
+              </button>
+            </li>
           </ul>
         </>
       )}

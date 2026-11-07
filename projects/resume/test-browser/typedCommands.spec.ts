@@ -28,6 +28,22 @@ const HERO_BLOCK = '[data-block="hero-0"]'
 const SECOND_WORK_BLOCK = '[data-block="work-1"]'
 const ART = '.terminal-session-art'
 const YOU_SUFFER_VIDEO = '9Z1IGjr2cT0'
+const FADE_VIDEO = 'KvMY1uzSC1E'
+const THE_TEXT_ENDING = 'every single detail is'
+const PROMPT_HINT = '.terminal-prompt-hint'
+const ANIMATION_LIMIT_MILLISECONDS = 10_000
+const KONAMI_CODE = [
+  'ArrowUp',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'b',
+  'a',
+]
 const PASSWORD_GUESS = 'hunter2-not-a-password'
 /** Too short for the Vault's rows, with the title bar, prompt and footer around them. */
 const SHORT_WINDOW = { height: 360, width: LAPTOP_VIEWPORT.width }
@@ -307,10 +323,41 @@ test.describe('what typing reaches outside the output', () => {
   test.use({ viewport: LAPTOP_VIEWPORT })
 
   // Every request off this host is aborted, so nothing leaves: the request is the proof a tab opened.
+  test('fade plays its song right in the output, and clear of the prompt', async ({
+    context,
+    page,
+  }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    const requested = context.waitForEvent('request', (request) =>
+      request.url().includes(`youtube-nocookie.com/embed/${FADE_VIDEO}`),
+    )
+
+    await typeCommand(page, 'fade')
+
+    await requested
+    const player = page.locator(`${SESSION_OUTPUT} iframe`)
+    await expect(player).toBeVisible()
+    const box = await player.boundingBox()
+    const dock = await page.locator('.terminal-dock').boundingBox()
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(dock?.y ?? 0)
+  })
+
+  test('scrolling on stops the song', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+    await typeCommand(page, 'fade')
+    await expect(page.locator(`${SESSION_OUTPUT} iframe`)).toBeVisible()
+
+    await wheelUntilNextCommand(page, 'down')
+
+    await expect(page.locator('iframe')).toHaveCount(0)
+  })
+
   for (const [line, address] of [
     ['open github', 'github.com/ZackKuptsow'],
     ['sudo rm -rf /', 'dQw4w9WgXcQ'],
-    ['fade', 'KvMY1uzSC1E'],
   ]) {
     test(`${line} opens its fixed address in a new tab`, async ({ context, page }) => {
       await page.goto('/')
@@ -475,6 +522,136 @@ test.describe('the drawings', () => {
     expect(view.cutRows).toEqual([])
     expect(view.shownRows.length).toBeGreaterThan(0)
     expect(view.shownRows.length).toBeLessThan(rowsHigh)
+  })
+})
+
+test.describe('the animations', () => {
+  test.use({ viewport: LAPTOP_VIEWPORT })
+
+  test('encrypt drops the dot, and decrypt brings it back', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+    await page.keyboard.type('encrypt')
+    await page.keyboard.press('Enter')
+
+    await expect.poll(() => readSessionOutput(page)).toContain(`${THE_TEXT_ENDING}....perfect`)
+    await expect
+      .poll(() => readSessionOutput(page), { timeout: ANIMATION_LIMIT_MILLISECONDS })
+      .toContain(`${THE_TEXT_ENDING}...perfect`)
+    await waitUntilIdle(page)
+    const view = await readSessionOutputView(page)
+    expect(view.cutRows).toEqual([])
+    expect(view.overlappingDock).toEqual([])
+
+    await typeCommand(page, 'decrypt')
+    await expect
+      .poll(() => page.locator(`${SESSION_OUTPUT} pre`).last().textContent())
+      .toContain(`${THE_TEXT_ENDING}....perfect`)
+  })
+
+  test('a key hurries an animation straight to its end', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+    await page.keyboard.type('deepthought')
+    await page.keyboard.press('Enter')
+    await expect.poll(() => readSessionOutput(page)).toContain('years remaining')
+
+    await page.keyboard.press('Escape')
+    await waitUntilIdle(page)
+
+    expect(await readSessionOutput(page)).toContain('42')
+    await typeCommand(page, 'echo $?')
+    expect(await readSessionOutput(page)).toMatch(/echo \$\?\s*42/)
+  })
+
+  test('the Konami code works from the keyboard', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+
+    for (const key of KONAMI_CODE) {
+      await page.keyboard.press(key)
+    }
+    await waitUntilIdle(page)
+
+    expect(await readSessionOutput(page)).toContain('+30 lives')
+    expect(await readTypedLine(page)).toBe('')
+  })
+})
+
+test.describe('the guidance', () => {
+  test.use({ viewport: LAPTOP_VIEWPORT })
+
+  test('the prompt says it takes typing until someone has typed', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    const hint = page.locator(PROMPT_HINT)
+    await expect(hint).toBeVisible()
+    await expect(hint).toHaveText('try: help')
+
+    await page.keyboard.type('p')
+    await expect(hint).toBeHidden()
+    await page.keyboard.press('Escape')
+    await expect(hint).toBeVisible()
+
+    await typeCommand(page, 'pwd')
+    await expect(hint).toBeHidden()
+  })
+
+  test('the hint steps aside while the tour types', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await pointAtOutput(page)
+
+    await wheelUntilBusy(page, 'down')
+
+    await expect(page.locator(PROMPT_HINT)).toBeHidden()
+  })
+
+  test('the menu has a help entry that types it at the prompt', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+    await recordCommands(page)
+
+    await chooseFromMenu(page, 'help')
+    await waitUntilIdle(page)
+
+    expect(await readCommands(page)).toContain('help')
+    const output = await readSessionOutput(page)
+    expect(output).toContain('~/portfolio $ help')
+    expect(output).toContain("There's more in /usr/games")
+    await page.keyboard.type('p')
+    expect(await readTypedLine(page)).toBe('p')
+  })
+
+  test('plain view has no help entry, because it has no prompt', async ({ page }) => {
+    await page.goto('/')
+    await enterPlainView(page)
+    await page.getByRole('button', { exact: true, name: 'Menu' }).click()
+
+    await expect(
+      page.getByRole('navigation', { name: 'Menu' }).getByRole('button', { name: 'help' }),
+    ).toHaveCount(0)
+  })
+
+  test('print leaves out what was typed', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+    await typeCommand(page, 'pwd')
+
+    await page.emulateMedia({ media: 'print' })
+
+    await expect(page.locator(SESSION_OUTPUT)).toBeHidden()
+  })
+})
+
+test.describe('on a phone, which has no keyboard to type with', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: PHONE_VIEWPORT })
+
+  test('neither the prompt hint nor the menu entry shows', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+
+    await expect(page.locator(PROMPT_HINT)).toBeHidden()
+    await page.getByRole('button', { exact: true, name: 'Menu' }).click()
+    await expect(
+      page.getByRole('navigation', { name: 'Menu' }).getByRole('button', { name: 'help' }),
+    ).toBeHidden()
   })
 })
 

@@ -9,6 +9,7 @@ type TitleBarProps = {
   currentSectionId: SectionId
   isDrawerOpen: boolean
   isPlain: boolean
+  onRunHelp: () => void
   onSelectSection: (sectionId: SectionId) => void
   onToggleDrawer: () => void
   onTogglePlainView: () => void
@@ -23,6 +24,7 @@ export function TitleBar({
   currentSectionId,
   isDrawerOpen,
   isPlain,
+  onRunHelp,
   onSelectSection,
   onToggleDrawer,
   onTogglePlainView,
@@ -63,6 +65,7 @@ export function TitleBar({
         id={drawerId}
         isOpen={isDrawerOpen}
         isPlain={isPlain}
+        onRunHelp={onRunHelp}
         onSelectSection={onSelectSection}
         onTogglePlainView={onTogglePlainView}
       />

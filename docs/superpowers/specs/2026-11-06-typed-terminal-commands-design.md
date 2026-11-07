@@ -378,9 +378,10 @@ a real pause in a line (`legen`).
 
 Decision 2's "nothing persists" still holds: a secret answer never shows, is never echoed, and joins
 neither history. Decision 2's "nothing leaves the browser" holds for what is typed. A song or a link
-opens by a fixed address only, in a new tab, on the visitor's own command. Claude's call: no audio is
-hosted, because that would distribute someone's track, and no player is embedded, because a hidden one
-breaks YouTube's terms and a visible one is a window inside the terminal.
+opens by a fixed address only, on the visitor's own command. No audio is hosted, because that would
+distribute someone's track. A song plays in a player printed as output, Zack's choice on 2026-11-06,
+knowing it bends "no window inside the terminal". A third round added frames of text for animation,
+a question that repeats, a line picked at random, `hint`, `fortune`, and `/usr/games`.
 
 ## Calls made after the builder check (2026-11-06)
 

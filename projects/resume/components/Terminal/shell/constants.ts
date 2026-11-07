@@ -33,6 +33,9 @@ export const SHELL_VARIABLES = {
 
 /** Where `which` says a command lives. */
 export const COMMAND_DIRECTORY = '/usr/bin'
+/** Where Unix really keeps its games, and here every hidden command. `help` points at it. */
+export const GAMES_DIRECTORY = '/usr/games'
+export const FORTUNE_COMMAND = 'fortune'
 
 /** How many columns `history` gives its numbers. */
 export const HISTORY_NUMBER_WIDTH = 5
@@ -77,6 +80,9 @@ export const APPROVED_COPY = {
 export const DRAFT_COPY = {
   gitNotACommand: (word: string) => `git: '${word}' is not a git command. See 'git --help'.`,
   gitUsage: 'usage: git log',
+  helpPointer: "There's more in /usr/games",
+  hintNothingLeft: 'You found them all.',
+  hintTry: (command: string) => `Try: ${command}`,
   lsMissing: (path: string) => `ls: cannot access '${path}': No such file or directory`,
   manMissing: (word: string) => `No manual entry for ${word}`,
   manUsage: 'What manual page do you want?',
@@ -99,6 +105,7 @@ export const HELP_LINES: readonly (readonly [command: string, description: strin
   ['exit', 'back to the first screen'],
   ['git log', 'the last commits of this site'],
   ['help', 'this list'],
+  ['hint', 'something to try'],
   ['history', 'what has been typed'],
   ['ls [-a] [folder]', 'list a folder'],
   ['mail', 'the address to write to'],

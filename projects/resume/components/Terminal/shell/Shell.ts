@@ -1,10 +1,20 @@
 import { applyTheme, readIsDark } from '@/components/applyTheme'
-import { FRESH_SHELL_EXIT_STATUS } from '@/data/terminalEasterEggs'
+import { FRESH_SHELL_EXIT_STATUS, KONAMI_LINE } from '@/data/terminalEasterEggs'
+import type { EggAnimation } from '@/data/terminalEggFrames'
 
 import { assertEasterEggsValid } from './checkEasterEggs'
 import { buildCommandTable } from './commandTable'
 import { findNode, listFolder, resolvePath } from './fakeFileSystem'
-import { cloneCard, renderArt, renderEchoedLine, renderLines, renderListing } from './renderOutput'
+import { KonamiWatcher } from './KonamiWatcher'
+import {
+  cloneCard,
+  renderArt,
+  renderEchoedLine,
+  renderLines,
+  renderListing,
+  renderPlayer,
+  renderSpokenLine,
+} from './renderOutput'
 import { runCommandLine } from './runCommandLine'
 import { SessionOutput } from './SessionOutput'
 import { TypedInput } from './TypedInput'
@@ -46,6 +56,8 @@ type ShellOptions = {
 }
 
 const DOWNLOAD_CLASS = 'terminal-download'
+/** Set on the prompt's typed span once someone has typed a line. The stylesheet reads it. */
+const HAS_TYPED_ATTRIBUTE = 'data-has-typed'
 const PATH_SEPARATOR = '/'
 const HIDDEN_PREFIX = '.'
 const NEW_TAB = '_blank'
@@ -60,7 +72,10 @@ export class Shell {
   private readonly host: ShellHost
   private readonly input: TypedInput
   private readonly scroller: HTMLElement
+  private readonly konami = new KonamiWatcher()
   private readonly session = new SessionOutput()
+  private readonly typed: HTMLElement
+  private isKonamiWaiting = false
   private readonly context: ShellOptions['context']
   private readonly commandNames: readonly string[]
   private state: ShellState
@@ -75,6 +90,7 @@ export class Shell {
     this.host = host
     this.context = context
     this.scroller = elements.scroller
+    this.typed = elements.typed
     assertEasterEggsValid(context.eggs)
     this.commandNames = [...buildCommandTable([]).keys()].sort()
     this.state = { cwd: host.cwd(), history: [], lastExitStatus: FRESH_SHELL_EXIT_STATUS }
@@ -96,15 +112,44 @@ export class Shell {
     if (event.target !== this.scroller) {
       return false
     }
+    if (!this.waiting && this.konami.note(event.key)) {
+      event.preventDefault()
+      this.input.clearLine()
+      if (this.host.isBusy()) {
+        this.isKonamiWaiting = true
+      } else {
+        this.printKonamiLine()
+      }
+      return true
+    }
     if (this.host.isBusy() && event.key === 'Enter') {
       return true
     }
     return this.input.handleKey(event)
   }
 
+  /** Runs a line as if it had been typed, as the menu's help entry asks. */
+  runLine(line: string): void {
+    this.input.clearLine()
+    this.submit(line)
+  }
+
   /** The tour's command has landed and wiped the prompt; what was typed over it shows again. */
   onCommandFinished(): void {
     this.input.redraw()
+    if (this.isKonamiWaiting) {
+      this.isKonamiWaiting = false
+      this.printKonamiLine()
+    }
+  }
+
+  private printKonamiLine(): void {
+    this.host.runBusy((done) => {
+      const container = this.session.ensureAfter(this.host.currentBlock())
+      const fromHeight = this.host.bottomInScene(container)
+      this.session.append(renderLines([[{ text: KONAMI_LINE }]]))
+      this.host.printAppended(fromHeight, done)
+    })
   }
 
   /** The tour typed a command: it joins the history, and whatever was half typed is gone. */
@@ -151,6 +196,8 @@ export class Shell {
       this.answerQuestion(line)
       return
     }
+    // They know the prompt takes typing now, so the hint in it has done its job.
+    this.typed.setAttribute(HAS_TYPED_ATTRIBUTE, '')
     const cwd = this.host.cwd()
     const { outcomes, state } = runCommandLine(line, { ...this.state, cwd }, this.fullContext())
     this.state = state
@@ -212,6 +259,12 @@ export class Shell {
       this.askQuestion(outcome.asks, queue, fromHeight, done)
       return
     }
+    if (outcome.animation) {
+      this.playAnimation(outcome.animation, fromHeight, () =>
+        this.playOutcomes(queue, bottomOfOutput(), done),
+      )
+      return
+    }
     if (outcome.pausedEnding) {
       const { afterMilliseconds, text } = outcome.pausedEnding
       const lastLine = this.session.element?.lastElementChild
@@ -254,6 +307,35 @@ export class Shell {
     }
   }
 
+  /**
+   * Plays frames in one block, on the terminal's clock, so a key or a click goes straight to the
+   * last. Every frame is the same height, so the layout does not move until it is over.
+   */
+  private playAnimation(
+    { finalLine, frames }: EggAnimation,
+    fromHeight: number,
+    onFinished: () => void,
+  ): void {
+    const { clock } = this.host
+    const lastIndex = frames.length - 1
+    const stage = renderArt(frames[0].rows)
+    this.session.append([stage])
+    const showFrom = (index: number) => {
+      if (index === lastIndex) {
+        this.session.append([renderSpokenLine(finalLine)])
+        this.host.followOutput()
+        onFinished()
+        return
+      }
+      clock.after(frames[index].holdMilliseconds, () => {
+        const next = clock.isFastForwarding ? lastIndex : index + 1
+        stage.textContent = frames[next].rows.join('\n')
+        showFrom(next)
+      })
+    }
+    this.host.printAppended(fromHeight, () => showFrom(0))
+  }
+
   /** Secret from here on, before the question prints, so no key typed meanwhile can show. */
   private askQuestion(
     question: ShellQuestion,
@@ -290,6 +372,9 @@ export class Shell {
         return
       case 'open-url':
         window.open(outcome.effect.href, NEW_TAB, NEW_TAB_FEATURES)
+        return
+      case 'play-video':
+        this.session.appendPlayer(renderPlayer(outcome.effect.videoId))
         return
       case 'theme':
         applyTheme(outcome.effect.isDark)
