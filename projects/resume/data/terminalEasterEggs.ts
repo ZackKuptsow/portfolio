@@ -1,4 +1,12 @@
+import { buildSections } from '@/components/Terminal/buildSections'
+import { INITIAL_PATH } from '@/components/Terminal/constants'
+
 import {
+  CHEST_AJAR,
+  CHEST_CLOSED,
+  CHEST_OPEN,
+  CHEST_SHAKING,
+  CHEST_SWORD_RISING,
   CIGARETTE_IN_ASHTRAY_DRAWING,
   ROBOT_AT_THE_STAIRS_DRAWING,
   SUIT_DRAWING,
@@ -11,9 +19,10 @@ import {
   gettingADotBack,
   gridPath,
   losingADot,
-  progressBar,
+  pictureSequence,
   progressThenLine,
   timedLines,
+  wipingFiles,
 } from './terminalEggFrames'
 
 import type { EggAnimation } from './terminalEggFrames'
@@ -124,9 +133,14 @@ const DEEP_THOUGHT_YEARS = [7_500_000, 6_000_000, 4_500_000, 3_000_000, 1_500_00
 const DEEP_THOUGHT_STEP_MILLISECONDS = 500
 
 const FUXSOCY_BAR_WIDTH = 20
-const FUXSOCY_STEP_MILLISECONDS = 120
+const FUXSOCY_STEP_MILLISECONDS = 220
+const FUXSOCY_WINDOW_ROWS = 6
 
-const CHEST_PAUSE_MILLISECONDS = 2400
+const CHEST_SHUT_MILLISECONDS = 900
+const CHEST_SHAKE_MILLISECONDS = 140
+const CHEST_AJAR_MILLISECONDS = 450
+const CHEST_OPEN_MILLISECONDS = 500
+const CHEST_RISE_MILLISECONDS = 380
 
 const BREACH_CODES = ['55', '1C', 'BD', 'E9', '7A'] as const
 const BREACH_GRID_SIZE = 5
@@ -148,6 +162,9 @@ const PING_REPLIES = 3
 const PING_REPLY_MILLISECONDS = 1500
 const PING_STATISTICS_MILLISECONDS = 300
 const PING_NAME_NOT_KNOWN_EXIT_STATUS = 2
+const CERES_ANSWERS_AFTER_MILLISECONDS = 1800
+/** In Belter creole: hey, brother. Thanks for the ping. You know? */
+const CERES_ANSWER = 'Broadcast message from ceres: Oye, beratna! Taki for the ping. Sasa ke?'
 
 const TRAIN_WINDOW_COLUMNS = 70
 const TRAIN_STEP_COLUMNS = 2
@@ -183,12 +200,24 @@ function pingCeres(): EggAnimation {
     { holdMilliseconds: PING_STATISTICS_MILLISECONDS, line: ' ' },
     { holdMilliseconds: PING_STATISTICS_MILLISECONDS, line: '--- ceres ping statistics ---' },
     {
-      holdMilliseconds: 0,
+      holdMilliseconds: CERES_ANSWERS_AFTER_MILLISECONDS,
       line: `${PING_REPLIES} packets transmitted, ${PING_REPLIES} received, 0% packet loss, time ${
         PING_REPLIES * CERES_ROUND_TRIP_MILLISECONDS
       }ms`,
     },
+    { holdMilliseconds: 0, line: CERES_ANSWER },
   ])
+}
+
+/** Every file of the fake portfolio, from the same data as the tour, for `fuxsocy` to go through. */
+function portfolioFiles(): readonly string[] {
+  return [
+    `${INITIAL_PATH}/developer.profile`,
+    ...buildSections().flatMap(({ directory, fileNames }) =>
+      fileNames.map((fileName) => `${INITIAL_PATH}/${directory}/${fileName}.txt`),
+    ),
+    `${INITIAL_PATH}/get_resume.sh`,
+  ]
 }
 
 const BREACH_GRID = Array.from({ length: BREACH_GRID_SIZE }, (_, row) =>
@@ -218,10 +247,21 @@ export const terminalEasterEggs: readonly EasterEgg[] = [
   // The Legend of Zelda
   animates(
     'chest',
-    timedLines([
-      { holdMilliseconds: CHEST_PAUSE_MILLISECONDS, line: ' ' },
-      { holdMilliseconds: 0, line: 'You got the Master Sword!' },
-    ]),
+    pictureSequence({
+      finalLine: 'You got the Master Sword!',
+      pictures: [
+        { holdMilliseconds: CHEST_SHUT_MILLISECONDS, rows: CHEST_CLOSED },
+        { holdMilliseconds: CHEST_SHAKE_MILLISECONDS, rows: CHEST_SHAKING },
+        { holdMilliseconds: CHEST_SHAKE_MILLISECONDS, rows: CHEST_CLOSED },
+        { holdMilliseconds: CHEST_SHAKE_MILLISECONDS, rows: CHEST_SHAKING },
+        { holdMilliseconds: CHEST_AJAR_MILLISECONDS, rows: CHEST_AJAR },
+        { holdMilliseconds: CHEST_OPEN_MILLISECONDS, rows: CHEST_OPEN },
+        ...CHEST_SWORD_RISING.map((rows) => ({
+          holdMilliseconds: CHEST_RISE_MILLISECONDS,
+          rows,
+        })),
+      ],
+    }),
   ),
   draws('link', TRIFORCE_DRAWING, "It's dangerous to go alone! Take this."),
   says('listen', 'Hey! Listen!'),
@@ -301,10 +341,13 @@ export const terminalEasterEggs: readonly EasterEgg[] = [
   holds('~/fsociety00.dat', 'LEAVE ME HERE'),
   animates(
     'fuxsocy',
-    progressBar({
+    wipingFiles({
       barWidth: FUXSOCY_BAR_WIDTH,
+      finalLine: '0 files remain.',
+      paths: portfolioFiles(),
       stepMilliseconds: FUXSOCY_STEP_MILLISECONDS,
       title: 'Executing FuxSocy',
+      windowRows: FUXSOCY_WINDOW_ROWS,
     }),
   ),
   says('news', 'Exciting times in the world right now… exciting times…'),

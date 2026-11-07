@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import { terminalEasterEggs } from '@/data/terminalEasterEggs'
-import { gettingADotBack, losingADot, progressThenLine, timedLines } from '@/data/terminalEggFrames'
+import {
+  gettingADotBack,
+  losingADot,
+  pictureSequence,
+  progressThenLine,
+  timedLines,
+  wipingFiles,
+} from '@/data/terminalEggFrames'
 import type { EggAnimation } from '@/data/terminalEggFrames'
 
 const FOUR_DOTS = 'every single detail is....perfect,'
@@ -76,6 +83,64 @@ describe('progressThenLine', () => {
     expect(lastRows(animation)[1]).toBe('42')
     expect(rowsOf(animation, 0)[1].trim()).toBe('')
     expect(animation.finalLine).toBe('42')
+  })
+})
+
+describe('wipingFiles', () => {
+  const animation = wipingFiles({
+    barWidth: 4,
+    finalLine: 'nothing left',
+    paths: ['one', 'two', 'three', 'four'],
+    stepMilliseconds: 10,
+    title: 'Running',
+    windowRows: 2,
+  })
+
+  it('starts with an empty list and an empty bar', () => {
+    expect(rowsOf(animation, 0).map((row) => row.trim())).toEqual([
+      'Running',
+      '',
+      '',
+      '[    ] 0%',
+      '',
+    ])
+  })
+
+  it('scrolls the files through a window of its height, oldest going first', () => {
+    expect(rowsOf(animation, 3).slice(1, 3)).toEqual(["removed 'two'", "removed 'three'"])
+    expect(rowsOf(animation, 3)[3]).toBe('[=== ] 75%')
+  })
+
+  it('ends with a full bar and the last line', () => {
+    expect(lastRows(animation)).toEqual([
+      'Running',
+      "removed 'three'",
+      "removed 'four'",
+      '[====] 100%',
+      'nothing left',
+    ])
+    expect(animation.finalLine).toBe('nothing left')
+  })
+})
+
+describe('pictureSequence', () => {
+  const animation = pictureSequence({
+    finalLine: 'the end',
+    pictures: [
+      { holdMilliseconds: 5, rows: ['small'] },
+      { holdMilliseconds: 7, rows: ['tall', 'picture'] },
+    ],
+  })
+
+  it('stands every picture on the same floor, with room for the line under it', () => {
+    expect(rowsOf(animation, 0).map((row) => row.trim())).toEqual(['', 'small', ''])
+    expect(rowsOf(animation, 1).map((row) => row.trim())).toEqual(['tall', 'picture', ''])
+  })
+
+  it('holds each picture for its own time, and adds the line under the last', () => {
+    expect(animation.frames.map(({ holdMilliseconds }) => holdMilliseconds)).toEqual([5, 7, 0])
+    expect(lastRows(animation)).toEqual(['tall', 'picture', 'the end'])
+    expect(animation.finalLine).toBe('the end')
   })
 })
 

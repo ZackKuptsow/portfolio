@@ -118,27 +118,77 @@ export function progressThenLine({
   }
 }
 
-/** A title, and a bar filling under it. */
-export function progressBar({
+/**
+ * A title, the files going by as `rm -v` reports them, in a window of a fixed height, a bar filling
+ * under them, and a last line once it is over.
+ */
+export function wipingFiles({
   barWidth,
+  finalLine,
+  paths,
   stepMilliseconds,
   title,
+  windowRows,
 }: {
   barWidth: number
+  finalLine: string
+  paths: readonly string[]
   stepMilliseconds: number
   title: string
+  windowRows: number
 }): EggAnimation {
-  return {
-    finalLine: title,
-    frames: Array.from({ length: barWidth + 1 }, (_, filled) => ({
-      holdMilliseconds: filled === barWidth ? 0 : stepMilliseconds,
+  const frameAt = (wiped: number, lastRow: string, holdMilliseconds: number): AnimationFrame => {
+    const shown = paths.slice(0, wiped).slice(-windowRows)
+    const filled = Math.round((wiped / paths.length) * barWidth)
+    const percent = Math.round((wiped / paths.length) * 100)
+    return {
+      holdMilliseconds,
       rows: [
         title,
-        `[${'='.repeat(filled)}${' '.repeat(barWidth - filled)}] ${Math.round(
-          (filled / barWidth) * 100,
-        )}%`,
+        ...Array.from({ length: windowRows }, (_, index) =>
+          shown[index] === undefined ? BLANK_ROW : `removed '${shown[index]}'`,
+        ),
+        `[${'='.repeat(filled)}${' '.repeat(barWidth - filled)}] ${percent}%`,
+        lastRow,
       ],
-    })),
+    }
+  }
+  return {
+    finalLine,
+    frames: [
+      ...paths.map((_, wiped) => frameAt(wiped, BLANK_ROW, stepMilliseconds)),
+      frameAt(paths.length, BLANK_ROW, stepMilliseconds),
+      frameAt(paths.length, finalLine, 0),
+    ],
+  }
+}
+
+/**
+ * Drawings shown in turn, all standing on one floor so nothing jumps, with a last line under the
+ * last of them.
+ */
+export function pictureSequence({
+  finalLine,
+  pictures,
+}: {
+  finalLine: string
+  pictures: readonly AnimationFrame[]
+}): EggAnimation {
+  const height = Math.max(...pictures.map(({ rows }) => rows.length))
+  const standing = (rows: readonly string[]) => [
+    ...Array.from({ length: height - rows.length }, () => BLANK_ROW),
+    ...rows,
+  ]
+  const lastPicture = pictures[pictures.length - 1]
+  return {
+    finalLine,
+    frames: [
+      ...pictures.map(({ holdMilliseconds, rows }) => ({
+        holdMilliseconds,
+        rows: [...standing(rows), BLANK_ROW],
+      })),
+      { holdMilliseconds: 0, rows: [...standing(lastPicture.rows), finalLine] },
+    ],
   }
 }
 

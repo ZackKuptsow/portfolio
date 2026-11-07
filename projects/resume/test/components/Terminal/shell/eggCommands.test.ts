@@ -109,24 +109,60 @@ describe('the animations', () => {
     expect(next.lastExitStatus).toBe(42)
   })
 
-  it('chest makes them wait, and then gives them the sword', () => {
+  it('chest opens: closed, then shaking, then the lid, then a sword rising, then the line', () => {
     const { frames, finalLine } = runCommandLine('chest', state, context).outcomes[0].animation ?? {
       finalLine: '',
       frames: [],
     }
+    const pictures = frames.map(({ rows }) => rows.join('\n'))
 
     expect(finalLine).toBe('You got the Master Sword!')
-    expect(frames[0].rows[0].trim()).toBe('')
-    expect(frames[0].holdMilliseconds).toBeGreaterThanOrEqual(1000)
+    expect(pictures[0]).toContain('[]')
+    expect(pictures[0]).not.toContain('||')
+    expect(frames[0].holdMilliseconds).toBeGreaterThanOrEqual(500)
+    expect(new Set(pictures).size).toBeGreaterThan(5)
+    expect(pictures.at(-1)).toContain('||')
+    expect(frames.at(-1)?.rows.at(-1)).toBe('You got the Master Sword!')
+    expect(frames.at(-2)?.rows.at(-1)?.trim()).toBe('')
   })
 
-  it('fuxsocy runs its bar to the end, and breach ends on the upload', () => {
-    expect(
-      runCommandLine('fuxsocy', state, context).outcomes[0].animation?.frames.at(-1)?.rows,
-    ).toContain('[====================] 100%')
+  it('breach ends on the upload', () => {
     expect(runCommandLine('breach', state, context).outcomes[0].animation?.finalLine).toBe(
       'Daemon uploaded.',
     )
+  })
+
+  describe('fuxsocy', () => {
+    const frames = runCommandLine('fuxsocy', state, context).outcomes[0].animation?.frames ?? []
+    const everyRow = frames.flatMap(({ rows }) => rows)
+
+    it('runs its bar to the end', () => {
+      expect(frames[0].rows[0]).toBe('Executing FuxSocy')
+      expect(frames.at(-1)?.rows).toContain('[====================] 100%')
+    })
+
+    it('wipes every file of the portfolio, the way rm -v reports it', () => {
+      for (const path of [
+        '~/portfolio/developer.profile',
+        '~/portfolio/get_resume.sh',
+        '~/portfolio/work_experience/teampay.txt',
+        '~/portfolio/education/eleg_university_of_delaware.txt',
+        '~/portfolio/projects/akin.txt',
+      ]) {
+        expect(everyRow).toContain(`removed '${path}'`)
+      }
+    })
+
+    it('ends with nothing left', () => {
+      expect(frames.at(-1)?.rows.at(-1)).toBe('0 files remain.')
+      expect(frames.at(-2)?.rows.at(-1)?.trim()).toBe('')
+    })
+
+    it('leaves the real files alone: the fake filesystem is still all there', () => {
+      const { state: next } = runCommandLine('fuxsocy && cat developer.profile', state, context)
+
+      expect(next.lastExitStatus).toBe(0)
+    })
   })
 
   it('sl carries the train across and off the screen', () => {
@@ -148,6 +184,17 @@ describe('ping', () => {
     expect(rows).toContain('icmp_seq=1')
     expect(rows).toContain('time=2494000 ms')
     expect(animation?.frames[1].holdMilliseconds).toBeGreaterThanOrEqual(1000)
+  })
+
+  it('and Ceres answers back, after the statistics', () => {
+    const rows = runCommandLine('ping ceres', state, context).outcomes[0].animation?.frames.at(
+      -1,
+    )?.rows
+
+    expect(rows?.at(-1)).toBe(
+      'Broadcast message from ceres: Oye, beratna! Taki for the ping. Sasa ke?',
+    )
+    expect(rows?.at(-2)).toContain('0% packet loss')
   })
 
   it('answers as real ping does for anywhere else, and for nowhere', () => {

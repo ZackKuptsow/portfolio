@@ -240,7 +240,8 @@ The typed shell's lines, approved by Zack on 2026-11-06 (`components/Terminal/sh
 - Still drafts in the eggs, listed in the pull request: `Warning: this is loud. Play it? [y/N]`,
   `ALERT: the price of Bitcoin has changed.`, `There's more in /usr/games`, `Try: <command>`,
   `You found them all.`, `+30 lives`, `Computing... <n> years remaining`, `A steam train goes by.`,
-  the `loot` lines, and the commands `bitcoin`, `news`, `qwerty` (which draws a fish) and `rare`, which
+  `0 files remain.`, `Broadcast message from ceres: Oye, beratna! Taki for the ping. Sasa ke?`, the
+  `loot` lines, and the commands `bitcoin`, `news`, `qwerty` (which draws a fish) and `rare`, which
   he asked for and did not name.
 - Still drafts, marked `// draft` in the constants and listed in the pull request: the `help` and
   `man` lines, `uname -a`, and the real-tool lines for `ls` on a missing path, `man` with no entry,
