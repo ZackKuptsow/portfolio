@@ -47,7 +47,8 @@ export const CIGARETTE_IN_ASHTRAY_DRAWING = [
   '      |::::|         |%~',
   '      |::::|_________|%~',
   '  ____________________________',
-  '  \\__________________________/',
+  '  \\     special occasion     /',
+  '   \\________________________/',
 ] as const
 
 export const SUIT_DRAWING = [
@@ -65,15 +66,15 @@ export const SUIT_DRAWING = [
 
 /** An original little robot, stuck at the bottom of a staircase. */
 export const ROBOT_AT_THE_STAIRS_DRAWING = [
-  '                                  ______',
-  '                            _____|',
-  '                      _____|',
-  '                _____|',
-  '    _|_   _____|',
-  '   [o o] |',
-  '   |___| |',
-  '    O O  |',
-  '  _______|',
+  '        ',
+  '    |',
+  ' ]  |.-._',
+  '  \\|"(0)"| _]',
+  '  `|=\\#/=|\\/                            ______________',
+  '   :  _  :                              |',
+  '    \\/_\\/               ________________|',
+  '     |=|              |',
+  '_____`-` _____________|',
 ] as const
 
 const CHEST_BODY = [
