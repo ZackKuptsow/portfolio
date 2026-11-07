@@ -24,6 +24,7 @@ import {
   timedLines,
   wipingFiles,
 } from './terminalEggFrames'
+import { REFERENCE_LINES, REFERENCES_FILE_PATH } from './terminalEggReferences'
 
 import type { EggAnimation } from './terminalEggFrames'
 
@@ -419,4 +420,6 @@ export const terminalEasterEggs: readonly EasterEgg[] = [
     },
     path: '~/portfolio/.yougottagive',
   },
+  // Where they all come from
+  { kind: 'file', lines: REFERENCE_LINES, path: REFERENCES_FILE_PATH },
 ]

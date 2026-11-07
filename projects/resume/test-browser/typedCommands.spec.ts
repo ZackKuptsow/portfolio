@@ -733,6 +733,19 @@ test.describe('the guidance', () => {
     await expect(page.locator(SHOWN_PROMPT_HINT)).toHaveCount(0)
   })
 
+  test('the file in /usr/games says where the references come from', async ({ page }) => {
+    await page.goto('/')
+    await waitForTerminal(page)
+
+    await typeCommand(page, 'ls /usr/games')
+    expect(await readSessionOutput(page)).toContain('references.txt')
+
+    await typeCommand(page, 'cat /usr/games/references.txt')
+    expect(await readSessionOutput(page)).toContain(
+      'Borderlands (video game): claptrap, guns, loot, stairs',
+    )
+  })
+
   test('the menu has a help entry that types it at the prompt', async ({ page }) => {
     await page.goto('/')
     await waitForTerminal(page)
