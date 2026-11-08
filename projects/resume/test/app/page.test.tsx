@@ -138,7 +138,9 @@ describe('Home', () => {
     expect(marks).toHaveLength(1)
     const [mark] = marks
     expect(mark.getAttribute('aria-hidden')).toBe('true')
-    expect(mark.previousElementSibling?.classList.contains('terminal-dots')).toBe(true)
     expect(mark.nextElementSibling?.classList.contains('terminal-title')).toBe(true)
+    const group = mark.parentElement
+    expect(group?.classList.contains('terminal-title-group')).toBe(true)
+    expect(group?.previousElementSibling?.classList.contains('terminal-dots')).toBe(true)
   })
 })

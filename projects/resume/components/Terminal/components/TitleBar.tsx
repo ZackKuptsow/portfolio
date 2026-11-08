@@ -42,10 +42,12 @@ export function TitleBar({
         <span />
         <span />
       </div>
-      <BrandMark className="terminal-title-mark" />
-      <div aria-hidden="true" className="terminal-title">
-        <span className="terminal-title-user">{TITLE_BAR_USER} </span>
-        {path}
+      <div className="terminal-title-group">
+        <BrandMark className="terminal-title-mark" />
+        <div aria-hidden="true" className="terminal-title">
+          <span className="terminal-title-user">{TITLE_BAR_USER} </span>
+          {path}
+        </div>
       </div>
       <button
         type="button"

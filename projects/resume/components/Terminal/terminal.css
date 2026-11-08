@@ -56,12 +56,34 @@ html:not(.dark) .terminal-root {
   background: hsl(var(--muted-foreground));
 }
 
+/*
+ * The mark and the path, measured together. A query container of its own, and not the bar,
+ * because a container holds its fixed-position descendants, and the bar holds the menu drawer.
+ */
+.terminal-title-group {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  container-type: inline-size;
+}
+
 /* In points, like the dots: it is a drawing, and keeps its own near-black tile in both themes. */
 .terminal-title-mark {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
   margin-left: 0.5rem;
+}
+
+/*
+ * The mark gives way before the path does. In ems of the bar's text, so it is large text on a
+ * narrow screen that hides it: a phone at twice the text size broke "portfolio" across two lines.
+ */
+@container (max-width: 10em) {
+  .terminal-title-mark {
+    display: none;
+  }
 }
 
 /* At a large text size a long path wraps and the bar grows, rather than cut it off. */
