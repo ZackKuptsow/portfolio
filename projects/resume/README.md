@@ -14,6 +14,7 @@ The portfolio site behind **[kups.me](https://kups.me)** — a Next.js 15 app ex
 ```
 app/              # App Router entry (layout, page, global styles), plus what search engines read
 app/fonts/        # The two font files the site serves, with their licenses and source
+brand/            # The marks as data, the script that makes every image of the active one, and its output
 components/       # UI components (Terminal, GetResume, ThemeToggle, GlowCursor, ...)
 data/identity.ts  # Who the site is about: name forms, role, location, email, profile links, site URL
 data/profile.ts   # Resume content: work experience, education, skills, about copy
@@ -239,16 +240,9 @@ caches `.next/cache`. `yarn test:built-site` fails on a build that still carries
 
 The share picture is a committed PNG, not a generated route. A generated one is exported with
 no file extension, and S3 would serve it with the wrong content type. To change it, edit
-`share-image/opengraph-image.html` and render it again. The command is for macOS, runs from
-`projects/resume`, and needs a network connection: the page loads its font from Google Fonts and
-falls back to another font, without an error, when it cannot.
-
-```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
-  --hide-scrollbars --window-size=1200,630 --force-device-scale-factor=1 \
-  --virtual-time-budget=10000 --screenshot="$PWD/app/opengraph-image.png" \
-  "file://$PWD/share-image/opengraph-image.html"
-```
+`share-image/opengraph-image.html` and run `yarn brand`, which renders it with the mark beside the
+name (see "The mark"). The page loads its font from Google Fonts, so that needs a network
+connection, and `yarn brand` stops rather than save a picture drawn in a fallback font.
 
 ## Fonts
 
@@ -303,6 +297,49 @@ at 640px.
 
 Scan the code in both themes after changing its colors: the dark theme draws it light on dark,
 which older scanners can fail to read.
+
+## The mark
+
+The site's mark is the Bracket cup: square brackets drawn as a cup with a handle, `zk` inside,
+green on a near-black tile in both themes. `brand/marks.ts` holds it, and the two marks Zack kept
+on file, the Terminal mug and the zk monogram, as data: each one's shapes on a 64 by 64 grid and
+the drawing `cat logo.txt` prints. `ACTIVE_MARK` names the one every place shows.
+
+| Place                  | From                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| Browser tab            | `app/favicon.ico`, at 16, 32 and 48 pixels                                                 |
+| Phone home screen      | `app/apple-icon.png`, square, because iOS rounds the corners itself                        |
+| Share image            | `app/opengraph-image.png`, from `share-image/opengraph-image.html`, which shows `mark.svg` |
+| GitHub profile picture | `brand/github-picture.png`, uploaded by hand, because GitHub has no API for it             |
+| The repository README  | `brand/mark.svg`                                                                           |
+| Title bar and 404 page | `components/BrandMark/`, drawn inline and `aria-hidden`                                    |
+| `cat logo.txt`         | The active mark's drawing, a file in `~/portfolio` (`shell/fakeFileSystem.ts`)             |
+| Resume email           | `public/email-mark.png`, which send_resume's `email_content.ts` links to on kups.me        |
+
+The letters are outlines, never live text, so the favicon, the README and the email draw them
+without the font. `brand/outline_letters.py` writes them from `app/fonts/jetbrains-mono/latin.woff2`
+at weight 700, with the letters' ink, not their spacing, centered on the point given. It runs with
+uv, which installs its two packages for that script alone, from the hashes in
+`outline_letters.py.lock`:
+
+```bash
+uv run --locked brand/outline_letters.py app/fonts/jetbrains-mono/latin.woff2 zk 19 30 32.5 700
+```
+
+To switch marks:
+
+1. Change `ACTIVE_MARK` in `brand/marks.ts`. The title bar, the 404 page and `cat logo.txt` follow.
+2. Run `yarn brand`. It renders every file in the table in the installed Chrome and writes
+   `brand/generated.json`. It needs a network connection for the share image's font.
+3. Record the GIF again (see "The GIF in the repository's README"), because it films the title bar.
+4. Deploy the site, then send_resume, so the email never links to a picture the site does not
+   serve yet. Upload the new GitHub picture by hand.
+
+`test/brand/generatedFiles.test.ts` fails when the committed files were made from another mark, or
+from this one as it was drawn before, so step 2 cannot be skipped by accident. It checks that the
+files are the ones the generator wrote, not that they look right: look at each one after a run,
+the small ones enlarged. The Terminal mug's and the zk monogram's drawings were shown to Zack when
+he picked the Bracket cup's, so a switch shows him its drawing again before it ships.
 
 ## Checks that need a build
 
@@ -376,7 +413,9 @@ fail.
 `demo/terminal.gif` is the picture at the top of the repository's README, and
 `demo/storyboard.yaml` is what it films, in the format of the `demo-video` skill in Zack's dotfiles.
 The clip stops before Projects, so a change to a project's copy does not make it stale. A change to
-the profile or to the first job does. To record it again, build, then from this folder:
+the profile, to the first job or to the mark does, because the clip films the title bar. It ends
+on one typed egg, `logout`: Zack asked for "one easter egg that is subtle like the "logout" one".
+To record it again, build, then from this folder:
 
 ```bash
 python3 ~/dotfiles/hermes/skills/creative/demo-video/scripts/capture_web.py \
@@ -386,8 +425,10 @@ ffmpeg -i <directory>/terminal.webm -filter_complex "fps=12,scale=800:-1:flags=l
 ```
 
 `--repository` is there because the script launches Playwright's own Chromium, and this project has
-none: its browser checks use the installed Chrome. Those commands were run as written on 2026-11-06,
-and they make a valid clip that is not quite the committed one. See `notes` in the storyboard.
+none: its browser checks use the installed Chrome. Since the clip types `logout`, the skill's
+scripts as they are refuse the storyboard, because they allow no Enter in typed text. The committed
+GIF came from a copy with that check and one other line changed, which `notes` in the storyboard
+spell out.
 
 ## Commands
 

@@ -13,7 +13,10 @@ prototypes are throwaway, so this brief carries everything they decided.
 
 ## Brand and style
 
-Brand: short form, 2026-11-04
+Brand: partial conversation, 2026-11-07
+
+The answers come from the short form, 2026-11-04, and the conversation that chose the mark,
+2026-11-07, which covered references, feeling and the mark, not all six areas.
 
 - **For, and when:** Hiring managers, recruiters and the like, and "the first introduction of
   myself to some people". "kups.me is just a portfolio site that includes my resume-type info and
@@ -35,6 +38,9 @@ Brand: short form, 2026-11-04
     built while it was flying is also really cool."
   - atmos.leeroy.ca and HubSpot's list of best personal websites, as sites he has saved. "We don't
     have to take much from these."
+  - For the mark, Linear's among four references: "Linear is probably the coolest and simpliest and
+    easiest to derive from. Any terminal marks would be good too. I would love to somehow hint at
+    cups for kups."
   - No site was named as hated.
 - **Never:** "corporate and stiff". "Just being a resume site." Things that "look crammed and blend
   together" (issue #7).
@@ -46,6 +52,15 @@ Brand: short form, 2026-11-04
 - **Recognisable by:** The terminal look, "the site's identity" (issue #7), and `./tech.polyglot`:
   "I couldn't think of anything else that makes it seem like I experiment with all tech (i.e. smart
   home, local llm, hermes, text assistant, productivity and tooling)."
+  - **The mark**, chosen 2026-11-07 over four rounds: the Bracket cup, a pair of square brackets
+    drawn as a cup with a handle, lowercase `zk` inside, green on a near-black tile. The cup is "a
+    hint that rewards a second look", and the tile stays "On the near-black tile everywhere".
+    Placed, then: "Now that I am seeing it I want unity. I want to go with Bracket Cup. Please make
+    sure the "zk" is centered between the brackets. I want to keep the other two on file for if I
+    ever change my mind." It is in the tab, the phone icon, the share image, the GitHub picture,
+    the repository README, the title bar, `cat logo.txt`, the 404 page and the resume email. The
+    Terminal mug and the zk monogram are kept in `brand/marks.ts`, one word away (see "The mark"
+    in the README).
 
 Words that stay as they are (from `data/profile.ts` and issue #7): job highlights, skills and the
 bio are copied from the public resume. A design change alters how they are shown, never what they
