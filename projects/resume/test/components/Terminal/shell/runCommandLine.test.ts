@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { listPromptLines } from '@/components/Terminal/buildCommand'
 import { buildSections, buildSteps } from '@/components/Terminal/buildSections'
+import { widestRow } from '@/components/Terminal/shell/eggCommands'
 import { buildFileSystem } from '@/components/Terminal/shell/fakeFileSystem'
 import { runCommandLine } from '@/components/Terminal/shell/runCommandLine'
 import type { RunResult, ShellContext, ShellState } from '@/components/Terminal/shell/types'
@@ -20,8 +21,8 @@ const context: ShellContext = {
   root: buildFileSystem(sections, []),
 }
 
-// Narrower than the drawing's widest line, which is 19 characters.
-const NARROW_COLUMNS = 10
+// One column narrower than the active mark's drawing, whichever mark that is.
+const NARROW_COLUMNS = widestRow(MARKS[ACTIVE_MARK].drawing) - 1
 
 function textOf(line: OutputLine): string {
   return line.map((segment) => segment.text).join('')

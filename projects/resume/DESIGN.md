@@ -190,8 +190,11 @@ project, as `components/ProjectDemo/` does today.
 
 ### Controls and footer
 
-- Title bar: three dots, the path (`zack@kups:` before it, hidden on phones), then plain view and the
-  hamburger. Plain view moves into the menu on phones.
+- Title bar: three dots, the mark, the path (`zack@kups:` before it, hidden on phones), then plain
+  view and the hamburger. Plain view moves into the menu on phones. The mark gives way before the
+  path wraps: it hides when the bar cannot hold it and the longest tour path,
+  `~/portfolio/work_experience`, on one line, which is below 33 characters of the bar's text (340
+  points wide and under, or text much larger than the default).
 - Hamburger at the far right on every width, with the drawer opening from the right. Choosing a
   section closes the drawer and types that section's command.
 - The menu holds the sections, plain view and the theme switch, then whatever the footer could not
@@ -423,7 +426,7 @@ The widths in points the rendered check opens each screen at. The web branch's f
 
 | Points | Platform | Layout rule                                                                       |
 | ------ | -------- | --------------------------------------------------------------------------------- |
-| 360    | phone    | one column; title bar shows dots, path and hamburger; plain view is in the menu   |
+| 360    | phone    | one column; title bar shows dots, mark, path and hamburger; plain view in menu    |
 | 375    | phone    | one column; as at 360                                                             |
 | 402    | phone    | one column; as at 360                                                             |
 | 768    | web      | one reading column; Skills in three columns; plain view in the title bar          |
@@ -475,7 +478,9 @@ is no limit on the blocks above the action (both Zack, 2026-11-04).
 Each with its states. The browser's own controls, with a visible focus: 2 points of `ring`, offset by
 3, and in dark a `0 0 12px` glow (from app/globals.css).
 
-- **Title bar:** dots, path, plain view, hamburger, on `card`. Hover: edge and text go `primary`.
+- **Title bar:** dots, mark, path, plain view, hamburger, on `card`. Hover: edge and text go
+  `primary`. The mark is the active one from `brand/marks.ts`, 18 points, on its own near-black
+  tile in both themes, and decoration (`aria-hidden`).
   Focus: ring. Disabled and error: not applicable.
 - **Prompt:** path, `$`, typed command and a block cursor, on `card`, pinned above the footer. The
   cursor blinks at rest and holds still while a command runs. Not a control.
