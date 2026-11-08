@@ -63,7 +63,7 @@ describe('Home', () => {
     render(<Home />)
 
     expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual([
-      'Zack Kuptsow · Full-Stack Software Engineer · Philadelphia, PA',
+      'Zack Kuptsow · Full Stack Software Engineer · Philadelphia, PA',
     ])
   })
 

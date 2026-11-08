@@ -146,7 +146,7 @@ export const skillGroups: readonly SkillGroup[] = [
 
 /** Copy for the About section. Both forms of the name open the bio, since people search for either. */
 export const about = {
-  bio: 'Zack Kuptsow (Zachary Kuptsow) is a full-stack engineer in Philadelphia who owns the product surfaces and the infrastructure they run on, with 5+ years across fintech, logistics, and AI products. Most recently founding lead engineer for an AI-powered mortgage platform, end to end: backend, frontend, infrastructure, CI/CD, security and compliance. Lays the groundwork so each new feature starts out as dependable as the one before it.',
+  bio: 'Zack Kuptsow (Zachary Kuptsow) is a full stack engineer in Philadelphia who owns the product surfaces and the infrastructure they run on, with 5+ years across fintech, logistics, and AI products. Most recently founding lead engineer for an AI-powered mortgage platform, end to end: backend, frontend, infrastructure, CI/CD, security and compliance. Lays the groundwork so each new feature starts out as dependable as the one before it.',
   coreTechnologies: [
     'TypeScript',
     'Python',

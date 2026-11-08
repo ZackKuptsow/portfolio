@@ -37,7 +37,7 @@ describe('RootLayout', () => {
   })
 
   it('hands Next the metadata that names the site and its canonical address', () => {
-    expect(metadata.title).toBe('Zack Kuptsow | Full-Stack Software Engineer')
+    expect(metadata.title).toBe('Zack Kuptsow | Full Stack Software Engineer')
     expect(metadata.alternates?.canonical).toBe('/')
   })
 })

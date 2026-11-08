@@ -19,7 +19,7 @@ describe('buildProfilePageStructuredData', () => {
       alternateName: 'Zachary Kuptsow',
       familyName: 'Kuptsow',
       givenName: 'Zachary',
-      jobTitle: 'Full-Stack Software Engineer',
+      jobTitle: 'Full Stack Software Engineer',
       name: 'Zack Kuptsow',
       url: 'https://kups.me',
     })
