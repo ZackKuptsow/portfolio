@@ -1,5 +1,7 @@
 import { useId } from 'react'
 
+import { BrandMark } from '@/components/BrandMark'
+
 import { MENU_LABEL, TITLE_BAR_USER } from '../constants'
 import { Drawer } from './Drawer'
 
@@ -17,8 +19,9 @@ type TitleBarProps = {
 }
 
 /**
- * Three dots and the path, as a terminal's window bar, then plain view and the menu. The dots and
- * the path are decoration. The controls need a script, so without one they do not show.
+ * Three dots, the mark and the path, as a terminal's window bar, then plain view and the menu.
+ * The dots, the mark and the path are decoration. The controls need a script, so without one they
+ * do not show.
  */
 export function TitleBar({
   currentSectionId,
@@ -39,6 +42,7 @@ export function TitleBar({
         <span />
         <span />
       </div>
+      <BrandMark className="terminal-title-mark" />
       <div aria-hidden="true" className="terminal-title">
         <span className="terminal-title-user">{TITLE_BAR_USER} </span>
         {path}

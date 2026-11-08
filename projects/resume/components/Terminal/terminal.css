@@ -56,6 +56,14 @@ html:not(.dark) .terminal-root {
   background: hsl(var(--muted-foreground));
 }
 
+/* In points, like the dots: it is a drawing, and keeps its own near-black tile in both themes. */
+.terminal-title-mark {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-left: 0.5rem;
+}
+
 /* At a large text size a long path wraps and the bar grows, rather than cut it off. */
 .terminal-title {
   flex: 1;

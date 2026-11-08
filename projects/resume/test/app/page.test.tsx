@@ -130,4 +130,15 @@ describe('Home', () => {
     expect(promptSymbols).toHaveLength(PROMPT_SYMBOL_COUNT)
     expect(exposed).toEqual([])
   })
+
+  it('shows the mark in the title bar, after the dots and before the path, as decoration', () => {
+    render(<Home />)
+
+    const marks = document.querySelectorAll('.terminal-title-bar svg')
+    expect(marks).toHaveLength(1)
+    const [mark] = marks
+    expect(mark.getAttribute('aria-hidden')).toBe('true')
+    expect(mark.previousElementSibling?.classList.contains('terminal-dots')).toBe(true)
+    expect(mark.nextElementSibling?.classList.contains('terminal-title')).toBe(true)
+  })
 })
