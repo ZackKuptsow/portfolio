@@ -241,8 +241,8 @@ caches `.next/cache`. `yarn test:built-site` fails on a build that still carries
 The share picture is a committed PNG, not a generated route. A generated one is exported with
 no file extension, and S3 would serve it with the wrong content type. To change it, edit
 `share-image/opengraph-image.html` and run `yarn brand`, which renders it with the mark beside the
-name (see "The mark"). The page loads its font from Google Fonts, so that needs a network
-connection, and `yarn brand` stops rather than save a picture drawn in a fallback font.
+name (see "The mark"). The page loads the committed JetBrains Mono, so no network is needed, and
+`yarn brand` stops rather than save a picture drawn in a fallback font or missing the mark.
 
 ## Fonts
 
@@ -329,10 +329,14 @@ uv run --locked brand/outline_letters.py app/fonts/jetbrains-mono/latin.woff2 zk
 To switch marks:
 
 1. Change `ACTIVE_MARK` in `brand/marks.ts`. The title bar, the 404 page and `cat logo.txt` follow.
+   Change the pin in `test/brand/marks.test.ts` to match: it is there so a switch is never an
+   accident.
 2. Run `yarn brand`. It renders every file in the table in the installed Chrome and writes
-   `brand/generated.json`. It needs a network connection for the share image's font.
+   `brand/generated.json`.
 3. Record the GIF again (see "The GIF in the repository's README"), because it films the title bar.
-4. Deploy the site, then send_resume, so the email never links to a picture the site does not
+4. Rename the mark where the docs name it: this section, "The mark" in `DESIGN.md`'s Brand
+   section, and the line in the repository's `CLAUDE.md`.
+5. Deploy the site, then send_resume, so the email never links to a picture the site does not
    serve yet. Upload the new GitHub picture by hand.
 
 `test/brand/generatedFiles.test.ts` fails when the committed files were made from another mark, or

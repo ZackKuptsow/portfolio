@@ -5,9 +5,9 @@
  *
  *     yarn brand
  *
- * It renders in the installed Chrome through Playwright, like the browser checks. The share image
- * loads JetBrains Mono from Google Fonts, so this needs a network connection, and it stops rather
- * than save a picture drawn in a fallback font.
+ * It renders in the installed Chrome through Playwright, like the browser checks, and needs no
+ * network: the share image loads the committed JetBrains Mono. It stops rather than save a share
+ * image drawn in a fallback font or missing the mark.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -27,7 +27,7 @@ import type { Browser } from '@playwright/test'
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..')
 const SHARE_IMAGE_SOURCE = 'share-image/opengraph-image.html'
 const SHARE_IMAGE_SIZE = { height: 630, width: 1200 }
-const SHARE_IMAGE_FONT = "700 120px 'JetBrains Mono'"
+const SHARE_IMAGE_FONT_FAMILY = 'JetBrains Mono'
 const FAVICON_SIZES = [16, 32, 48]
 const APPLE_ICON_PIXELS = 180
 const EMAIL_MARK_PIXELS = 72
@@ -66,11 +66,27 @@ async function renderShareImage(browser: Browser): Promise<Uint8Array> {
   const page = await browser.newPage({ deviceScaleFactor: 1, viewport: SHARE_IMAGE_SIZE })
   try {
     await page.goto(pathToFileURL(projectPath(SHARE_IMAGE_SOURCE)).href, { waitUntil: 'load' })
-    await page.evaluate(() => document.fonts.ready)
-    const fontLoaded = await page.evaluate((font) => document.fonts.check(font), SHARE_IMAGE_FONT)
-    if (!fontLoaded) {
+    // Not document.fonts.check(): it says yes for a family with no face at all, so it passed with
+    // the font blocked. A face of that family has to have loaded, and the mark's image too.
+    const inputs = await page.evaluate(async (family) => {
+      await document.fonts.ready
+      const faces = [...document.fonts].filter(
+        (face) => face.family.replace(/^["']|["']$/g, '') === family,
+      )
+      const mark = document.querySelector('img.mark')
+      return {
+        fontLoaded: faces.some((face) => face.status === 'loaded'),
+        markLoaded: mark instanceof HTMLImageElement && mark.complete && mark.naturalWidth > 0,
+      }
+    }, SHARE_IMAGE_FONT_FAMILY)
+    if (!inputs.fontLoaded) {
       throw new Error(
-        'JetBrains Mono did not load for the share image, so it would be drawn in a fallback font. Check the network connection.',
+        `${SHARE_IMAGE_FONT_FAMILY} did not load for the share image, so it would be drawn in a fallback font. Check its @font-face in ${SHARE_IMAGE_SOURCE}.`,
+      )
+    }
+    if (!inputs.markLoaded) {
+      throw new Error(
+        `The mark did not load in ${SHARE_IMAGE_SOURCE}, so the share image would have none. Check its <img> path.`,
       )
     }
     return await page.screenshot({ clip: { ...SHARE_IMAGE_SIZE, x: 0, y: 0 } })

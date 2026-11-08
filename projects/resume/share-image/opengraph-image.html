@@ -10,7 +10,13 @@
     <meta charset="utf-8" />
     <title>Share image for kups.me</title>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=block');
+      /* The committed file the site and the mark's outlines use, so no network is needed. */
+      @font-face {
+        font-family: 'JetBrains Mono';
+        src: url('../app/fonts/jetbrains-mono/latin.woff2') format('woff2');
+        font-weight: 100 800;
+        font-display: block;
+      }
 
       :root {
         --background: hsl(0 0% 7%);
