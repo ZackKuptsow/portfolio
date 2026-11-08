@@ -19,7 +19,7 @@ import {
   SHELL_VARIABLES,
   THEME_NAMES,
 } from './constants'
-import { eggHandler, fortune, gameEggs, hint } from './eggCommands'
+import { WINDOW_TOO_NARROW, eggHandler, fortune, gameEggs, hint, widestRow } from './eggCommands'
 import { findNode, listFolder, resolvePath, toAbsolutePath } from './fakeFileSystem'
 import { fail, succeed, text } from './outcomes'
 
@@ -93,6 +93,11 @@ const print: CommandHandler = ([, target], state, context) => {
   }
   if (content.kind === 'skill') {
     return succeed([content.skill])
+  }
+  if (content.kind === 'drawing') {
+    return context.columns >= widestRow(content.lines)
+      ? succeed([], { art: content.lines })
+      : succeed([`${target}: ${WINDOW_TOO_NARROW}`])
   }
   const { exitStatus, lines, password } = content
   if (password) {

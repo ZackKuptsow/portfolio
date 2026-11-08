@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { listPromptLines } from '@/components/Terminal/buildCommand'
 import { buildSections, buildSteps } from '@/components/Terminal/buildSections'
 import { buildFileSystem } from '@/components/Terminal/shell/fakeFileSystem'
@@ -18,6 +19,9 @@ const context: ShellContext = {
   now: () => new Date(2026, 10, 6, 14, 42, 7),
   root: buildFileSystem(sections, []),
 }
+
+// Narrower than the drawing's widest line, which is 19 characters.
+const NARROW_COLUMNS = 10
 
 function textOf(line: OutputLine): string {
   return line.map((segment) => segment.text).join('')
@@ -106,6 +110,22 @@ describe('runCommandLine', () => {
         ),
       ),
     ).toBe('TypeScript / JavaScript (Node/Express)')
+  })
+
+  it('cats logo.txt as the mark drawing, with no lines under it', () => {
+    const [outcome] = runCommandLine('cat logo.txt', state, context).outcomes
+
+    expect(outcome.art).toEqual(MARKS[ACTIVE_MARK].drawing)
+    expect(outcome.lines).toEqual([])
+    expect(outcome.exitStatus).toBe(0)
+  })
+
+  it('says logo.txt does not fit, the way a drawing egg does, in a window too narrow for it', () => {
+    const narrow = { ...context, columns: NARROW_COLUMNS }
+    const [outcome] = runCommandLine('cat logo.txt', state, narrow).outcomes
+
+    expect(outcome.art).toBeUndefined()
+    expect(outcome.lines.map(textOf)).toEqual(['logo.txt: window too narrow'])
   })
 
   it('prints pwd, whoami, echo with its variables, which, and history', () => {

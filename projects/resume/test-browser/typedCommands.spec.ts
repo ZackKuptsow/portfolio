@@ -18,6 +18,7 @@ import {
   wheelUntilBusy,
   wheelUntilNextCommand,
 } from './terminal'
+import { ACTIVE_MARK, MARKS } from '../brand/marks'
 import {
   PROMPT_HINT_FADE_MILLISECONDS,
   PROMPT_HINT_WAIT_MILLISECONDS,
@@ -129,6 +130,19 @@ test.describe('typing at the prompt', () => {
     const viewport = page.viewportSize()
     expect(prompt).not.toBeNull()
     expect((prompt?.y ?? 0) + (prompt?.height ?? 0)).toBeLessThanOrEqual(viewport?.height ?? 0)
+  })
+
+  test('cat logo.txt prints the mark drawing whole, line for line', async ({ page }) => {
+    await openAt(page, 'developer.profile')
+
+    await typeCommand(page, 'cat logo.txt')
+
+    const drawing = page.locator(`${SESSION_OUTPUT} pre`)
+    await expect(drawing).toHaveCount(1)
+    expect(await drawing.textContent()).toBe(MARKS[ACTIVE_MARK].drawing.join('\n'))
+    const view = await readSessionOutputView(page)
+    expect(view.cutRows).toEqual([])
+    expect(view.overlappingDock).toEqual([])
   })
 
   test('scrolling on prints the next section and the session output is gone', async ({ page }) => {

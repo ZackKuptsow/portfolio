@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { buildSections } from '@/components/Terminal/buildSections'
 import {
   HOME_DIRECTORY,
@@ -30,6 +31,7 @@ describe('the fake filesystem', () => {
       'developer.profile',
       'education/',
       'get_resume.sh',
+      'logo.txt',
       'projects/',
       'skills/',
       'work_experience/',
@@ -54,6 +56,13 @@ describe('the fake filesystem', () => {
           [{ text: 'open https://kups.me/Zachary_Kuptsow_Resume.pdf' }],
         ],
       },
+      kind: 'file',
+    })
+  })
+
+  it('gives logo.txt the active mark drawing, Zack\'s pick for "cat logo.txt"', () => {
+    expect(findNode(root, '~/portfolio/logo.txt')).toEqual({
+      content: { kind: 'drawing', lines: MARKS[ACTIVE_MARK].drawing },
       kind: 'file',
     })
   })
@@ -88,6 +97,7 @@ describe('the fake filesystem', () => {
       'developer.profile',
       'education/',
       'get_resume.sh',
+      'logo.txt',
       'projects/',
       'skills/',
       'work_experience/',

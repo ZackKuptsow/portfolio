@@ -10,14 +10,15 @@ type CommandEgg = Extract<EasterEgg, { kind: 'command' }>
 /** What counts as yes to a `[y/N]`. Anything else, Enter alone included, is no. */
 const YES_ANSWER = /^y(es)?$/i
 /** What a drawing with no line of its own says when the window cannot hold it. */
-const WINDOW_TOO_NARROW = 'window too narrow'
+export const WINDOW_TOO_NARROW = 'window too narrow'
 const COMMAND_JOINER = '&&'
 
 function pickAtRandom<Item>(items: readonly Item[]): Item {
   return items[Math.floor(Math.random() * items.length)]
 }
 
-function widestRow(rows: readonly string[]): number {
+/** The width of a drawing, in characters: its longest row. */
+export function widestRow(rows: readonly string[]): number {
   return Math.max(...rows.map((row) => row.length))
 }
 
