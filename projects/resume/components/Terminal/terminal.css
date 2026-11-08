@@ -77,10 +77,13 @@ html:not(.dark) .terminal-root {
 }
 
 /*
- * The mark gives way before the path does. In ems of the bar's text, so it is large text on a
- * narrow screen that hides it: a phone at twice the text size broke "portfolio" across two lines.
+ * The mark gives way before the path does. The longest path the tour shows,
+ * `~/portfolio/work_experience`, is 27 characters, and with the mark and the two margins it needs
+ * about 33. In characters of the bar's own text, so large text hides the mark too. Measured with
+ * the mark: that path broke across two lines at 320 and 340 wide, and "portfolio" did at 360 with
+ * text at twice the size.
  */
-@container (max-width: 10em) {
+@container (max-width: 33ch) {
   .terminal-title-mark {
     display: none;
   }

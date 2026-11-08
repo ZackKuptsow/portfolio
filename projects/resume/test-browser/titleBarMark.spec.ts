@@ -1,6 +1,6 @@
 import { expect, test } from './browserTest'
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from './constants'
-import { waitForTerminal } from './terminal'
+import { chooseFromMenu, waitForTerminal } from './terminal'
 
 import type { Page } from '@playwright/test'
 
@@ -8,6 +8,12 @@ const DOUBLE_TEXT_SIZE = '200%'
 const TEXT_SIZE_SETTLE_MILLISECONDS = 400
 const MARK = '.terminal-title-mark'
 const MARK_PIXELS = 18
+// The longest path the tour puts in the title bar, and the menu entry that leads to it.
+const LONGEST_TOUR_PATH = '~/portfolio/work_experience'
+const LONGEST_PATH_MENU_ENTRY = 'work_experience/'
+// Phones from the smallest up. With the mark, the longest path broke across two lines at 320
+// and 340 and fit from 360.
+const PHONE_WIDTHS = [320, 340, 360, 375, 390, 414]
 
 /** How many lines the title bar's path takes, read from where its text lands. */
 function countPathLines(page: Page): Promise<number> {
@@ -45,6 +51,20 @@ test.describe('the mark in the title bar', () => {
     await expect(page.locator(MARK)).toBeHidden()
     expect(await countPathLines(page)).toBe(1)
   })
+
+  for (const width of PHONE_WIDTHS) {
+    test(`keeps the longest tour path on one line at ${width}px, giving way if it must`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ height: PHONE_VIEWPORT.height, width })
+      await page.goto('/')
+      await waitForTerminal(page)
+      await chooseFromMenu(page, LONGEST_PATH_MENU_ENTRY)
+      await expect(page.locator('.terminal-title')).toContainText(LONGEST_TOUR_PATH)
+
+      await expect.poll(() => countPathLines(page)).toBe(1)
+    })
+  }
 
   test('stays on a laptop with text at twice the size', async ({ page }) => {
     await page.setViewportSize(LAPTOP_VIEWPORT)
