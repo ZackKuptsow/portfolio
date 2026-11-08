@@ -77,5 +77,11 @@ module.exports = {
         ],
       },
     },
+    {
+      // `eslint .` reads .js files and the files these overrides name, and Next's own override
+      // names only .ts and .tsx, so without this the generator, brand/generate.mts, is never read.
+      files: ['**/*.mts'],
+      parser: '@typescript-eslint/parser',
+    },
   ],
 }

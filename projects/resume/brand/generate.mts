@@ -17,11 +17,11 @@ import { pathToFileURL } from 'node:url'
 import { chromium } from '@playwright/test'
 
 import { GENERATED_FILES, GENERATED_RECORD_PATH, hashBytes, hashMark } from './generatedRecord.ts'
-import type { GeneratedRecord } from './generatedRecord.ts'
 import { packIco } from './icoFile.ts'
-import { toMarkSvg } from './markSvg.ts'
 import { ACTIVE_MARK, MARKS } from './marks.ts'
+import { toMarkSvg } from './markSvg.ts'
 
+import type { GeneratedRecord } from './generatedRecord.ts'
 import type { Browser } from '@playwright/test'
 
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..')
