@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
   Source of app/opengraph-image.png, the picture shown when kups.me is shared.
-  Render it with the command in projects/resume/README.md. Colors are the dark theme tokens from
+  Render it with yarn brand, which also writes brand/mark.svg (see "The mark" in
+  projects/resume/README.md). Colors are the dark theme tokens from
   app/globals.css, written out in full because the picture has one fixed theme.
 -->
 <html lang="en">
@@ -59,7 +60,20 @@
         font-weight: 700;
         color: var(--primary);
         text-shadow: var(--glow);
+      }
+
+      /* The mark beside the name, as tall as the name. brand/mark.svg is written by yarn brand. */
+      .name-row {
+        display: flex;
+        align-items: center;
+        gap: 28px;
         margin-bottom: 40px;
+      }
+
+      .mark {
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
       }
 
       .tagline {
@@ -82,7 +96,10 @@
   </head>
   <body>
     <div class="path">~/kups.me</div>
-    <div class="name">Zack Kuptsow</div>
+    <div class="name-row">
+      <img class="mark" src="../brand/mark.svg" alt="" />
+      <div class="name">Zack Kuptsow</div>
+    </div>
     <div class="tagline"><span class="prompt">$</span> full-stack-software-engineer</div>
     <div class="rule"></div>
   </body>

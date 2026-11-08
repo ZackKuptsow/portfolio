@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "brand": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON brand/generate.mts",
     "build": "next build",
     "check": "yarn lint && yarn format && yarn typecheck",
     "check:fix": "yarn lint:fix && yarn format:fix && yarn typecheck",

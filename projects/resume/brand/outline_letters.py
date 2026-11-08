@@ -4,10 +4,10 @@
 # ///
 """
 Prints the outline of a short run of text as SVG path data, so a mark's letters draw the same
-everywhere, a favicon and a README included, without the font. Run with uv, which installs the
-two pinned packages for this script only:
+everywhere, a favicon and a README included, without the font. Run with uv from projects/resume.
+It installs the two packages for this script only, from the hashes in outline_letters.py.lock:
 
-    uv run brand/outline_letters.py <font file> <text> <size> <centre x> <centre y> <weight>
+    uv run --locked brand/outline_letters.py <font file> <text> <size> <centre x> <centre y> <weight>
 
 The site's fonts are variable, so the outline comes from the instance at the given weight, not
 from the default master. The ink, not the advance, is centered on the given point: a centered
