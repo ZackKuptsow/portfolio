@@ -5,6 +5,7 @@ import PrivacyPolicyPage from '@/app/privacy/page'
 import SmsSignUpPage from '@/app/sms/page'
 import TermsPage from '@/app/terms/page'
 import {
+  GOOGLE_USER_DATA_POLICY_URL,
   SMS_BRAND_NAME,
   SMS_HELP_MESSAGE,
   SMS_MESSAGE_KINDS,
@@ -82,6 +83,16 @@ describe('the privacy policy', () => {
     render(<PrivacyPolicyPage />)
 
     expect(pageText()).toContain('Message frequency varies.')
+  })
+
+  // The household assistant's Google consent screen links this page. Google's user data policy
+  // asks it to say how Google data is used and kept, and to carry the Limited Use statement.
+  it('says what is done with Google data, with the Limited Use statement', () => {
+    render(<PrivacyPolicyPage />)
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Google data' })).toBeTruthy()
+    expect(pageText()).toContain('including the Limited Use requirements')
+    expect(linkTargets()).toContain(GOOGLE_USER_DATA_POLICY_URL)
   })
 })
 
