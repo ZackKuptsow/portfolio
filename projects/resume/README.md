@@ -218,6 +218,11 @@ names: the page titles, the brand on every page, the rates disclosure, the non-s
 statement, the SMS Terms section, and the consent text inside the call to action. The deploy's
 live check requests all three pages.
 
+The household assistant's Google OAuth consent screen links `/privacy.html` and `/terms.html`
+too. Google's API Services User Data Policy asks the privacy policy to say how the assistant
+uses and keeps Google data and to carry the Limited Use statement: that is its "Google data"
+section, which the same test file checks.
+
 ## Search engines
 
 The goal is that a search for "Zack Kuptsow" or "Zachary Kuptsow" finds this page.

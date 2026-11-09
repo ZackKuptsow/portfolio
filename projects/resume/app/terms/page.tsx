@@ -6,7 +6,7 @@ import {
   SMS_MESSAGE_KINDS_PHRASE,
   SMS_OPT_IN_KEYWORD,
   SMS_PAGE_PATHS,
-  SMS_POLICY_LAST_UPDATED,
+  SMS_TERMS_LAST_UPDATED,
   SMS_PROGRAM_DESCRIPTION,
   SMS_PROGRAM_NAME,
   SMS_RATES_DISCLOSURE,
@@ -27,7 +27,7 @@ export const metadata: Metadata = buildSmsProgramPageMetadata({
 /** The terms the campaign links, with the SMS Terms its reviewers look for. */
 export default function TermsPage() {
   return (
-    <SmsProgramPage lastUpdated={SMS_POLICY_LAST_UPDATED} title={PAGE_TITLE}>
+    <SmsProgramPage lastUpdated={SMS_TERMS_LAST_UPDATED} title={PAGE_TITLE}>
       <ProgramSection title="What these cover">
         <p>
           These terms cover {SMS_PROGRAM_NAME}, {SMS_PROGRAM_DESCRIPTION}. By texting{' '}

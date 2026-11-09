@@ -34,8 +34,12 @@ export const SMS_PAGE_PATHS = {
   terms: '/terms.html',
 } as const
 
-/** Shown at the top of the privacy policy and the terms. */
-export const SMS_POLICY_LAST_UPDATED = 'October 21, 2026'
+/**
+ * Shown at the top of each page. Each policy says a change is posted with a new date, so each
+ * keeps its own.
+ */
+export const SMS_PRIVACY_LAST_UPDATED = 'November 9, 2026'
+export const SMS_TERMS_LAST_UPDATED = 'October 21, 2026'
 
 /** Every kind of message the assistant sends, as the consent text and the terms list them. */
 export const SMS_MESSAGE_KINDS = [
@@ -66,3 +70,10 @@ export const SMS_HELP_MESSAGE = `${SMS_PROGRAM_NAME}. Help: ${CONTACT_EMAIL}. Ms
 
 /** Twilio's reply to STOP, the last message a member gets until they text the keyword again. */
 export const SMS_OPT_OUT_MESSAGE = `${SMS_PROGRAM_NAME}: you are opted out and will get no more messages. Reply ${SMS_OPT_IN_KEYWORD} to rejoin.`
+
+/**
+ * Google's policy for apps that use its APIs, which the privacy policy's Limited Use statement
+ * names. The assistant's Google consent screen links the privacy policy and the terms.
+ */
+export const GOOGLE_USER_DATA_POLICY_URL =
+  'https://developers.google.com/terms/api-services-user-data-policy'

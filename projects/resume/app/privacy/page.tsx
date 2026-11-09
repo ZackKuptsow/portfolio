@@ -2,12 +2,13 @@ import { buildSmsProgramPageMetadata } from '@/components/SmsProgram/buildSmsPro
 import ProgramSection from '@/components/SmsProgram/ProgramSection'
 import SmsProgramPage from '@/components/SmsProgram/SmsProgramPage'
 import {
+  GOOGLE_USER_DATA_POLICY_URL,
   SMS_BRAND_NAME,
   SMS_MESSAGE_FREQUENCY,
   SMS_NON_SHARING_STATEMENT,
   SMS_OPT_IN_KEYWORD,
   SMS_PAGE_PATHS,
-  SMS_POLICY_LAST_UPDATED,
+  SMS_PRIVACY_LAST_UPDATED,
   SMS_PROGRAM_DESCRIPTION,
   SMS_PROGRAM_NAME,
   SMS_RATES_DISCLOSURE,
@@ -28,7 +29,7 @@ export const metadata: Metadata = buildSmsProgramPageMetadata({
 /** The privacy policy the campaign links. */
 export default function PrivacyPolicyPage() {
   return (
-    <SmsProgramPage lastUpdated={SMS_POLICY_LAST_UPDATED} title={PAGE_TITLE}>
+    <SmsProgramPage lastUpdated={SMS_PRIVACY_LAST_UPDATED} title={PAGE_TITLE}>
       <ProgramSection title="What this covers">
         <p>
           This policy covers {SMS_PROGRAM_NAME}, {SMS_PROGRAM_DESCRIPTION}, and its{' '}
@@ -63,6 +64,33 @@ export default function PrivacyPolicyPage() {
           Messages are carried by Twilio, the messaging provider, and handled by software in an
           Amazon Web Services account that {SMS_BRAND_NAME} controls. Each handles your information
           only to deliver and answer messages.
+        </p>
+      </ProgramSection>
+
+      <ProgramSection title="Google data">
+        <p>
+          With the permission of the household&apos;s shared Google account, the assistant reads
+          that account&apos;s Google Calendar to answer a question such as &quot;what is on
+          today&quot;. It reads the events of the day asked about, at the time it is asked, and
+          keeps no copy of them. The permission also allows adding events, which a later version may
+          do when a member of the household asks it to.
+        </p>
+        <p>
+          One time only, it copies the titles of the account&apos;s open Google Tasks to its own
+          list of to-dos, under a separate permission that is withdrawn as soon as the copy is made.
+          Their notes and due dates are not copied.
+        </p>
+        <p>
+          The token Google issues for this access is kept encrypted in the Amazon Web Services
+          account that {SMS_BRAND_NAME} controls, and is used for nothing else. Google data is never
+          sold, used for advertising or used to train AI models, and is shared only as far as
+          delivering a reply to the household&apos;s phones requires.
+        </p>
+        <p>
+          The assistant&apos;s use and transfer of information received from Google APIs adheres to
+          the <a href={GOOGLE_USER_DATA_POLICY_URL}>Google API Services User Data Policy</a>,
+          including the Limited Use requirements. The permission can be withdrawn at any time from
+          the Google Account&apos;s &quot;Third-party apps &amp; services&quot; page.
         </p>
       </ProgramSection>
 
