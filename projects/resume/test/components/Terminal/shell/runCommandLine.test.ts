@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { listPromptLines } from '@/components/Terminal/buildCommand'
 import { buildSections, buildSteps } from '@/components/Terminal/buildSections'
+import { widestRow } from '@/components/Terminal/shell/eggCommands'
 import { buildFileSystem } from '@/components/Terminal/shell/fakeFileSystem'
 import { runCommandLine } from '@/components/Terminal/shell/runCommandLine'
 import type { RunResult, ShellContext, ShellState } from '@/components/Terminal/shell/types'
@@ -18,6 +20,9 @@ const context: ShellContext = {
   now: () => new Date(2026, 10, 6, 14, 42, 7),
   root: buildFileSystem(sections, []),
 }
+
+// One column narrower than the active mark's drawing, whichever mark that is.
+const NARROW_COLUMNS = widestRow(MARKS[ACTIVE_MARK].drawing) - 1
 
 function textOf(line: OutputLine): string {
   return line.map((segment) => segment.text).join('')
@@ -106,6 +111,22 @@ describe('runCommandLine', () => {
         ),
       ),
     ).toBe('TypeScript / JavaScript (Node/Express)')
+  })
+
+  it('cats logo.txt as the mark drawing, with no lines under it', () => {
+    const [outcome] = runCommandLine('cat logo.txt', state, context).outcomes
+
+    expect(outcome.art).toEqual(MARKS[ACTIVE_MARK].drawing)
+    expect(outcome.lines).toEqual([])
+    expect(outcome.exitStatus).toBe(0)
+  })
+
+  it('says logo.txt does not fit, the way a drawing egg does, in a window too narrow for it', () => {
+    const narrow = { ...context, columns: NARROW_COLUMNS }
+    const [outcome] = runCommandLine('cat logo.txt', state, narrow).outcomes
+
+    expect(outcome.art).toBeUndefined()
+    expect(outcome.lines.map(textOf)).toEqual(['logo.txt: window too narrow'])
   })
 
   it('prints pwd, whoami, echo with its variables, which, and history', () => {

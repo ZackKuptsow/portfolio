@@ -31,4 +31,29 @@ describe('buildResumeEmail', () => {
 			expect(content).not.toMatch(/\{\{|TODO/);
 		}
 	});
+
+	it('shows the kups.me mark beside the sign-off, as decoration that keeps its size when images are blocked', () => {
+		const { html } = buildResumeEmail();
+
+		const image = '<img src="https://kups.me/email-mark.png" width="36" height="36" alt=""';
+		expect(html).toContain(image);
+		expect(html.indexOf(image)).toBeLessThan(html.indexOf('Best,'));
+	});
+
+	it('keeps the plain-text body exactly as it was, with no picture in it', () => {
+		expect(buildResumeEmail().text).toBe(
+			[
+				'Thank you for your interest.',
+				'',
+				'My resume is attached to this email.',
+				'',
+				'Happy to chat any time! Feel free to respond to this email.',
+				'',
+				'Best,',
+				'Zack',
+				'zkups56@gmail.com',
+				'(856) 685-9908'
+			].join('\n')
+		);
+	});
 });

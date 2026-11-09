@@ -9,7 +9,7 @@ describe('siteMetadata', () => {
   })
 
   it('titles the page with the name people search for', () => {
-    expect(siteMetadata.title).toBe('Zack Kuptsow | Full-Stack Software Engineer')
+    expect(siteMetadata.title).toBe('Zack Kuptsow | Full Stack Software Engineer')
   })
 
   it('shares as the profile of a person, under the formal first and last name', () => {

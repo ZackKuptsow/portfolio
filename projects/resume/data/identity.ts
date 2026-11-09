@@ -18,7 +18,7 @@ export const CONTACT_EMAIL = 'zkups56@gmail.com'
  * The role as the title, the hero and the structured data name it. A range,
  * never a single layer of the stack.
  */
-export const JOB_TITLE = 'Full-Stack Software Engineer'
+export const JOB_TITLE = 'Full Stack Software Engineer'
 
 /** The location, split into the parts structured data asks for. */
 export const LOCATION = {
@@ -61,7 +61,7 @@ export const PROFILE_LINKS = {
  * Shown under the title in search results. A test keeps it to 160 characters,
  * a common length for results to cut a description off at.
  */
-export const SITE_DESCRIPTION = `${PERSON_NAME} (${PERSON_FORMAL_NAME}) is a full-stack software engineer in ${LOCATION_LABEL} who owns the product surfaces and the infrastructure they run on.`
+export const SITE_DESCRIPTION = `${PERSON_NAME} (${PERSON_FORMAL_NAME}) is a full stack software engineer in ${LOCATION_LABEL} who owns the product surfaces and the infrastructure they run on.`
 
 /** The browser tab and the search result title. */
 export const SITE_TITLE = `${PERSON_NAME} | ${JOB_TITLE}`

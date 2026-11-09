@@ -1,3 +1,4 @@
+import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { toTerminalFileName } from '@/components/terminalFileName'
 import { skillGroups } from '@/data/profile'
 import type { EasterEgg, FilePassword, OutputLine } from '@/data/terminalEasterEggs'
@@ -11,6 +12,8 @@ import type { TerminalSection } from '../types'
 export type FileContent =
   /** A card on the page, cloned from its block. */
   | { blockId: string; kind: 'card' }
+  /** A drawing, printed the way a drawing egg prints. */
+  | { kind: 'drawing'; lines: readonly string[] }
   /** Fixed lines, from the eggs or the approved copy, maybe behind a question. */
   | {
       exitStatus: number
@@ -38,6 +41,8 @@ const PARENT_FOLDER = '..'
 const HIDDEN_PREFIX = '.'
 const PROFILE_FILE = 'developer.profile'
 const RESUME_SCRIPT_FILE = 'get_resume.sh'
+/** Prints the site's mark. The name and the drawing are Zack's picks, 2026-11-07. */
+const LOGO_FILE = 'logo.txt'
 const TEXT_FILE_EXTENSION = '.txt'
 const SKILLS_DIRECTORY = 'skills'
 
@@ -171,7 +176,7 @@ function linesFile(
 
 /**
  * The tree behind the prompt, from the same data as the tour, so a card and its file never
- * disagree: `/`, `/home`, `~`, then `~/portfolio` with the profile, the script, one folder per
+ * disagree: `/`, `/home`, `~`, then `~/portfolio` with the profile, the script, the logo, one folder per
  * section with one file per card, and the skill groups as folders of skills. Egg files are added
  * wherever their path says, folders and all.
  */
@@ -183,6 +188,10 @@ export function buildFileSystem(
   const portfolio = ensureFolder(root, toAbsolutePath(INITIAL_PATH))
   portfolio.entries.set(PROFILE_FILE, cardFile('about-0'))
   portfolio.entries.set(RESUME_SCRIPT_FILE, linesFile(RESUME_SCRIPT_LINES, 0))
+  portfolio.entries.set(LOGO_FILE, {
+    content: { kind: 'drawing', lines: MARKS[ACTIVE_MARK].drawing },
+    kind: 'file',
+  })
 
   for (const section of sections) {
     if (!section.directory) {

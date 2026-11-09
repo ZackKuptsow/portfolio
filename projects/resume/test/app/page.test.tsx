@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Home from '@/app/page'
+import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { education, skillGroups, workExperience } from '@/data/profile'
 import { projects } from '@/data/projects'
 
@@ -63,7 +64,7 @@ describe('Home', () => {
     render(<Home />)
 
     expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual([
-      'Zack Kuptsow · Full-Stack Software Engineer · Philadelphia, PA',
+      'Zack Kuptsow · Full Stack Software Engineer · Philadelphia, PA',
     ])
   })
 
@@ -129,5 +130,27 @@ describe('Home', () => {
 
     expect(promptSymbols).toHaveLength(PROMPT_SYMBOL_COUNT)
     expect(exposed).toEqual([])
+  })
+
+  it('shows the mark in the title bar, after the dots and before the path, as decoration', () => {
+    render(<Home />)
+
+    const marks = document.querySelectorAll('.terminal-title-bar svg')
+    expect(marks).toHaveLength(1)
+    const [mark] = marks
+    expect(mark.getAttribute('aria-hidden')).toBe('true')
+    expect(mark.nextElementSibling?.classList.contains('terminal-title')).toBe(true)
+    const group = mark.parentElement
+    expect(group?.classList.contains('terminal-title-group')).toBe(true)
+    expect(group?.previousElementSibling?.classList.contains('terminal-dots')).toBe(true)
+  })
+
+  it('draws the small cut in the title bar, where the full drawing was too small to read', () => {
+    render(<Home />)
+
+    const paths = [...document.querySelectorAll('.terminal-title-bar svg path')]
+    expect(paths.map((path) => path.getAttribute('d'))).toEqual(
+      MARKS[ACTIVE_MARK].shapes.small.map((shape) => shape.d),
+    )
   })
 })

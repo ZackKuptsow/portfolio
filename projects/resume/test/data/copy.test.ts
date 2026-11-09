@@ -9,6 +9,9 @@ import * as projects from '@/data/projects'
 
 // No em or en dash in anything a visitor reads. See "Content" in the README.
 const EM_OR_EN_DASH = /[–—]/
+// Zack's spelling, from his writing voice notes, 2026-10-01: "full stack" is two words. A slug
+// such as `full-stack-engineer` joins every word with a hyphen, so it is not this.
+const HYPHENATED_FULL_STACK = /\bfull-stack\b(?!-)/i
 // Search results commonly cut a description off near this length.
 const SEARCH_SNIPPET_MAX_LENGTH = 160
 const SHARE_IMAGE_ALT_TEXT_PATH = path.resolve(__dirname, '../../app/opengraph-image.alt.txt')
@@ -45,6 +48,17 @@ describe('resume content', () => {
     ]
 
     expect(visibleStrings.filter((text) => EM_OR_EN_DASH.test(text))).toEqual([])
+  })
+
+  it('spells full stack as two words, the way Zack writes it, even before a noun', () => {
+    const visibleStrings = [
+      ...collectStrings({ ...identity }),
+      ...collectStrings({ ...profile }),
+      ...collectStrings({ ...projects }),
+      readFileSync(SHARE_IMAGE_ALT_TEXT_PATH, 'utf8'),
+    ]
+
+    expect(visibleStrings.filter((text) => HYPHENATED_FULL_STACK.test(text))).toEqual([])
   })
 
   // The counts below anchor the check above: a list that came back empty or
@@ -104,7 +118,7 @@ describe('share image alt text', () => {
 
   it('has no line break or stray space at either end, because Next copies the file into the page as it is', () => {
     expect(altText).toBe(altText.trim())
-    expect(altText).toBe('Zack Kuptsow, full-stack software engineer. kups.me')
+    expect(altText).toBe('Zack Kuptsow, full stack software engineer. kups.me')
   })
 
   it('has no em or en dash', () => {

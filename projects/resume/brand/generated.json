@@ -1,0 +1,12 @@
+{
+  "files": {
+    "app/apple-icon.png": "0fbade33e442d081f8c9ce31329b42dc8c88674e1605c3c2e8a5ced4dd1bc2ab",
+    "public/email-mark.png": "da6b7d0d48792743eb93a75e31879b83a8169b5de1caa869042b3f1e45e3aa22",
+    "app/favicon.ico": "812f86c8ab81ab629a99fe39bfb35c74c098813df28d930afd624ff8f534f216",
+    "brand/github-picture.png": "f0172c1749aa33e06311ac90187bc014645a87e37d2c252ba0b06da447a8f899",
+    "brand/mark.svg": "7c9c2ed93e5d92089fef8ad133190fc31f1c0fa0ccac30250d170a7e356c70c6",
+    "app/opengraph-image.png": "c9312ab4156d0d7add73e3359aded83a391f12a5cb5619b15e33e99892029b43"
+  },
+  "mark": "bracket-cup",
+  "markHash": "fdbba8cdd7ce1be3c6f6d63641a69cbacd45936a25358b0fd00c1b19521775bd"
+}

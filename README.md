@@ -1,4 +1,4 @@
-# kups.me
+# <img src="projects/resume/brand/mark.svg" alt="" width="30" height="30"> kups.me
 
 **My portfolio, built as a terminal you scroll.** Live at [kups.me](https://kups.me).
 
