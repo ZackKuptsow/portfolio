@@ -5,7 +5,7 @@ import {
   MARK_TILE_CORNER_RADIUS,
 } from './marks.ts'
 
-import type { Mark, MarkShape } from './marks.ts'
+import type { Mark, MarkCut, MarkShape } from './marks.ts'
 
 /**
  * Rounded is the mark as drawn. Square is for places that crop or round it themselves: a phone's
@@ -23,10 +23,10 @@ function shapeElement(shape: MarkShape): string {
   return `<path d="${shape.d}" stroke="${MARK_INK_COLOR}" stroke-width="${shape.width}" stroke-linejoin="round" fill="none"${lineCap}/>`
 }
 
-/** A standalone SVG document of the mark on its tile, with no live text in it. */
-export function toMarkSvg(mark: Mark, tileShape: TileShape): string {
+/** A standalone SVG document of one cut of a mark on its tile, with no live text in it. */
+export function toMarkSvg(shapes: Mark['shapes'][MarkCut], tileShape: TileShape): string {
   const corner = tileShape === 'rounded' ? ` rx="${MARK_TILE_CORNER_RADIUS}"` : ''
   const tile = `<rect width="${MARK_GRID_SIZE}" height="${MARK_GRID_SIZE}"${corner} fill="${MARK_TILE_COLOR}"/>`
   const viewBox = `0 0 ${MARK_GRID_SIZE} ${MARK_GRID_SIZE}`
-  return `<svg xmlns="${SVG_NAMESPACE}" viewBox="${viewBox}">${tile}${mark.shapes.map(shapeElement).join('')}</svg>\n`
+  return `<svg xmlns="${SVG_NAMESPACE}" viewBox="${viewBox}">${tile}${shapes.map(shapeElement).join('')}</svg>\n`
 }

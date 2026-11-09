@@ -71,19 +71,20 @@ html:not(.dark) .terminal-root {
 /* In points, like the dots: it is a drawing, and keeps its own near-black tile in both themes. */
 .terminal-title-mark {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
   margin-left: 0.5rem;
 }
 
 /*
  * The mark gives way before the path does. The longest path the tour shows,
- * `~/portfolio/work_experience`, is 27 characters, and with the mark and the two margins it needs
- * about 33. In characters of the bar's own text, so large text hides the mark too. Measured with
- * the mark: that path broke across two lines at 320 and 340 wide, and "portfolio" did at 360 with
- * text at twice the size.
+ * `~/portfolio/work_experience`, is 27 characters of 0.45rem, so with the two margins and the
+ * mark it needs 13.15rem and 26 pixels: 236.4 pixels at the default text size, where the group is
+ * 246 wide on a 360 phone. In rem, so large text hides the mark too. Not in ch: Chrome worked that
+ * out in the fallback font, whose character is wider, and kept the answer after JetBrains Mono
+ * arrived, so the mark stayed hidden on phones up to about 410 wide for the whole visit.
  */
-@container (max-width: 33ch) {
+@container (max-width: 15rem) {
   .terminal-title-mark {
     display: none;
   }

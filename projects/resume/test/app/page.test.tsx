@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Home from '@/app/page'
+import { ACTIVE_MARK, MARKS } from '@/brand/marks'
 import { education, skillGroups, workExperience } from '@/data/profile'
 import { projects } from '@/data/projects'
 
@@ -142,5 +143,14 @@ describe('Home', () => {
     const group = mark.parentElement
     expect(group?.classList.contains('terminal-title-group')).toBe(true)
     expect(group?.previousElementSibling?.classList.contains('terminal-dots')).toBe(true)
+  })
+
+  it('draws the small cut in the title bar, where the full drawing was too small to read', () => {
+    render(<Home />)
+
+    const paths = [...document.querySelectorAll('.terminal-title-bar svg path')]
+    expect(paths.map((path) => path.getAttribute('d'))).toEqual(
+      MARKS[ACTIVE_MARK].shapes.small.map((shape) => shape.d),
+    )
   })
 })

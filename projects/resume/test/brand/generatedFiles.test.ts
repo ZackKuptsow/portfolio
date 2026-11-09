@@ -65,7 +65,7 @@ describe('the generated mark files', () => {
 
   it('include the mark as an SVG with outlined letters, for the README and the share image', () => {
     expect(readProjectFile(GENERATED_FILES.markSvg).toString('utf8')).toBe(
-      toMarkSvg(MARKS[ACTIVE_MARK], 'rounded'),
+      toMarkSvg(MARKS[ACTIVE_MARK].shapes.full, 'rounded'),
     )
   })
 

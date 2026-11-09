@@ -60,7 +60,10 @@ The answers come from the short form, 2026-11-04, and the conversation that chos
     ever change my mind." It is in the tab, the phone icon, the share image, the GitHub picture,
     the repository README, the title bar, `cat logo.txt`, the 404 page and the resume email. The
     Terminal mug and the zk monogram are kept in `brand/marks.ts`, one word away (see "The mark"
-    in the README).
+    in the README). On 2026-11-09, of the tab and the title bar: "the logo looks quite small and
+    almost unreadable. Is there a way to make the initials more clear?" Those two now show a small
+    cut, with thicker brackets, shorter arms and bigger, bolder letters, and the title bar shows it
+    at 26 points.
 
 Words that stay as they are (from `data/profile.ts` and issue #7): job highlights, skills and the
 bio are copied from the public resume. A design change alters how they are shown, never what they
@@ -193,8 +196,8 @@ project, as `components/ProjectDemo/` does today.
 - Title bar: three dots, the mark, the path (`zack@kups:` before it, hidden on phones), then plain
   view and the hamburger. Plain view moves into the menu on phones. The mark gives way before the
   path wraps: it hides when the bar cannot hold it and the longest tour path,
-  `~/portfolio/work_experience`, on one line, which is below 33 characters of the bar's text (340
-  points wide and under, or text much larger than the default).
+  `~/portfolio/work_experience`, on one line, which is below 15rem, a width that grows with the
+  text size (under 355 points wide, or text much larger than the default).
 - Hamburger at the far right on every width, with the drawer opening from the right. Choosing a
   section closes the drawer and types that section's command.
 - The menu holds the sections, plain view and the theme switch, then whatever the footer could not
@@ -479,8 +482,8 @@ Each with its states. The browser's own controls, with a visible focus: 2 points
 3, and in dark a `0 0 12px` glow (from app/globals.css).
 
 - **Title bar:** dots, mark, path, plain view, hamburger, on `card`. Hover: edge and text go
-  `primary`. The mark is the active one from `brand/marks.ts`, 18 points, on its own near-black
-  tile in both themes, and decoration (`aria-hidden`).
+  `primary`. The mark is the active one from `brand/marks.ts`, its small cut at 26 points, on its
+  own near-black tile in both themes, and decoration (`aria-hidden`).
   Focus: ring. Disabled and error: not applicable.
 - **Prompt:** path, `$`, typed command and a block cursor, on `card`, pinned above the footer. The
   cursor blinks at rest and holds still while a command runs. Not a control.

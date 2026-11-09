@@ -2,22 +2,34 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { ACTIVE_MARK, MARKS } from '@/brand/marks'
+import type { MarkCut } from '@/brand/marks'
 import { BrandMark } from '@/components/BrandMark'
+
+const CUTS: MarkCut[] = ['full', 'small']
+
+function drawnPaths(container: HTMLElement): (string | null)[] {
+  return [...container.querySelectorAll('svg path')].map((path) => path.getAttribute('d'))
+}
 
 describe('BrandMark', () => {
   it('draws the active mark on its rounded tile, with no live text', () => {
-    const { container } = render(<BrandMark />)
+    const { container } = render(<BrandMark cut="full" />)
 
     const svg = container.querySelector('svg')
     expect(svg).not.toBeNull()
     expect(svg?.getAttribute('viewBox')).toBe('0 0 64 64')
     expect(svg?.querySelector('rect')?.getAttribute('rx')).toBe('14')
-    expect(svg?.querySelectorAll('path')).toHaveLength(MARKS[ACTIVE_MARK].shapes.length)
     expect(svg?.querySelector('text')).toBeNull()
   })
 
+  it.each(CUTS)('draws the active mark as its %s cut', (cut) => {
+    const { container } = render(<BrandMark cut={cut} />)
+
+    expect(drawnPaths(container)).toEqual(MARKS[ACTIVE_MARK].shapes[cut].map((shape) => shape.d))
+  })
+
   it('is decoration, hidden from assistive technology and from the tab order', () => {
-    const { container } = render(<BrandMark />)
+    const { container } = render(<BrandMark cut="small" />)
 
     const svg = container.querySelector('svg')
     expect(svg?.getAttribute('aria-hidden')).toBe('true')
@@ -25,7 +37,7 @@ describe('BrandMark', () => {
   })
 
   it('passes its class name to the svg', () => {
-    const { container } = render(<BrandMark className="somewhere" />)
+    const { container } = render(<BrandMark className="somewhere" cut="full" />)
 
     expect(container.querySelector('svg')?.getAttribute('class')).toBe('somewhere')
   })

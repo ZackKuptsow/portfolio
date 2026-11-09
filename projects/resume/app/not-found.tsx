@@ -19,7 +19,7 @@ export default function NotFound() {
   return (
     <div className="custom-gradient flex min-h-screen flex-col items-center justify-center gap-2 font-mono">
       <ThemeToggle />
-      <BrandMark className="h-12 w-12" />
+      <BrandMark className="h-12 w-12" cut="full" />
       <h1 className="text-2xl font-bold text-primary">{STATUS}</h1>
       <p className="text-sm text-muted-foreground">{MESSAGE}</p>
     </div>

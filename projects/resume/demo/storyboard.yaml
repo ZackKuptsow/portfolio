@@ -18,15 +18,15 @@ notes: |
   It ends on one typed egg. Zack, 2026-11-07: "Re-record and show one easter egg that is subtle
   like the "logout" one". `logout` prints one line and changes nothing, and the newline in the
   typed text is the Enter key.
-  Measured 2026-11-07: a 25 second clip, and a 2.4 MB GIF at 12 frames a second.
-  The committed GIF was recorded headless, from a copy of the skill's scripts with two lines
-  changed: `headless: false` to true in capture_web_driver.mjs, and, in web_storyboard.py, the
-  typing check reading `text.removesuffix("\n")`, so one final Enter is allowed. The skill refuses
-  any control character in typed text, because Enter and Tab can submit a form, so run as is it
-  rejects this storyboard. Here Enter goes to the page, not into a form. The skill's own driver
-  runs headed, and there the recording started about 2 seconds late, so the opening hold on the
-  hero was gone, and the glow cursor showed over the hero. A copy of the scripts needs `lib/` from
-  the dotfiles two levels above `hermes/`.
+  Measured 2026-11-09: a 25 second clip, and a 2.4 MB GIF at 12 frames a second.
+  The skill accepts Enter in typed text, and refuses it only into a form, where it would submit.
+  Here Enter goes to the page. The committed GIF was recorded headless, from a copy of the skill's
+  scripts with one line changed: `headless: false` to true in capture_web_driver.mjs. The skill's
+  own driver runs headed, and there the recording started about 2 seconds late, so the opening
+  hold on the hero was gone, and the glow cursor showed over the hero. A copy of the scripts needs
+  `lib/` from the dotfiles two levels above `hermes/`.
+  Look at the last frame of each take: on 2026-11-09 one ended with the top of a row of the next
+  card showing under the egg's line, and the next take was clean.
 scenes:
   - name: terminal
     path: /

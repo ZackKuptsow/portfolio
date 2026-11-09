@@ -101,15 +101,17 @@ function writeProjectFile(relativePath: string, contents: Uint8Array | string): 
 
 async function main(): Promise<void> {
   const mark = MARKS[ACTIVE_MARK]
-  const roundedSvg = toMarkSvg(mark, 'rounded')
-  const squareSvg = toMarkSvg(mark, 'square')
+  const roundedSvg = toMarkSvg(mark.shapes.full, 'rounded')
+  const squareSvg = toMarkSvg(mark.shapes.full, 'square')
+  // The tab shows the favicon at 16 to 32 pixels, where only the small cut's letters read.
+  const faviconSvg = toMarkSvg(mark.shapes.small, 'rounded')
   writeProjectFile(GENERATED_FILES.markSvg, roundedSvg)
 
   const browser = await chromium.launch({ channel: 'chrome' })
   try {
     const faviconImages = []
     for (const pixels of FAVICON_SIZES) {
-      faviconImages.push({ pixels, png: await renderSvg(browser, roundedSvg, pixels) })
+      faviconImages.push({ pixels, png: await renderSvg(browser, faviconSvg, pixels) })
     }
     writeProjectFile(GENERATED_FILES.favicon, packIco(faviconImages))
     writeProjectFile(

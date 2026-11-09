@@ -305,25 +305,33 @@ green on a near-black tile in both themes. `brand/marks.ts` holds it, and the tw
 on file, the Terminal mug and the zk monogram, as data: each one's shapes on a 64 by 64 grid and
 the drawing `cat logo.txt` prints. `ACTIVE_MARK` names the one every place shows.
 
+Each mark has two cuts. `full` is the drawing. `small` is for the browser tab and the title bar,
+where the mark is 16 to 26 pixels: there the full drawing's letters were about 4 pixels tall, and
+Zack called them "almost unreadable". The Bracket cup's small cut, which he picked on 2026-11-09,
+has thicker brackets with shorter arms and a smaller handle, so its letters can be about a quarter
+taller, at the font's heaviest weight. The two marks on file draw the same in both cuts.
+
 | Place                  | From                                                                                       |
 | ---------------------- | ------------------------------------------------------------------------------------------ |
-| Browser tab            | `app/favicon.ico`, at 16, 32 and 48 pixels                                                 |
+| Browser tab            | `app/favicon.ico`, the small cut at 16, 32 and 48 pixels                                   |
 | Phone home screen      | `app/apple-icon.png`, square, because iOS rounds the corners itself                        |
 | Share image            | `app/opengraph-image.png`, from `share-image/opengraph-image.html`, which shows `mark.svg` |
 | GitHub profile picture | `brand/github-picture.png`, uploaded by hand, because GitHub has no API for it             |
 | The repository README  | `brand/mark.svg`                                                                           |
-| Title bar and 404 page | `components/BrandMark/`, drawn inline and `aria-hidden`                                    |
+| Title bar              | `components/BrandMark/`, the small cut at 26 pixels, drawn inline and `aria-hidden`        |
+| 404 page               | `components/BrandMark/`, the full drawing, drawn inline and `aria-hidden`                  |
 | `cat logo.txt`         | The active mark's drawing, a file in `~/portfolio` (`shell/fakeFileSystem.ts`)             |
 | Resume email           | `public/email-mark.png`, which send_resume's `email_content.ts` links to on kups.me        |
 
 The letters are outlines, never live text, so the favicon, the README and the email draw them
 without the font. `brand/outline_letters.py` writes them from `app/fonts/jetbrains-mono/latin.woff2`
-at weight 700, with the letters' ink, not their spacing, centered on the point given. It runs with
-uv, which installs its two packages for that script alone, from the hashes in
-`outline_letters.py.lock`:
+at the weight given, with the letters' ink, not their spacing, centered on the point given. It runs
+with uv, which installs its two packages for that script alone, from the hashes in
+`outline_letters.py.lock`. The Bracket cup's full drawing, then its small cut:
 
 ```bash
 uv run --locked brand/outline_letters.py app/fonts/jetbrains-mono/latin.woff2 zk 19 30 32.5 700
+uv run --locked brand/outline_letters.py app/fonts/jetbrains-mono/latin.woff2 zk 24 26.75 32 800
 ```
 
 To switch marks:
@@ -343,7 +351,8 @@ To switch marks:
 from this one as it was drawn before, so step 2 cannot be skipped by accident. It checks that the
 files are the ones the generator wrote, not that they look right: look at each one after a run,
 the small ones enlarged. The Terminal mug's and the zk monogram's drawings were shown to Zack when
-he picked the Bracket cup's, so a switch shows him its drawing again before it ships.
+he picked the Bracket cup's, so a switch shows him its drawing again before it ships, in the tab
+too, since neither has a small cut of its own.
 
 ## Checks that need a build
 
@@ -429,10 +438,9 @@ ffmpeg -i <directory>/terminal.webm -filter_complex "fps=12,scale=800:-1:flags=l
 ```
 
 `--repository` is there because the script launches Playwright's own Chromium, and this project has
-none: its browser checks use the installed Chrome. Since the clip types `logout`, the skill's
-scripts as they are refuse the storyboard, because they allow no Enter in typed text. The committed
-GIF came from a copy with that check and one other line changed, which `notes` in the storyboard
-spell out.
+none: its browser checks use the installed Chrome. The skill's driver runs headed, which started
+the recording late, so the committed GIF came from a copy of its scripts set to run headless, as
+`notes` in the storyboard spell out. Look at the last frame of each take before keeping it.
 
 ## Commands
 

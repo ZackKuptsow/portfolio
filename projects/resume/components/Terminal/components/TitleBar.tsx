@@ -43,7 +43,7 @@ export function TitleBar({
         <span />
       </div>
       <div className="terminal-title-group">
-        <BrandMark className="terminal-title-mark" />
+        <BrandMark className="terminal-title-mark" cut="small" />
         <div aria-hidden="true" className="terminal-title">
           <span className="terminal-title-user">{TITLE_BAR_USER} </span>
           {path}
