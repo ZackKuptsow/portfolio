@@ -5,7 +5,6 @@ import type { Mark, MarkName } from './marks.ts'
 /** Every file `yarn brand` writes, relative to `projects/resume`. */
 export const GENERATED_FILES = {
   appleIcon: 'app/apple-icon.png',
-  emailMark: 'public/email-mark.png',
   favicon: 'app/favicon.ico',
   gitHubPicture: 'brand/github-picture.png',
   markSvg: 'brand/mark.svg',

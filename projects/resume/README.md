@@ -326,7 +326,6 @@ taller, at the font's heaviest weight. The two marks on file draw the same in bo
 | Title bar              | `components/BrandMark/`, the small cut at 26 pixels, drawn inline and `aria-hidden`        |
 | 404 page               | `components/BrandMark/`, the full drawing, drawn inline and `aria-hidden`                  |
 | `cat logo.txt`         | The active mark's drawing, a file in `~/portfolio` (`shell/fakeFileSystem.ts`)             |
-| Resume email           | None: Zack took it out on 2026-11-16. `yarn brand` still makes `public/email-mark.png`     |
 
 The letters are outlines, never live text, so the favicon and the README draw them
 without the font. `brand/outline_letters.py` writes them from `app/fonts/jetbrains-mono/latin.woff2`
@@ -349,8 +348,7 @@ To switch marks:
 3. Record the GIF again (see "The GIF in the repository's README"), because it films the title bar.
 4. Rename the mark where the docs name it: this section, "The mark" in `DESIGN.md`'s Brand
    section, and the line in the repository's `CLAUDE.md`.
-5. Deploy the site, then send_resume, so the email never links to a picture the site does not
-   serve yet. Upload the new GitHub picture by hand.
+5. Deploy the site. Upload the new GitHub picture by hand.
 
 `test/brand/generatedFiles.test.ts` fails when the committed files were made from another mark, or
 from this one as it was drawn before, so step 2 cannot be skipped by accident. It checks that the

@@ -24,7 +24,6 @@ const ICO_COUNT_OFFSET = 4
 // The sizes the design sets for each file, written out here so a changed size fails by name.
 const PNG_SIZES: Record<string, { height: number; width: number }> = {
   [GENERATED_FILES.appleIcon]: { height: 180, width: 180 },
-  [GENERATED_FILES.emailMark]: { height: 72, width: 72 },
   [GENERATED_FILES.gitHubPicture]: { height: 1024, width: 1024 },
   [GENERATED_FILES.shareImage]: { height: 630, width: 1200 },
 }

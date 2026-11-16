@@ -58,8 +58,10 @@ The answers come from the short form, 2026-11-04, and the conversation that chos
     Placed, then: "Now that I am seeing it I want unity. I want to go with Bracket Cup. Please make
     sure the "zk" is centered between the brackets. I want to keep the other two on file for if I
     ever change my mind." It is in the tab, the phone icon, the share image, the GitHub picture,
-    the repository README, the title bar, `cat logo.txt`, the 404 page and the resume email. The
-    Terminal mug and the zk monogram are kept in `brand/marks.ts`, one word away (see "The mark"
+    the repository README, the title bar, `cat logo.txt` and the 404 page. It was in the resume
+    email's signature too, until 2026-11-16: "I don't love that actually. We can remove that logo
+    from the signature".
+    The Terminal mug and the zk monogram are kept in `brand/marks.ts`, one word away (see "The mark"
     in the README). On 2026-11-09, of the tab and the title bar: "the logo looks quite small and
     almost unreadable. Is there a way to make the initials more clear?" Those two now show a small
     cut, with thicker brackets, shorter arms and bigger, bolder letters, and the title bar shows it
