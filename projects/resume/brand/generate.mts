@@ -30,7 +30,6 @@ const SHARE_IMAGE_SIZE = { height: 630, width: 1200 }
 const SHARE_IMAGE_FONT_FAMILY = 'JetBrains Mono'
 const FAVICON_SIZES = [16, 32, 48]
 const APPLE_ICON_PIXELS = 180
-const EMAIL_MARK_PIXELS = 72
 const GITHUB_PICTURE_PIXELS = 1024
 const JSON_INDENT = 2
 
@@ -121,10 +120,6 @@ async function main(): Promise<void> {
     writeProjectFile(
       GENERATED_FILES.gitHubPicture,
       await renderSvg(browser, squareSvg, GITHUB_PICTURE_PIXELS),
-    )
-    writeProjectFile(
-      GENERATED_FILES.emailMark,
-      await renderSvg(browser, roundedSvg, EMAIL_MARK_PIXELS),
     )
     writeProjectFile(GENERATED_FILES.shareImage, await renderShareImage(browser))
   } finally {
