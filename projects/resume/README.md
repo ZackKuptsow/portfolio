@@ -326,9 +326,9 @@ taller, at the font's heaviest weight. The two marks on file draw the same in bo
 | Title bar              | `components/BrandMark/`, the small cut at 26 pixels, drawn inline and `aria-hidden`        |
 | 404 page               | `components/BrandMark/`, the full drawing, drawn inline and `aria-hidden`                  |
 | `cat logo.txt`         | The active mark's drawing, a file in `~/portfolio` (`shell/fakeFileSystem.ts`)             |
-| Resume email           | `public/email-mark.png`, which send_resume's `email_content.ts` links to on kups.me        |
+| Resume email           | None: Zack took it out on 2026-11-16. `yarn brand` still makes `public/email-mark.png`     |
 
-The letters are outlines, never live text, so the favicon, the README and the email draw them
+The letters are outlines, never live text, so the favicon and the README draw them
 without the font. `brand/outline_letters.py` writes them from `app/fonts/jetbrains-mono/latin.woff2`
 at the weight given, with the letters' ink, not their spacing, centered on the point given. It runs
 with uv, which installs its two packages for that script alone, from the hashes in

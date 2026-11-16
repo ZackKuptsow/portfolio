@@ -32,12 +32,11 @@ describe('buildResumeEmail', () => {
 		}
 	});
 
-	it('shows the kups.me mark beside the sign-off, as decoration that keeps its size when images are blocked', () => {
+	it('signs off in a plain paragraph, with no picture beside it', () => {
 		const { html } = buildResumeEmail();
 
-		const image = '<img src="https://kups.me/email-mark.png" width="36" height="36" alt=""';
-		expect(html).toContain(image);
-		expect(html.indexOf(image)).toBeLessThan(html.indexOf('Best,'));
+		expect(html).toContain('<p>Best,<br />Zack<br />zkups56@gmail.com<br />(856) 685-9908</p>');
+		expect(html).not.toContain('<img');
 	});
 
 	it('keeps the plain-text body exactly as it was, with no picture in it', () => {
